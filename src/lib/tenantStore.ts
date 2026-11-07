@@ -6,6 +6,7 @@ import type {
   TenantRow,
   AnalyticsEventRow,
   AnalyticsEventType,
+  TenantLink,
 } from "@/types/database.types";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { hashToken } from "@/lib/editAuth";
@@ -74,7 +75,7 @@ const baseRow = (): Pick<
   TenantRow,
   | "owner_id" | "custom_domain" | "edit_token_hash" | "payer_email"
   | "mp_preapproval_id" | "meta_pixel_id" | "google_tag_id" | "images"
-  | "faq" | "testimonials" | "offer_text" | "google_reviews_url"
+  | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links"
 > => ({
   owner_id: null,
   custom_domain: null,
@@ -88,6 +89,7 @@ const baseRow = (): Pick<
   testimonials: [],
   offer_text: null,
   google_reviews_url: null,
+  links: [],
 });
 
 const DEMO_TENANT: TenantRow = {
@@ -421,6 +423,14 @@ export async function updateTenantExtras(
   extras: TenantExtras
 ): Promise<TenantRow | null> {
   return patchTenant(id, extras);
+}
+
+/** Página de links (edição pelo dono já autenticado). */
+export async function updateTenantLinks(
+  id: string,
+  links: TenantLink[]
+): Promise<TenantRow | null> {
+  return patchTenant(id, { links });
 }
 
 export async function setPayerAndPreapproval(

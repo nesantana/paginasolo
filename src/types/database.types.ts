@@ -21,6 +21,15 @@ export type TenantServiceItem = {
 
 export type TenantFaqItem = { q: string; a: string };
 export type TenantTestimonial = { name: string; text: string };
+export type TenantLink = { label: string; url: string };
+
+export type QuoteStatus = "draft" | "sent" | "viewed" | "accepted" | "declined";
+export type QuoteItem = {
+  title: string;
+  qty: number;
+  /** preço unitário em centavos (0 = a combinar) */
+  price_cents: number;
+};
 
 export type Database = {
   public: {
@@ -67,6 +76,7 @@ export type Database = {
           testimonials: TenantTestimonial[];
           offer_text: string | null;
           google_reviews_url: string | null;
+          links: TenantLink[];
           logo_url: string | null;
           is_active: boolean;
           subscription_status: string;
@@ -99,6 +109,7 @@ export type Database = {
           testimonials?: TenantTestimonial[];
           offer_text?: string | null;
           google_reviews_url?: string | null;
+          links?: TenantLink[];
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;
@@ -131,6 +142,7 @@ export type Database = {
           testimonials?: TenantTestimonial[];
           offer_text?: string | null;
           google_reviews_url?: string | null;
+          links?: TenantLink[];
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;
@@ -141,6 +153,65 @@ export type Database = {
           google_tag_id?: string | null;
           published_at?: string | null;
           created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      quotes: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string;
+          customer_name: string;
+          customer_phone: string;
+          items: QuoteItem[];
+          notes: string | null;
+          valid_until: string | null;
+          total_cents: number;
+          status: QuoteStatus;
+          sent_at: string | null;
+          viewed_at: string | null;
+          decided_at: string | null;
+          followup_at: string | null;
+          followup_done_at: string | null;
+          followup_note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code: string;
+          customer_name: string;
+          customer_phone: string;
+          items?: QuoteItem[];
+          notes?: string | null;
+          valid_until?: string | null;
+          total_cents?: number;
+          status?: QuoteStatus;
+          sent_at?: string | null;
+          viewed_at?: string | null;
+          decided_at?: string | null;
+          followup_at?: string | null;
+          followup_done_at?: string | null;
+          followup_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          customer_name?: string;
+          customer_phone?: string;
+          items?: QuoteItem[];
+          notes?: string | null;
+          valid_until?: string | null;
+          total_cents?: number;
+          status?: QuoteStatus;
+          sent_at?: string | null;
+          viewed_at?: string | null;
+          decided_at?: string | null;
+          followup_at?: string | null;
+          followup_done_at?: string | null;
+          followup_note?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -190,5 +261,6 @@ export type Database = {
 
 export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 export type TenantRow = Database["public"]["Tables"]["tenants"]["Row"];
+export type QuoteRow = Database["public"]["Tables"]["quotes"]["Row"];
 export type AnalyticsEventRow =
   Database["public"]["Tables"]["analytics_events"]["Row"];

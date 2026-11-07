@@ -6,7 +6,10 @@ import {
   BarChart3,
   Bell,
   CalendarCheck,
+  CalendarClock,
   Check,
+  FileText,
+  Link2,
   Clock,
   HelpCircle,
   Image as ImageIcon,
@@ -89,6 +92,24 @@ const DIFERENCIAIS = [
     t: "Promoção em destaque",
     d: "Uma faixa de oferta no topo do site, como “10% off na primeira visita”. Troque em segundos.",
     glow: "bg-[#ff3d71]/30",
+  },
+  {
+    icon: FileText,
+    t: "Orçamento por link",
+    d: "Escolha os serviços, digite o nome e o WhatsApp do cliente e envie um orçamento bonito em 1 toque. Você vê quando ele abriu e quando aceitou.",
+    glow: "bg-[#FF6600]/30",
+  },
+  {
+    icon: CalendarClock,
+    t: "Follow-up que não deixa cliente esfriar",
+    d: "Marque quando quer chamar de novo (amanhã, 7 dias...). No dia, o painel mostra quem você precisa chamar, com a mensagem pronta.",
+    glow: "bg-[#ff3d71]/30",
+  },
+  {
+    icon: Link2,
+    t: "Página de links para o Instagram",
+    d: "Um único link na bio com WhatsApp, site, mapa, avaliações e o que mais você quiser. Pronto, sem montar nada.",
+    glow: "bg-sky-500/30",
   },
   {
     icon: CalendarCheck,
@@ -456,7 +477,7 @@ export default async function PaginaSoloHome() {
             <span className="text-gradient">máquina de clientes</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-300">
-            Tudo incluso nos R$ 37/mês. Você edita sozinho, direto do celular.
+            Tudo incluso nos R$ 37/mês: do site ao orçamento que fecha a venda. Você mexe sozinho, direto do celular.
           </p>
         </Reveal>
 
@@ -507,6 +528,7 @@ export default async function PaginaSoloHome() {
                     "WhatsApp, ligação e mapa",
                     "Painel para editar quando quiser",
                     "Cartaz com QR, fotos, FAQ e depoimentos",
+                    "Orçamentos, follow-up e página de links",
                     "Cancele quando quiser",
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-3">

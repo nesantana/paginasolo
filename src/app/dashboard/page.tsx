@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { PublishButton } from "@/components/PublishButton";
 import { SiteExtras } from "@/components/SiteExtras";
+import { OwnerTools } from "@/components/OwnerTools";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
 import {
@@ -457,6 +458,9 @@ export default function ClientDashboardPage() {
         {/* MODO 1: VISÃO GERAL SIMPLES PARA O DONO DO NEGÓCIO */}
         {mode === "overview" && (
           <div className="space-y-6">
+            {/* Quem chamar hoje + ferramentas do plano */}
+            <OwnerTools key={tenant.id} tenant={tenant} />
+
             {/* Cartão Principal da Empresa */}
             <div className="rounded-3xl bg-[#0c1d2c] border border-white/15 p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-xl">
               <div className="space-y-1.5">
