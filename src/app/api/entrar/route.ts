@@ -27,9 +27,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Digite um e-mail válido." }, { status: 400 });
   }
 
+  // Em desenvolvimento não limitamos, para poder testar o fluxo à vontade.
   if (
-    !rateLimit(`entrar-ip:${clientIp(request)}`, 5, 60 * 60 * 1000) ||
-    !rateLimit(`entrar-mail:${email}`, 3, 60 * 60 * 1000)
+    process.env.NODE_ENV === "production" &&
+    (!rateLimit(`entrar-ip:${clientIp(request)}`, 5, 60 * 60 * 1000) ||
+      !rateLimit(`entrar-mail:${email}`, 3, 60 * 60 * 1000))
   ) {
     return NextResponse.json(
       { ok: false, error: "Muitas tentativas. Tente de novo em alguns minutos." },

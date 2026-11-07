@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
 /** O Supabase devolve o usuário aqui com o token no #hash; trocamos por acesso ao painel. */
 export default function ConfirmarEntradaPage() {
   const [error, setError] = useState("");
+  // O React (modo dev) roda o efeito 2x; o token só existe na 1ª, pois o hash é apagado.
+  const started = useRef(false);
 
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const token = hash.get("access_token");
     const hashError = hash.get("error_description");
