@@ -99,3 +99,67 @@ export function parseTenantInput(
 
 export const isValidMetaPixel = (v: string) => META_PIXEL_RE.test(v);
 export const isValidGoogleTag = (v: string) => GOOGLE_TAG_RE.test(v);
+
+// ---------------------------------------------------------------------------
+// Recursos extras (galeria, depoimentos, FAQ, oferta)
+// ---------------------------------------------------------------------------
+import type { TenantFaqItem, TenantTestimonial } from "@/types/database.types";
+
+export type TenantExtras = {
+  images: string[];
+  testimonials: TenantTestimonial[];
+  faq: TenantFaqItem[];
+  offer_text: string | null;
+  google_reviews_url: string | null;
+};
+
+// Fotos são reduzidas no navegador (~900px). Aqui só aceitamos imagem raster pequena.
+const PHOTO_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const MAX_PHOTOS = 6;
+const MAX_PHOTO_CHARS = 220_000;
+
+function cleanHttpsUrl(v: unknown): string | null {
+  const raw = typeof v === "string" ? v.trim().slice(0, 300) : "";
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function parseExtras(raw: unknown): TenantExtras {
+  const b = (raw ?? {}) as Record<string, unknown>;
+
+  const images = (Array.isArray(b.images) ? b.images : [])
+    .filter(
+      (i): i is string =>
+        typeof i === "string" && i.length < MAX_PHOTO_CHARS && PHOTO_RE.test(i)
+    )
+    .slice(0, MAX_PHOTOS);
+
+  const testimonials = (Array.isArray(b.testimonials) ? b.testimonials : [])
+    .slice(0, 5)
+    .map((t) => {
+      const o = (t ?? {}) as Record<string, unknown>;
+      return { name: str(o.name, 60), text: str(o.text, 280) };
+    })
+    .filter((t) => t.text);
+
+  const faq = (Array.isArray(b.faq) ? b.faq : [])
+    .slice(0, 8)
+    .map((f) => {
+      const o = (f ?? {}) as Record<string, unknown>;
+      return { q: str(o.q, 120), a: str(o.a, 400) };
+    })
+    .filter((f) => f.q && f.a);
+
+  return {
+    images,
+    testimonials,
+    faq,
+    offer_text: optStr(b.offer_text, 100),
+    google_reviews_url: cleanHttpsUrl(b.google_reviews_url),
+  };
+}

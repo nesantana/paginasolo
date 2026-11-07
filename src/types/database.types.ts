@@ -19,6 +19,9 @@ export type TenantServiceItem = {
   [key: string]: Json | undefined;
 };
 
+export type TenantFaqItem = { q: string; a: string };
+export type TenantTestimonial = { name: string; text: string };
+
 export type Database = {
   public: {
     Tables: {
@@ -60,6 +63,10 @@ export type Database = {
           primary_color: string;
           services: TenantServiceItem[];
           images: string[];
+          faq: TenantFaqItem[];
+          testimonials: TenantTestimonial[];
+          offer_text: string | null;
+          google_reviews_url: string | null;
           logo_url: string | null;
           is_active: boolean;
           subscription_status: string;
@@ -88,6 +95,10 @@ export type Database = {
           primary_color?: string;
           services?: TenantServiceItem[];
           images?: string[];
+          faq?: TenantFaqItem[];
+          testimonials?: TenantTestimonial[];
+          offer_text?: string | null;
+          google_reviews_url?: string | null;
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;
@@ -116,6 +127,10 @@ export type Database = {
           primary_color?: string;
           services?: TenantServiceItem[];
           images?: string[];
+          faq?: TenantFaqItem[];
+          testimonials?: TenantTestimonial[];
+          offer_text?: string | null;
+          google_reviews_url?: string | null;
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;

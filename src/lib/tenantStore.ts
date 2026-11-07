@@ -10,7 +10,8 @@ import type {
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { hashToken } from "@/lib/editAuth";
 import { slugCandidates } from "@/lib/slug";
-import type { TenantInput } from "@/lib/validate";
+import type { TenantInput, TenantExtras } from "@/lib/validate";
+import { defaultFaq } from "@/lib/faqDefaults";
 
 /**
  * Camada de dados do PáginaSolo.
@@ -73,6 +74,7 @@ const baseRow = (): Pick<
   TenantRow,
   | "owner_id" | "custom_domain" | "edit_token_hash" | "payer_email"
   | "mp_preapproval_id" | "meta_pixel_id" | "google_tag_id" | "images"
+  | "faq" | "testimonials" | "offer_text" | "google_reviews_url"
 > => ({
   owner_id: null,
   custom_domain: null,
@@ -82,6 +84,10 @@ const baseRow = (): Pick<
   meta_pixel_id: null,
   google_tag_id: null,
   images: [],
+  faq: [],
+  testimonials: [],
+  offer_text: null,
+  google_reviews_url: null,
 });
 
 const DEMO_TENANT: TenantRow = {
@@ -302,6 +308,29 @@ export const getTenantByToken = (token: string) =>
 export const getTenantByPreapproval = (id: string) =>
   findTenant({ by: "preapproval", value: id });
 
+/** Recuperação de acesso: o site mais recente cujo e-mail de cadastro bate. */
+export async function getLatestTenantByEmail(email: string): Promise<TenantRow | null> {
+  const e = email.trim().toLowerCase();
+  if (!e) return null;
+  if (isAdminConfigured()) {
+    const { data, error } = await getAdminClient()
+      .from("tenants")
+      .select("*")
+      .eq("payer_email", e)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(`Supabase: ${error.message}`);
+    return (data as unknown as TenantRow) || null;
+  }
+  const store = await readLocalStore();
+  return store.tenants.find((t) => t.payer_email === e) || null;
+}
+
+/** Troca o token de edição (o antigo deixa de valer). */
+export const rotateEditToken = (id: string, token: string) =>
+  patchTenant(id, { edit_token_hash: hashToken(token) });
+
 export const getTenantById = (id: string) => findTenant({ by: "id", value: id });
 
 /** Só sites pagos (home, sitemap). */
@@ -353,6 +382,7 @@ export async function createDraftTenant(
     payer_email: input.payer_email,
     meta_pixel_id: input.meta_pixel_id,
     google_tag_id: input.google_tag_id,
+    faq: defaultFaq(input),
     edit_token_hash: hashToken(token),
     is_active: true,
     subscription_status: "draft",
@@ -383,6 +413,14 @@ export async function updateTenantContent(
     meta_pixel_id: input.meta_pixel_id,
     google_tag_id: input.google_tag_id,
   });
+}
+
+/** Galeria, depoimentos, FAQ e oferta (edição pelo dono já autenticado). */
+export async function updateTenantExtras(
+  id: string,
+  extras: TenantExtras
+): Promise<TenantRow | null> {
+  return patchTenant(id, extras);
 }
 
 export async function setPayerAndPreapproval(

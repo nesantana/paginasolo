@@ -151,9 +151,10 @@ async function resizeLogo(file: File): Promise<string> {
 export function ChatBuilder() {
   const [answers, setAnswers] = useState<Answers>({});
   const [stepIdx, setStepIdx] = useState(0);
-  const [messages, setMessages] = useState<Msg[]>([
-    { from: "bot", text: STEPS[0].ask({}) },
-  ]);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [typing, setTyping] = useState(true);
+  const [phrase, setPhrase] = useState(0);
+  const timers = useRef<number[]>([]);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<"" | "logo" | "build">("");
@@ -167,7 +168,28 @@ export function ChatBuilder() {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, busy, result]);
+  }, [messages, busy, result, typing]);
+
+  // Saudação inicial: "digitando..." antes da primeira mensagem
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setMessages([{ from: "bot", text: STEPS[0].ask({}) }]);
+      setTyping(false);
+    }, 1100);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const list = timers.current;
+    return () => list.forEach((t) => window.clearTimeout(t));
+  }, []);
+
+  // Frases que se alternam enquanto o site é montado
+  useEffect(() => {
+    if (busy !== "build") return;
+    const i = window.setInterval(() => setPhrase((n) => n + 1), 1800);
+    return () => window.clearInterval(i);
+  }, [busy]);
 
   function validate(s: Step, value: string): string {
     const v = value.trim();
@@ -188,20 +210,33 @@ export function ChatBuilder() {
   }
 
   function advance(value: string, shown: Msg) {
+    if (typing) return;
     const next = { ...answers, [step.key]: value };
     setAnswers(next);
     setError("");
     setText("");
     const nextIdx = stepIdx + 1;
-    const out: Msg[] = [shown];
-    if (nextIdx < STEPS.length) out.push({ from: "bot", text: STEPS[nextIdx].ask(next) });
-    else out.push({ from: "bot", text: "Perfeito! Estou escrevendo e montando o seu site… ✨" });
-    setMessages((m) => [...m, ...out]);
-    setStepIdx(nextIdx);
-    if (nextIdx >= STEPS.length) void build(next);
+    const reply =
+      nextIdx < STEPS.length
+        ? STEPS[nextIdx].ask(next)
+        : "Perfeito! Já tenho tudo. Vou montar o seu site agora… ✨";
+
+    setMessages((m) => [...m, shown]);
+    setTyping(true);
+    // "pensa" um pouco antes de responder; respostas maiores demoram mais
+    const delay = 900 + Math.min(reply.length * 14, 1100) + Math.random() * 400;
+    timers.current.push(
+      window.setTimeout(() => {
+        setTyping(false);
+        setMessages((m) => [...m, { from: "bot", text: reply }]);
+        setStepIdx(nextIdx);
+        if (nextIdx >= STEPS.length) void build(next);
+      }, delay)
+    );
   }
 
   function submitText(raw?: string) {
+    if (typing) return;
     const value = (raw ?? text).trim();
     const err = validate(step, value);
     if (err) return setError(err);
@@ -209,7 +244,7 @@ export function ChatBuilder() {
   }
 
   async function onLogo(file: File | undefined) {
-    if (!file) return;
+    if (!file || typing) return;
     setBusy("logo");
     setError("");
     try {
@@ -287,21 +322,37 @@ export function ChatBuilder() {
 
   return (
     <div className="mx-auto w-full max-w-2xl flex flex-col min-h-[calc(100dvh-4rem)]">
-      <div className="h-1 bg-white/10">
-        <div
-          className="h-1 bg-gradient-to-r from-[#FF9C40] to-[#FF6600] transition-all"
-          style={{ width: `${result ? 100 : progress}%` }}
-        />
+      <div className="px-4 pt-4">
+        <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-400">
+          <span>
+            {result ? "Site pronto!" : `Passo ${Math.min(stepIdx + 1, STEPS.length)} de ${STEPS.length}`}
+          </span>
+          <span>{result ? 100 : progress}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="btn-shine h-2 rounded-full transition-all duration-700"
+            style={{ width: `${result ? 100 : Math.max(progress, 6)}%` }}
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3" aria-live="polite">
         {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={i}
+            className={`animate-pop-in flex items-end gap-2 ${m.from === "user" ? "justify-end" : "justify-start"}`}
+          >
+            {m.from === "bot" && (
+              <span className="btn-shine mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold shadow-lg shadow-[#FF6600]/30">
+                PS
+              </span>
+            )}
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line ${
+              className={`max-w-[82%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed whitespace-pre-line shadow-lg ${
                 m.from === "user"
-                  ? "bg-[#FF6600] text-white rounded-br-md"
-                  : "bg-[#0c1d2c] border border-white/10 text-slate-100 rounded-bl-md"
+                  ? "btn-shine text-white rounded-br-md font-semibold"
+                  : "glass text-slate-100 rounded-bl-md"
               }`}
             >
               {m.image ? (
@@ -314,16 +365,41 @@ export function ChatBuilder() {
           </div>
         ))}
 
+        {typing && (
+          <div className="animate-pop-in flex items-end gap-2" aria-label="Digitando">
+            <span className="btn-shine mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold">
+              PS
+            </span>
+            <div className="glass flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-4">
+              {[0, 1, 2].map((d) => (
+                <span
+                  key={d}
+                  className="dot-bounce h-2 w-2 rounded-full bg-slate-300"
+                  style={{ animationDelay: `${d * 160}ms` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {busy === "build" && (
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <Loader2 className="w-4 h-4 animate-spin" /> Escrevendo os textos e montando as páginas…
+          <div className="glass animate-pop-in flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-200">
+            <Loader2 className="h-5 w-5 animate-spin text-[#FF9C40]" />{" "}
+            {
+              [
+                "Escrevendo os textos…",
+                "Montando o layout…",
+                "Ajustando para o Google…",
+                "Quase pronto…",
+              ][phrase % 4]
+            }
           </div>
         )}
 
         {done && !busy && !result && (
           <button
             onClick={() => void build(answers)}
-            className="rounded-full bg-[#FF6600] px-5 py-2.5 text-sm font-extrabold text-white"
+            className="btn-shine rounded-full px-6 py-3 text-sm font-extrabold text-white"
           >
             Tentar de novo
           </button>
@@ -331,7 +407,7 @@ export function ChatBuilder() {
 
         {result && (
           <div className="space-y-4 pt-2">
-            <div className="mx-auto w-[280px] rounded-[2rem] border-4 border-white/15 bg-black p-1.5 shadow-2xl">
+            <div className="animate-pop-in animate-float mx-auto w-[280px] rounded-[2rem] border-4 border-white/20 bg-black p-1.5 shadow-[0_30px_80px_-10px_rgba(255,102,0,0.45)]">
               <iframe
                 src={`/${result.slug}`}
                 title="Prévia do seu site"
@@ -339,9 +415,9 @@ export function ChatBuilder() {
               />
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-[#0c1d2c] p-4 space-y-3">
+            <div className="glass rounded-2xl p-5 space-y-3">
               <p className="text-sm text-slate-200">
-                Este é o seu site. Para ele aparecer no Google e ficar no ar, ative a assinatura de{" "}
+                Seu site está pronto. Para aparecer no Google e ficar no ar, ative a assinatura de{" "}
                 <strong className="text-white">R$ 37/mês</strong>, sem fidelidade.
               </p>
               <div className="flex flex-wrap items-center gap-3">
@@ -383,8 +459,8 @@ export function ChatBuilder() {
         <div ref={endRef} />
       </div>
 
-      {!done && (
-        <div className="border-t border-white/10 bg-[#0b1926] px-4 py-3 space-y-2.5">
+      {!done && !typing && messages.length > 0 && (
+        <div className="border-t border-white/10 bg-[#060d14]/90 backdrop-blur-xl px-4 py-3 space-y-2.5">
           {error && <p className="text-xs font-bold text-red-300">{error}</p>}
 
           {(step.kind === "chips" || step.kind === "color") && (
@@ -394,7 +470,7 @@ export function ChatBuilder() {
                   <button
                     key={c}
                     onClick={() => submitText(c)}
-                    className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 px-3.5 py-2 text-xs font-bold text-white"
+                    className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FF9C40] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
                   >
                     {c}
                   </button>
@@ -405,7 +481,7 @@ export function ChatBuilder() {
                     key={c.hex}
                     onClick={() => advance(c.hex, { from: "user", text: c.label })}
                     aria-label={c.label}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 px-3.5 py-2 text-xs font-bold text-white"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FF9C40] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
                   >
                     <span className="h-4 w-4 rounded-full" style={{ backgroundColor: c.hex }} />
                     {c.label}
@@ -426,7 +502,7 @@ export function ChatBuilder() {
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={busy === "logo"}
-                className="inline-flex items-center gap-2 rounded-full bg-[#FF6600] px-4 py-2.5 text-xs font-extrabold text-white disabled:opacity-60"
+                className="inline-flex items-center gap-2 btn-shine rounded-full px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-[#FF6600]/30 disabled:opacity-60"
               >
                 {busy === "logo" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                 Enviar logo
@@ -458,7 +534,7 @@ export function ChatBuilder() {
                   placeholder={step.placeholder}
                   rows={4}
                   autoFocus
-                  className="flex-1 rounded-2xl border border-white/15 bg-[#07111a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF6600]"
+                  className="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF9C40]"
                 />
               ) : (
                 <input
@@ -469,13 +545,13 @@ export function ChatBuilder() {
                   type={step.inputMode === "email" ? "email" : "text"}
                   autoFocus
                   autoComplete="off"
-                  className="flex-1 rounded-full border border-white/15 bg-[#07111a] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF6600]"
+                  className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-3.5 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF9C40]"
                 />
               )}
               <button
                 type="submit"
                 aria-label="Enviar"
-                className="h-11 w-11 shrink-0 rounded-full bg-[#FF6600] text-white flex items-center justify-center"
+                className="btn-shine h-12 w-12 shrink-0 rounded-full text-white flex items-center justify-center shadow-lg shadow-[#FF6600]/30 transition hover:scale-110"
               >
                 <ArrowUp className="w-5 h-5" />
               </button>

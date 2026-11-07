@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { PublishButton } from "@/components/PublishButton";
+import { SiteExtras } from "@/components/SiteExtras";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
 import {
@@ -631,6 +632,12 @@ export default function ClientDashboardPage() {
                 })}
               </div>
             </div>
+
+            <SiteExtras
+              key={tenant.id}
+              tenant={tenant}
+              series={metrics.dailySeries}
+            />
           </div>
         )}
 
