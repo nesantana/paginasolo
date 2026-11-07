@@ -13,6 +13,20 @@ const OK = {
     "Se esse e-mail tiver um site, enviamos um link de acesso. Olhe a caixa de entrada e o spam.",
 };
 
+/**
+ * Endereço público de quem chamou. O Supabase só redireciona para URLs que estão
+ * na lista de Redirect URLs, então um endereço forjado cai no site_url e não vaza o token.
+ */
+function requestOrigin(request: Request): string {
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  if (host) {
+    const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
+    const proto = request.headers.get("x-forwarded-proto") || (isLocal ? "http" : "https");
+    return `${proto.split(",")[0].trim()}://${host}`;
+  }
+  return (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "");
+}
+
 /** Pede o link de acesso por e-mail (Supabase envia; só dispara se o e-mail tem site). */
 export async function POST(request: Request) {
   let body: { email?: unknown } = {};
@@ -49,9 +63,8 @@ export async function POST(request: Request) {
   try {
     const tenant = await getLatestTenantByEmail(email);
     if (tenant) {
-      const base = (
-        process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
-      ).replace(/\/+$/, "");
+      // O link volta para o mesmo endereço de onde o pedido saiu (Vercel ou localhost).
+      const base = requestOrigin(request);
       // Fluxo "implicit": o link funciona em qualquer aparelho, sem cookie de verificação.
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
