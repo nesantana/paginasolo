@@ -2,20 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTenantBySlug } from "@/lib/tenantStore";
 import Script from "next/script";
+import type { ReactNode } from "react";
 import { PageviewBeacon, TrackedLink } from "@/components/TenantTracker";
 import { PublishButton } from "@/components/PublishButton";
-import {
-  MessageSquare,
-  MapPin,
-  Clock,
-  Phone,
-  CheckCircle2,
-  Navigation,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { MessageSquare, MapPin, Clock, Phone, Navigation } from "lucide-react";
 
-// Renderização Estática Revalidada sob Demanda (ISR) para carregamento < 500ms e PageSpeed 100
+// Renderização Estática Revalidada sob Demanda (ISR)
 export const revalidate = 3600;
 
 const BASE = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replace(/\/+$/, "");
@@ -139,19 +131,35 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
     },
   };
 
+  const color = tenant.primary_color || "#FF6600";
+  const services = tenant.services || [];
+  const hours = tenant.opening_hours || "Segunda a Sábado, 08h às 18h";
+
+  const waLink = (className: string, children: ReactNode) => (
+    <TrackedLink
+      tenantId={tenant.id}
+      eventType="click_whatsapp"
+      href={whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
+      {children}
+    </TrackedLink>
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#07111a] text-white pb-24 sm:pb-12">
+    <div className="min-h-screen bg-white text-slate-900 pb-24 sm:pb-0">
       {isPreview && (
-        <div className="sticky top-0 z-50 bg-[#FF6600] text-white px-4 py-2.5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs sm:text-sm font-bold">
-          <span>Prévia do seu site — ainda não está no Google.</span>
+        <div className="sticky top-0 z-50 bg-slate-900 text-white px-4 py-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-sm">
+          <span>Prévia — ainda não está no Google.</span>
           <PublishButton
             label="Publicar por R$ 37/mês"
-            className="inline-flex items-center gap-2 rounded-full bg-white text-[#c2410c] px-4 py-1.5 text-xs font-extrabold shadow disabled:opacity-60"
+            className="rounded-full bg-white text-slate-900 px-4 py-1 text-xs font-bold disabled:opacity-60"
           />
         </div>
       )}
 
-      {/* Disparo leve de Pageview sem bloquear renderização */}
       {!isPreview && <PageviewBeacon tenantId={tenant.id} />}
 
       {/* Pixels de anúncio (IDs validados no cadastro; só em site publicado) */}
@@ -173,259 +181,139 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
         }}
       />
 
-      {/* Barra Superior */}
-      <header className="border-b border-white/10 bg-[#07111a]/95 backdrop-blur-md sticky top-0 z-30">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="h-9 w-9 rounded-xl flex items-center justify-center font-extrabold text-sm text-white shrink-0 shadow-md"
-              style={{ backgroundColor: tenant.primary_color || "#FF6600" }}
-            >
-              {tenant.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={tenant.logo_url}
-                  alt={`Logo ${tenant.business_name}`}
-                  className="h-9 w-9 rounded-xl object-cover bg-white"
-                />
-              ) : (
-                tenant.business_name.slice(0, 2).toUpperCase()
-              )}
-            </div>
-            <div className="truncate">
-              <span className="font-extrabold text-sm sm:text-base text-white block truncate">
-                {tenant.business_name}
-              </span>
-              <span className="text-[11px] text-slate-400 block truncate">
-                {tenant.category} • {tenant.city}
-              </span>
+      <main className="mx-auto max-w-2xl px-5">
+        {/* Herói */}
+        <section className="pt-10 pb-10 sm:pt-16 sm:pb-14">
+          <div className="flex items-center gap-3">
+            {tenant.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={tenant.logo_url}
+                alt={`Logo ${tenant.business_name}`}
+                className="h-12 w-12 rounded-xl object-cover border border-slate-200"
+              />
+            ) : (
+              <div
+                className="h-12 w-12 rounded-xl flex items-center justify-center font-bold text-white"
+                style={{ backgroundColor: color }}
+              >
+                {tenant.business_name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="font-bold truncate">{tenant.business_name}</p>
+              <p className="text-sm text-slate-500 truncate">
+                {tenant.category} · {tenant.city}
+              </p>
             </div>
           </div>
 
-          <TrackedLink
-            tenantId={tenant.id}
-            eventType="click_whatsapp"
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-extrabold px-4 py-2 text-xs sm:text-sm shrink-0 shadow-lg shadow-emerald-500/20 transition-all"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Chamar no WhatsApp</span>
-          </TrackedLink>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        {/* 1. HERO DIRETO COM PROPOSTA DE VALOR & CTA DE ALTA CONVERSÃO */}
-        <section className="relative py-12 sm:py-20 border-b border-white/10 bg-gradient-to-b from-[#0c1d2c] to-[#07111a]">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-bold text-[#FF9C40]">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>
-                {tenant.category} em {tenant.city}
-              </span>
-            </div>
-
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-[1.12] tracking-tight">
-              {tenant.headline ||
-                `${tenant.business_name} — Especialista em ${tenant.category} em ${tenant.city}`}
-            </h1>
-
-            <p className="text-sm sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          <h1 className="mt-8 text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight">
+            {tenant.headline || `${tenant.category} em ${tenant.city}`}
+          </h1>
+          {tenant.description && (
+            <p className="mt-4 text-lg text-slate-600 leading-relaxed">
               {tenant.description}
             </p>
+          )}
 
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5">
-              <TrackedLink
-                tenantId={tenant.id}
-                eventType="click_whatsapp"
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-extrabold px-8 py-4 text-sm sm:text-base shadow-xl shadow-emerald-500/25 transition-all"
-              >
+          <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            {waLink(
+              "inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#1fbd5b] text-white font-bold px-6 py-4 text-base transition-colors",
+              <>
                 <MessageSquare className="w-5 h-5" />
-                <span>Solicitar Orçamento no WhatsApp</span>
-              </TrackedLink>
-
-              <TrackedLink
-                tenantId={tenant.id}
-                eventType="click_call"
-                href={callUrl}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-white font-extrabold px-6 py-4 text-sm sm:text-base transition-all"
-              >
-                <Phone className="w-4 h-4 text-[#FF9C40]" />
-                <span>Ligar Agora</span>
-              </TrackedLink>
-            </div>
-
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-5 text-xs text-slate-300">
-              <span className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Atendimento Rápido pelo WhatsApp
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                Atendimento em {tenant.city}
-              </span>
-            </div>
+                Pedir orçamento no WhatsApp
+              </>
+            )}
+            <TrackedLink
+              tenantId={tenant.id}
+              eventType="click_call"
+              href={callUrl}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 hover:bg-slate-50 font-semibold px-6 py-4 text-base transition-colors"
+            >
+              <Phone className="w-5 h-5" />
+              Ligar
+            </TrackedLink>
           </div>
         </section>
 
-        {/* 2. BLOCO DE SERVIÇOS & DIFERENCIAIS (Cards Leves) */}
-        <section className="py-12 sm:py-16">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 space-y-8">
-            <div className="text-center max-w-2xl mx-auto">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#FF9C40]">
-                Nossas Especialidades
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-                Serviços e Soluções de {tenant.business_name}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-              {(tenant.services || []).map((srv, idx) => {
-                const serviceWaUrl = `https://wa.me/${phoneWithDdi}?text=${encodeURIComponent(
-                  `Olá! Vi no site da *${tenant.business_name}* o serviço *"${srv.title}"* e gostaria de solicitar um orçamento.`
-                )}`;
-
-                return (
-                  <div
-                    key={`${srv.title}-${idx}`}
-                    className="rounded-2xl border border-white/10 bg-[#0c1d2c] p-5 sm:p-6 flex flex-col justify-between gap-4 hover:border-white/25 transition-all"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-base sm:text-lg font-extrabold text-white">
-                          {srv.title}
-                        </h3>
-                        {srv.price_optional && (
-                          <span className="rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-xs font-extrabold text-emerald-300 shrink-0">
-                            {srv.price_optional}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+        {/* Serviços */}
+        {services.length > 0 && (
+          <section className="py-10 border-t border-slate-200">
+            <h2
+              className="text-sm font-bold uppercase tracking-wider"
+              style={{ color }}
+            >
+              Serviços
+            </h2>
+            <ul className="mt-4 divide-y divide-slate-200">
+              {services.map((srv, idx) => (
+                <li
+                  key={`${srv.title}-${idx}`}
+                  className="py-4 flex items-start justify-between gap-4"
+                >
+                  <div className="min-w-0">
+                    <h3 className="font-bold">{srv.title}</h3>
+                    {srv.description && (
+                      <p className="text-slate-600 mt-1 leading-relaxed">
                         {srv.description}
                       </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                      <span className="text-xs text-slate-400">
-                        Disponível em {tenant.city}
-                      </span>
-                      <TrackedLink
-                        tenantId={tenant.id}
-                        eventType="click_whatsapp"
-                        href={serviceWaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-400 hover:text-emerald-300"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Pedir Orçamento →</span>
-                      </TrackedLink>
-                    </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                  {srv.price_optional && (
+                    <span className="shrink-0 font-bold">{srv.price_optional}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Onde e quando */}
+        <section className="py-10 border-t border-slate-200">
+          <h2
+            className="text-sm font-bold uppercase tracking-wider"
+            style={{ color }}
+          >
+            Onde e quando
+          </h2>
+          <div className="mt-4 space-y-3">
+            <p className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 mt-0.5 shrink-0 text-slate-400" />
+              <span>{tenant.address || tenant.city}</span>
+            </p>
+            <p className="flex items-start gap-3">
+              <Clock className="w-5 h-5 mt-0.5 shrink-0 text-slate-400" />
+              <span>{hours}</span>
+            </p>
           </div>
-        </section>
-
-        {/* 3. LOCALIZAÇÃO, HORÁRIO DE FUNCIONAMENTO & ROTA NO GOOGLE MAPS */}
-        <section className="py-12 sm:py-16 bg-[#0b1926] border-t border-white/10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="rounded-3xl border border-white/15 bg-[#07111a] p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div className="md:col-span-8 space-y-4">
-                <span className="inline-block text-xs font-extrabold uppercase tracking-wider text-[#FF9C40]">
-                  Atendimento Local • {tenant.city}
-                </span>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white">
-                  Localização e Horário de Atendimento
-                </h2>
-
-                <div className="space-y-2.5 text-xs sm:text-sm text-slate-300">
-                  <div className="flex items-start gap-2.5">
-                    <MapPin className="w-4 h-4 text-[#FF9C40] shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">Endereço: </strong>
-                      {tenant.address || tenant.city}
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <Clock className="w-4 h-4 text-[#FF9C40] shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">Horário: </strong>
-                      {tenant.opening_hours || "Segunda a Sábado, 08h às 18h"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="md:col-span-4 flex flex-col gap-3">
-                <TrackedLink
-                  tenantId={tenant.id}
-                  eventType="click_maps"
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 py-3.5 px-5 text-xs sm:text-sm font-extrabold text-white transition-all"
-                >
-                  <Navigation className="w-4 h-4 text-[#FF9C40]" />
-                  <span>Traçar Rota no Google Maps</span>
-                </TrackedLink>
-
-                <TrackedLink
-                  tenantId={tenant.id}
-                  eventType="click_whatsapp"
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 py-3.5 px-5 text-xs sm:text-sm font-extrabold text-zinc-950 transition-all"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Falar no WhatsApp Agora</span>
-                </TrackedLink>
-              </div>
-            </div>
-          </div>
+          <TrackedLink
+            tenantId={tenant.id}
+            eventType="click_maps"
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center gap-2 font-semibold underline underline-offset-4"
+          >
+            <Navigation className="w-4 h-4" />
+            Ver no Google Maps
+          </TrackedLink>
         </section>
       </main>
 
-      <footer className="border-t border-white/10 py-6 text-center text-xs text-slate-400">
-        <p>
-          © {new Date().getFullYear()} <strong>{tenant.business_name}</strong> •{" "}
-          {tenant.category} em {tenant.city}.
-        </p>
+      <footer className="border-t border-slate-200 py-6 text-center text-sm text-slate-500">
+        © {new Date().getFullYear()} {tenant.business_name}
       </footer>
 
-      {/* Barra Flutuante Mobile de Conversão */}
-      <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-[#07111a]/95 backdrop-blur-lg border-t border-white/15 flex items-center gap-2.5">
-        <TrackedLink
-          tenantId={tenant.id}
-          eventType="click_whatsapp"
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 text-zinc-950 font-extrabold py-3.5 text-xs shadow-lg"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>Solicitar Orçamento no WhatsApp</span>
-        </TrackedLink>
-        <TrackedLink
-          tenantId={tenant.id}
-          eventType="click_maps"
-          href={mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-1 rounded-full border border-white/15 bg-white/10 px-4 py-3.5 text-xs font-extrabold text-white"
-        >
-          <MapPin className="w-4 h-4 text-[#FF9C40]" />
-          <span>Mapa</span>
-        </TrackedLink>
+      {/* Barra fixa no celular */}
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-white/95 backdrop-blur border-t border-slate-200">
+        {waLink(
+          "flex items-center justify-center gap-2 rounded-xl bg-[#25D366] text-white font-bold py-3.5",
+          <>
+            <MessageSquare className="w-5 h-5" />
+            Pedir orçamento no WhatsApp
+          </>
+        )}
       </div>
     </div>
   );
