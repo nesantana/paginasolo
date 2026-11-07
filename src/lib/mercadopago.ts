@@ -7,6 +7,17 @@ export const PLAN_PRICE_BRL = Number(process.env.PLAN_PRICE_BRL || 37);
 export const appUrl = () =>
   (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replace(/\/$/, "");
 
+/**
+ * O Mercado Pago só aceita back_url/notification_url públicas e https.
+ * Em desenvolvimento (localhost) usamos o endereço do deploy; configure
+ * MP_PUBLIC_URL para trocar (ex.: um túnel).
+ */
+const publicUrl = () => {
+  const url = appUrl();
+  if (url.startsWith("https://")) return url;
+  return (process.env.MP_PUBLIC_URL || "https://paginasolo.vercel.app").replace(/\/$/, "");
+};
+
 export const isMercadoPagoConfigured = () =>
   Boolean(process.env.MP_ACCESS_TOKEN);
 
@@ -50,8 +61,8 @@ export async function createSubscription(input: {
       reason: `PáginaSolo — site de ${input.businessName}`.slice(0, 120),
       external_reference: input.tenantId,
       payer_email: input.payerEmail,
-      back_url: `${appUrl()}/pagamento/retorno?s=${encodeURIComponent(input.slug)}`,
-      notification_url: `${appUrl()}/api/webhooks/mercadopago`,
+      back_url: `${publicUrl()}/pagamento/retorno?s=${encodeURIComponent(input.slug)}`,
+      notification_url: `${publicUrl()}/api/webhooks/mercadopago`,
       status: "pending",
       auto_recurring: {
         frequency: 1,
