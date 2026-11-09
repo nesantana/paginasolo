@@ -75,9 +75,12 @@ const baseRow = (): Pick<
   TenantRow,
   | "owner_id" | "custom_domain" | "edit_token_hash" | "payer_email"
   | "mp_preapproval_id" | "meta_pixel_id" | "google_tag_id" | "images"
+  | "complimentary" | "comp_note"
   | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links"
 > => ({
   owner_id: null,
+  complimentary: false,
+  comp_note: null,
   custom_domain: null,
   edit_token_hash: null,
   payer_email: null,
@@ -451,6 +454,8 @@ export async function applySubscriptionStatus(
 ): Promise<TenantRow | null> {
   const current = await findTenant({ by: "id", value: id });
   if (!current) return null;
+  // Premium concedido pelo admin nao depende do Mercado Pago.
+  if (current.complimentary) return current;
 
   if (mpStatus === "authorized") {
     return patchTenant(id, {
@@ -549,4 +554,54 @@ export async function getDashboardSummary(
     allTenants: [safe],
     metrics: { monthlyPageviews, monthlyWhatsappClicks, conversionRate, dailySeries },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+
+const noHash = (t: TenantRow): TenantRow => ({ ...t, edit_token_hash: null });
+
+/** Todos os sites, mais recentes primeiro. Sem o hash do token (o e-mail fica: é para o admin). */
+export async function listAllTenantsForAdmin(): Promise<TenantRow[]> {
+  if (isAdminConfigured()) {
+    const { data, error } = await getAdminClient()
+      .from("tenants")
+      .select(
+        "id, slug, business_name, category, city, payer_email, whatsapp_number, subscription_status, complimentary, comp_note, mp_preapproval_id, published_at, created_at, updated_at, is_active"
+      )
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (error) throw new Error(`Supabase: ${error.message}`);
+    return ((data || []) as unknown as TenantRow[]).map(noHash);
+  }
+  const store = await readLocalStore();
+  return store.tenants.map(noHash);
+}
+
+/**
+ * Dá ou tira o premium (cortesia). Dar: site ativo e indexável sem cobrança.
+ * Tirar: volta para prévia (draft); se o cliente tiver assinatura paga no
+ * Mercado Pago, o próximo aviso do MP reativa o site.
+ */
+export async function setComplimentary(
+  id: string,
+  grant: boolean,
+  note: string | null
+): Promise<TenantRow | null> {
+  const current = await findTenant({ by: "id", value: id });
+  if (!current || current.id === DEMO_ID) return null;
+  if (grant) {
+    return patchTenant(id, {
+      complimentary: true,
+      comp_note: note,
+      subscription_status: "active",
+      published_at: current.published_at || nowIso(),
+    });
+  }
+  return patchTenant(id, {
+    complimentary: false,
+    comp_note: null,
+    subscription_status: "draft",
+  });
 }

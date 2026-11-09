@@ -86,6 +86,8 @@ export type Database = {
           meta_pixel_id: string | null;
           google_tag_id: string | null;
           published_at: string | null;
+          complimentary: boolean;
+          comp_note: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -119,6 +121,8 @@ export type Database = {
           meta_pixel_id?: string | null;
           google_tag_id?: string | null;
           published_at?: string | null;
+          complimentary?: boolean;
+          comp_note?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -152,6 +156,8 @@ export type Database = {
           meta_pixel_id?: string | null;
           google_tag_id?: string | null;
           published_at?: string | null;
+          complimentary?: boolean;
+          comp_note?: string | null;
           created_at?: string;
           updated_at?: string;
         };
