@@ -4,6 +4,7 @@ import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { getLatestTenantByEmail, rotateEditToken } from "@/lib/tenantStore";
 import { EDIT_COOKIE, editCookieOptions, newEditToken } from "@/lib/editAuth";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { ADMIN_COOKIE, adminCookieOptions, createAdminSession, isAdminEmail } from "@/lib/adminAuth";
 
 /**
  * Recebe o access_token do link enviado por e-mail, confirma com o Supabase que o
@@ -18,9 +19,11 @@ export async function POST(request: Request) {
   }
 
   let accessToken = "";
+  let wantsAdmin = false;
   try {
-    const b = (await request.json()) as { access_token?: unknown };
+    const b = (await request.json()) as { access_token?: unknown; next?: unknown };
     accessToken = typeof b.access_token === "string" ? b.access_token : "";
+    wantsAdmin = b.next === "admin";
   } catch {
     // cai na validação abaixo
   }
@@ -38,6 +41,16 @@ export async function POST(request: Request) {
   }
 
   const tenant = await getLatestTenantByEmail(email);
+
+  // Admin: e-mail na lista ADMIN_EMAILS. Vai para /admin se pediu pelo admin ou se não tem site próprio.
+  if (isAdminEmail(email) && (wantsAdmin || !tenant)) {
+    const session = createAdminSession(email);
+    if (session) {
+      (await cookies()).set(ADMIN_COOKIE, session, adminCookieOptions);
+      return NextResponse.json({ ok: true, redirect: "/admin" });
+    }
+  }
+
   if (!tenant) {
     return NextResponse.json({ ok: false, error: "Nenhum site encontrado." }, { status: 404 });
   }

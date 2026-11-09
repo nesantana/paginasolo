@@ -28,14 +28,17 @@ export default function ConfirmarEntradaPage() {
       return;
     }
 
+    let next = "";
+    try { next = localStorage.getItem("ps_next") || ""; localStorage.removeItem("ps_next"); } catch {}
+
     fetch("/api/entrar/confirmar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: token }),
+      body: JSON.stringify({ access_token: token, next }),
     })
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
-        if (res.ok && data.ok) window.location.replace("/dashboard");
+        if (res.ok && data.ok) window.location.replace(data.redirect || "/dashboard");
         else setError(data.error || "Não foi possível entrar. Peça um novo link.");
       })
       .catch(() => setError("Sem conexão. Tente de novo."));

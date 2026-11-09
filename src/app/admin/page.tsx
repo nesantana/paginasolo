@@ -45,6 +45,8 @@ function Login() {
     setBusy(true);
     setMsg("");
     try {
+      // O link usa a mesma tela de confirmação do login normal; esta marca diz que é do admin.
+      try { localStorage.setItem("ps_next", "admin"); } catch {}
       const res = await fetch("/api/admin/entrar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

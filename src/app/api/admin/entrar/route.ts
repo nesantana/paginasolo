@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       );
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${requestOrigin(request)}/admin/confirmar`, shouldCreateUser: true },
+        options: { emailRedirectTo: `${requestOrigin(request)}/entrar/confirmar`, shouldCreateUser: true },
       });
       if (error) console.error("admin otp:", error.message);
     } catch (e) {
