@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Crown, ExternalLink, Loader2, LogOut, Mail, Search, TrendingUp } from "lucide-react";
+import { Crown, ExternalLink, Loader2, LogOut, Search, TrendingUp } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 
 type Row = {
@@ -21,7 +21,7 @@ type Summary = {
   total: number; paying: number; premium: number; drafts: number; inactive: number;
   mrr: number; arr: number; conversion: number;
 };
-type Data = { admin: string; price: number; summary: Summary; tenants: Row[] };
+type Data = { admin: string; hasSite: boolean; price: number; summary: Summary; tenants: Row[] };
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const date = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
@@ -37,56 +37,16 @@ function statusOf(t: Row): { label: string; cls: string; key: string } {
 }
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setMsg("");
-    try {
-      // O link usa a mesma tela de confirmação do login normal; esta marca diz que é do admin.
-      try { localStorage.setItem("ps_next", "admin"); } catch {}
-      const res = await fetch("/api/admin/entrar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const d = await res.json().catch(() => ({}));
-      setMsg(d.message || d.error || "Não foi possível enviar.");
-    } catch {
-      setMsg("Sem conexão.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] px-5 text-white">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-3xl border border-white/10 bg-white/5 p-7">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#3b82f6]">
-          <Mail className="h-6 w-6" />
-        </span>
-        <BrandLogo size={40} className="text-2xl" />
+      <div className="w-full max-w-sm space-y-4 rounded-3xl border border-white/10 bg-white/5 p-7 text-center">
+        <BrandLogo size={40} className="justify-center text-2xl" />
         <h1 className="text-xl font-extrabold">Painel administrativo</h1>
-        <p className="text-sm text-slate-300">Digite seu e-mail de administrador. Enviamos um link de acesso.</p>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@email.com"
-          className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none"
-        />
-        <button
-          disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3b82f6] px-6 py-3 font-extrabold disabled:opacity-60"
-        >
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />} Enviar link
-        </button>
-        {msg && <p className="text-sm text-slate-300">{msg}</p>}
-      </form>
+        <p className="text-sm text-slate-300">Entre com o seu e-mail, o mesmo login de todo mundo.</p>
+        <a href="/entrar" className="block rounded-2xl bg-[#3b82f6] px-6 py-3 font-extrabold">
+          Entrar
+        </a>
+      </div>
     </div>
   );
 }
@@ -167,6 +127,11 @@ export default function AdminPage() {
           </span>
           <div className="flex items-center gap-3 text-xs text-slate-300">
             <span className="hidden sm:inline">{data.admin}</span>
+            {data.hasSite && (
+              <a href="/dashboard" className="rounded-full border border-white/15 px-3 py-1.5 font-bold hover:bg-white/10">
+                Meu site
+              </a>
+            )}
             <button
               onClick={async () => {
                 await fetch("/api/admin/sair", { method: "POST" });

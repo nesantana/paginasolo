@@ -28,13 +28,10 @@ export default function ConfirmarEntradaPage() {
       return;
     }
 
-    let next = "";
-    try { next = localStorage.getItem("ps_next") || ""; localStorage.removeItem("ps_next"); } catch {}
-
     fetch("/api/entrar/confirmar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: token, next }),
+      body: JSON.stringify({ access_token: token }),
     })
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));

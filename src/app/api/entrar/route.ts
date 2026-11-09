@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getLatestTenantByEmail } from "@/lib/tenantStore";
 import { isAdminConfigured } from "@/lib/supabase/admin";
+import { isAdminEmail } from "@/lib/adminAuth";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
 
   try {
     const tenant = await getLatestTenantByEmail(email);
-    if (tenant) {
+    if (tenant || isAdminEmail(email)) {
       // O link volta para o mesmo endereço de onde o pedido saiu (Vercel ou localhost).
       const base = requestOrigin(request);
       // Fluxo "implicit": o link funciona em qualquer aparelho, sem cookie de verificação.

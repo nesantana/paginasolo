@@ -19,11 +19,9 @@ export async function POST(request: Request) {
   }
 
   let accessToken = "";
-  let wantsAdmin = false;
   try {
-    const b = (await request.json()) as { access_token?: unknown; next?: unknown };
+    const b = (await request.json()) as { access_token?: unknown };
     accessToken = typeof b.access_token === "string" ? b.access_token : "";
-    wantsAdmin = b.next === "admin";
   } catch {
     // cai na validação abaixo
   }
@@ -42,21 +40,18 @@ export async function POST(request: Request) {
 
   const tenant = await getLatestTenantByEmail(email);
 
-  // Admin: e-mail na lista ADMIN_EMAILS. Vai para /admin se pediu pelo admin ou se não tem site próprio.
-  if (isAdminEmail(email) && (wantsAdmin || !tenant)) {
-    const session = createAdminSession(email);
-    if (session) {
-      (await cookies()).set(ADMIN_COOKIE, session, adminCookieOptions);
-      return NextResponse.json({ ok: true, redirect: "/admin" });
-    }
-  }
+  // Um login só. Quem está em ADMIN_EMAILS ganha também a sessão de admin e cai em /admin
+  // (de lá há um atalho para o próprio painel, se tiver site). Os demais vão para o painel do site.
+  const admin = isAdminEmail(email) ? createAdminSession(email) : null;
+  if (admin) (await cookies()).set(ADMIN_COOKIE, admin, adminCookieOptions);
 
   if (!tenant) {
+    if (admin) return NextResponse.json({ ok: true, redirect: "/admin" });
     return NextResponse.json({ ok: false, error: "Nenhum site encontrado." }, { status: 404 });
   }
 
   const token = newEditToken();
   await rotateEditToken(tenant.id, token);
   (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, redirect: admin ? "/admin" : "/dashboard" });
 }
