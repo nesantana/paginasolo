@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { brand } from "@/config/brand";
 import "./globals.css";
 
-const montserrat = Montserrat({
+const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
@@ -17,15 +18,15 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#07111a",
+  themeColor: "#0a0e17",
   width: "device-width",
   initialScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "PáginaSolo — Landing Pages Ultra-Rápidas com SEO Local em 3 Passos",
+  title: `${brand.name} — ${brand.tagline}`,
   description:
-    "Plataforma SaaS multitenant para geração instantânea de páginas de alta conversão com SEO local para prestadores de serviço e comércios. Um produto MSSolo.",
+    "Plataforma SaaS multitenant para geração instantânea de páginas de alta conversão com SEO local para prestadores de serviço e comércios. Crie seu site com um assistente e publique por menos de uma pizza por mês.",
 };
 
 export default function RootLayout({
@@ -36,9 +37,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${montserrat.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${jakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#07111a] text-white selection:bg-[#FF6600] selection:text-white">
+      <body className="min-h-full bg-[#0a0e17] text-white selection:bg-[#3b82f6] selection:text-white">
         {children}
       </body>
     </html>

@@ -25,7 +25,7 @@ function Tile({
   return (
     <Link
       href={href}
-      className="group relative flex items-start gap-3 rounded-2xl border border-white/15 bg-[#0c1d2c] p-4 transition hover:-translate-y-0.5 hover:border-[#FF6600]/50"
+      className="group relative flex items-start gap-3 rounded-2xl border border-white/15 bg-[#0f172a] p-4 transition hover:-translate-y-0.5 hover:border-[#3b82f6]/50"
     >
       <span className="btn-shine flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
         <Icon className="h-5 w-5" />
@@ -38,7 +38,7 @@ function Tile({
         <span className="block text-xs text-slate-400">{locked ? "Plano ativo" : text}</span>
       </span>
       {!!badge && (
-        <span className="absolute right-3 top-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-[#FF6600] px-1.5 text-xs font-extrabold">
+        <span className="absolute right-3 top-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-[#3b82f6] px-1.5 text-xs font-extrabold">
           {badge}
         </span>
       )}
@@ -63,11 +63,11 @@ function FollowupToday({ tenant }: { tenant: TenantRow }) {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return (
-    <section className="space-y-3 rounded-3xl border border-[#FF6600]/40 bg-[#FF6600]/[0.07] p-4 sm:p-5">
+    <section className="space-y-3 rounded-3xl border border-[#3b82f6]/40 bg-[#3b82f6]/[0.07] p-4 sm:p-5">
       <h2 className="flex items-center gap-2 text-lg font-extrabold">
-        <CalendarClock className="h-5 w-5 text-[#FF9C40]" />
+        <CalendarClock className="h-5 w-5 text-[#67e8f9]" />
         Quem chamar hoje
-        <span className="rounded-full bg-[#FF6600] px-2 py-0.5 text-xs">{due.length}</span>
+        <span className="rounded-full bg-[#3b82f6] px-2 py-0.5 text-xs">{due.length}</span>
       </h2>
       <div className="space-y-3">
         {due.slice(0, 5).map((q) => (
@@ -82,7 +82,7 @@ function FollowupToday({ tenant }: { tenant: TenantRow }) {
         ))}
       </div>
       {due.length > 5 && (
-        <Link href="/dashboard/orcamentos" className="block text-center text-sm font-bold text-[#FFB35C] underline underline-offset-4">
+        <Link href="/dashboard/orcamentos" className="block text-center text-sm font-bold text-[#a5f3fc] underline underline-offset-4">
           Ver os outros {due.length - 5}
         </Link>
       )}

@@ -41,7 +41,7 @@ export default async function QuotePage({ params }: Props) {
     );
   }
 
-  const color = /^#[0-9a-f]{6}$/i.test(tenant.primary_color) ? tenant.primary_color : "#FF6600";
+  const color = /^#[0-9a-f]{6}$/i.test(tenant.primary_color) ? tenant.primary_color : "#3b82f6";
   const expired = Boolean(quote.valid_until && quote.valid_until < todayISO());
   const declined = quote.status === "declined";
   const closed = expired || declined;
@@ -51,7 +51,7 @@ export default async function QuotePage({ params }: Props) {
     <main className="min-h-dvh bg-slate-100 pb-12">
       <header
         className="px-5 pb-16 pt-10 text-white"
-        style={{ background: `linear-gradient(135deg, #060d14 0%, #060d14 45%, ${color} 140%)` }}
+        style={{ background: `linear-gradient(135deg, #0a0e17 0%, #0a0e17 45%, ${color} 140%)` }}
       >
         <div className="mx-auto max-w-xl">
           <p className="text-sm font-bold uppercase tracking-wider text-white/70">Orçamento</p>
@@ -127,7 +127,7 @@ export default async function QuotePage({ params }: Props) {
           color={color}
         />
 
-        <p className="pt-2 text-center text-xs text-slate-400">Orçamento gerado com PáginaSolo</p>
+        <p className="pt-2 text-center text-xs text-slate-400">Orçamento gerado com Meu Site Novo</p>
       </div>
     </main>
   );

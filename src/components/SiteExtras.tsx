@@ -37,11 +37,11 @@ async function shrinkPhoto(file: File): Promise<string | null> {
   return null;
 }
 
-const card = "rounded-2xl bg-[#0c1d2c] border border-white/15 p-5 sm:p-6 space-y-4";
+const card = "rounded-2xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4";
 const input =
-  "w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#FF9C40] focus:outline-none";
+  "w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 const ghostBtn =
-  "inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#07111a] hover:bg-white/10 px-3.5 py-2.5 text-xs font-extrabold text-white cursor-pointer transition-colors";
+  "inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#0a0e17] hover:bg-white/10 px-3.5 py-2.5 text-xs font-extrabold text-white cursor-pointer transition-colors";
 
 export function SiteExtras({
   tenant,
@@ -148,7 +148,7 @@ export function SiteExtras({
               rel="noopener noreferrer"
               className={ghostBtn}
             >
-              <QrCode className="h-4 w-4 text-[#FF9C40]" />
+              <QrCode className="h-4 w-4 text-[#67e8f9]" />
               QR do meu site
             </a>
             <a
@@ -191,7 +191,7 @@ export function SiteExtras({
             onClick={() => fileRef.current?.click()}
             className={`${ghostBtn} disabled:opacity-40`}
           >
-            <ImagePlus className="h-4 w-4 text-[#FF9C40]" />
+            <ImagePlus className="h-4 w-4 text-[#67e8f9]" />
             Adicionar
           </button>
           <input
@@ -244,7 +244,7 @@ export function SiteExtras({
             }
             className={`${ghostBtn} disabled:opacity-40`}
           >
-            <Plus className="h-4 w-4 text-[#FF9C40]" />
+            <Plus className="h-4 w-4 text-[#67e8f9]" />
             Adicionar
           </button>
         </div>
@@ -255,7 +255,7 @@ export function SiteExtras({
           </p>
         )}
         {testimonials.map((t, i) => (
-          <div key={i} className="space-y-2 rounded-xl bg-[#07111a] p-3.5">
+          <div key={i} className="space-y-2 rounded-xl bg-[#0a0e17] p-3.5">
             <input
               value={t.name}
               onChange={(e) =>
@@ -317,7 +317,7 @@ export function SiteExtras({
             onClick={() => setFaq([...faq, { q: "", a: "" }])}
             className={`${ghostBtn} disabled:opacity-40`}
           >
-            <Plus className="h-4 w-4 text-[#FF9C40]" />
+            <Plus className="h-4 w-4 text-[#67e8f9]" />
             Adicionar
           </button>
         </div>
@@ -325,7 +325,7 @@ export function SiteExtras({
           Já deixamos algumas prontas. Edite com as respostas do seu negócio.
         </p>
         {faq.map((f, i) => (
-          <div key={i} className="space-y-2 rounded-xl bg-[#07111a] p-3.5">
+          <div key={i} className="space-y-2 rounded-xl bg-[#0a0e17] p-3.5">
             <input
               value={f.q}
               onChange={(e) =>
@@ -361,7 +361,7 @@ export function SiteExtras({
           type="button"
           onClick={save}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF9C40] to-[#FF6600] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-[#FF6600]/25 disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-[#3b82f6]/25 disabled:opacity-60 cursor-pointer"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           {saving ? "Salvando..." : "Salvar fotos, depoimentos e perguntas"}

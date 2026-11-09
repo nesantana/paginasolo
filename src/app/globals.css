@@ -64,7 +64,7 @@
 .animate-spin-slow { animation: spin-slow 22s linear infinite; }
 
 .text-gradient {
-  background: linear-gradient(90deg, #ffb35c, #ff6600, #ff3d71, #ffb35c);
+  background: linear-gradient(90deg, #a5f3fc, #3b82f6, #8b5cf6, #a5f3fc);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -73,7 +73,7 @@
 }
 
 .btn-shine {
-  background-image: linear-gradient(110deg, #ff8a2b 0%, #ff6600 40%, #ff3d71 100%);
+  background-image: linear-gradient(110deg, #06b6d4 0%, #3b82f6 40%, #8b5cf6 100%);
   background-size: 200% 100%;
   animation: grad-shift 5s ease infinite;
 }

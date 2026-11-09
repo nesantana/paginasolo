@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Crown, ExternalLink, Loader2, LogOut, Mail, Search, TrendingUp } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type Row = {
   id: string;
@@ -62,12 +63,13 @@ function Login() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#060d14] px-5 text-white">
+    <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] px-5 text-white">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-3xl border border-white/10 bg-white/5 p-7">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF6600]">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#3b82f6]">
           <Mail className="h-6 w-6" />
         </span>
-        <h1 className="text-2xl font-extrabold">Admin PáginaSolo</h1>
+        <BrandLogo size={40} className="text-2xl" />
+        <h1 className="text-xl font-extrabold">Painel administrativo</h1>
         <p className="text-sm text-slate-300">Digite seu e-mail de administrador. Enviamos um link de acesso.</p>
         <input
           type="email"
@@ -75,11 +77,11 @@ function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="voce@email.com"
-          className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#FF9C40] focus:outline-none"
+          className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none"
         />
         <button
           disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6600] px-6 py-3 font-extrabold disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3b82f6] px-6 py-3 font-extrabold disabled:opacity-60"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} Enviar link
         </button>
@@ -140,8 +142,8 @@ export default function AdminPage() {
 
   if (state === "loading")
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#060d14] text-white">
-        <Loader2 className="h-6 w-6 animate-spin text-[#FF9C40]" />
+      <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] text-white">
+        <Loader2 className="h-6 w-6 animate-spin text-[#67e8f9]" />
       </div>
     );
   if (state === "login" || !data) return <Login />;
@@ -156,12 +158,12 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-dvh bg-[#060d14] pb-16 text-white">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#060d14]/90 backdrop-blur">
+    <div className="min-h-dvh bg-[#0a0e17] pb-16 text-white">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0a0e17]/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
           <span className="text-lg font-extrabold">
-            Página<span className="text-[#FF9C40]">Solo</span>{" "}
-            <span className="ml-1 rounded-full bg-[#FF6600]/20 px-2 py-0.5 text-xs text-[#FF9C40]">admin</span>
+            <BrandLogo size={32} />{" "}
+            <span className="ml-1 rounded-full bg-[#3b82f6]/20 px-2 py-0.5 text-xs text-[#67e8f9]">admin</span>
           </span>
           <div className="flex items-center gap-3 text-xs text-slate-300">
             <span className="hidden sm:inline">{data.admin}</span>
@@ -185,10 +187,10 @@ export default function AdminPage() {
           {cards.map((c) => (
             <div
               key={c.label}
-              className={`rounded-2xl border p-4 ${c.hl ? "col-span-2 border-[#FF6600]/40 bg-[#FF6600]/10 lg:col-span-1" : "border-white/10 bg-white/5"}`}
+              className={`rounded-2xl border p-4 ${c.hl ? "col-span-2 border-[#3b82f6]/40 bg-[#3b82f6]/10 lg:col-span-1" : "border-white/10 bg-white/5"}`}
             >
               <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-300">
-                {c.label} {c.hl && <TrendingUp className="h-4 w-4 text-[#FF9C40]" />}
+                {c.label} {c.hl && <TrendingUp className="h-4 w-4 text-[#67e8f9]" />}
               </div>
               <div className="mt-2 text-2xl font-extrabold sm:text-3xl">{c.value}</div>
               <div className="mt-1 text-xs text-slate-400">{c.sub}</div>
@@ -207,7 +209,7 @@ export default function AdminPage() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Buscar por nome, e-mail, cidade ou link"
-                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-9 pr-3 text-sm placeholder:text-slate-500 focus:border-[#FF9C40] focus:outline-none"
+                className="w-full rounded-xl border border-white/15 bg-white/5 py-2.5 pl-9 pr-3 text-sm placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none"
               />
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -215,7 +217,7 @@ export default function AdminPage() {
                 <button
                   key={k}
                   onClick={() => setFilter(k)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#FF6600] text-white" : "border border-white/15 text-slate-300 hover:bg-white/10"}`}
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#3b82f6] text-white" : "border border-white/15 text-slate-300 hover:bg-white/10"}`}
                 >
                   {l}
                 </button>
@@ -278,7 +280,7 @@ export default function AdminPage() {
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="Motivo (opcional): parceiro, teste, indicação…"
                         maxLength={120}
-                        className="flex-1 rounded-xl border border-white/15 bg-[#060d14] px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none"
+                        className="flex-1 rounded-xl border border-white/15 bg-[#0a0e17] px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none"
                       />
                       <button
                         disabled={busyId === t.id}

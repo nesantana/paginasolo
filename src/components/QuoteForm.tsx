@@ -41,11 +41,11 @@ const VALIDITY = [
 ] as const;
 
 const field =
-  "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#FF9C40] focus:outline-none";
+  "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 
 const chip = (on: boolean) =>
   `rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
-    on ? "bg-[#FF6600] text-white" : "bg-white/10 text-slate-300 hover:bg-white/15"
+    on ? "bg-[#3b82f6] text-white" : "bg-white/10 text-slate-300 hover:bg-white/15"
   }`;
 
 export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose }: Props) {
@@ -108,7 +108,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
   if (created) {
     const url = quoteUrl(origin, created.code);
     return (
-      <div className="space-y-4 rounded-3xl border border-emerald-500/30 bg-[#0c1d2c] p-5 sm:p-6">
+      <div className="space-y-4 rounded-3xl border border-emerald-500/30 bg-[#0f172a] p-5 sm:p-6">
         <p className="flex items-center gap-2 text-lg font-extrabold text-emerald-300">
           <Check className="h-5 w-5" /> Orçamento criado
         </p>
@@ -166,7 +166,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
   return (
     <form
       onSubmit={submit}
-      className="space-y-5 rounded-3xl border border-white/15 bg-[#0c1d2c] p-5 sm:p-6"
+      className="space-y-5 rounded-3xl border border-white/15 bg-[#0f172a] p-5 sm:p-6"
     >
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-extrabold">Novo orçamento</h2>
@@ -209,7 +209,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
                 key={`${s.title}-${i}`}
                 type="button"
                 onClick={() => addService(s)}
-                className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-left text-xs font-bold text-slate-200 hover:border-[#FF9C40] hover:bg-white/10"
+                className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-left text-xs font-bold text-slate-200 hover:border-[#67e8f9] hover:bg-white/10"
               >
                 <Plus className="h-3.5 w-3.5 shrink-0" />
                 <span className="max-w-[16rem] truncate">{s.title}</span>
@@ -259,14 +259,14 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         <button
           type="button"
           onClick={() => setLines((l) => [...l, { title: "", qty: 1, price: "" }])}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#FF9C40] hover:text-[#FFB35C]"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#67e8f9] hover:text-[#a5f3fc]"
         >
           <Plus className="h-4 w-4" /> Item avulso
         </button>
 
         {total > 0 && (
           <p className="text-right text-lg font-extrabold">
-            Total <span className="text-[#FF9C40]">{formatBRL(total)}</span>
+            Total <span className="text-[#67e8f9]">{formatBRL(total)}</span>
           </p>
         )}
       </div>
@@ -312,7 +312,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
       <button
         type="submit"
         disabled={busy}
-        className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold shadow-lg shadow-[#FF6600]/30 disabled:opacity-60"
+        className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold shadow-lg shadow-[#3b82f6]/30 disabled:opacity-60"
       >
         {busy && <Loader2 className="h-5 w-5 animate-spin" />}
         {busy ? "Criando..." : "Criar orçamento"}

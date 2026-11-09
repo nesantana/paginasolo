@@ -6,7 +6,7 @@ import type { TenantLink, TenantRow } from "@/types/database.types";
 import { OwnerShell, PaidOnly, useOwnerTenant } from "@/components/OwnerShell";
 
 const field =
-  "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#FF9C40] focus:outline-none";
+  "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 
 function LinksEditor({ tenant }: { tenant: TenantRow }) {
   const [links, setLinks] = useState<TenantLink[]>(
@@ -46,9 +46,9 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl border border-white/15 bg-[#0c1d2c] p-5 sm:p-6">
+      <section className="rounded-3xl border border-white/15 bg-[#0f172a] p-5 sm:p-6">
         <p className="text-sm font-bold text-slate-300">Seu link para o Instagram, TikTok e WhatsApp</p>
-        <p className="mt-2 break-all rounded-xl bg-white/5 px-4 py-3 font-mono text-sm text-[#FFB35C]">
+        <p className="mt-2 break-all rounded-xl bg-white/5 px-4 py-3 font-mono text-sm text-[#a5f3fc]">
           {url}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -83,7 +83,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
         </p>
       </section>
 
-      <section className="space-y-3 rounded-3xl border border-white/15 bg-[#0c1d2c] p-5 sm:p-6">
+      <section className="space-y-3 rounded-3xl border border-white/15 bg-[#0f172a] p-5 sm:p-6">
         <h2 className="text-lg font-extrabold">Seus links extras</h2>
         {links.map((l, i) => (
           <div key={i} className="grid gap-2 rounded-xl bg-white/5 p-3 sm:grid-cols-[1fr_1.4fr_auto]">
@@ -118,7 +118,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
           <button
             type="button"
             onClick={() => setLinks((l) => [...l, { label: "", url: "" }])}
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#FF9C40] hover:text-[#FFB35C]"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#67e8f9] hover:text-[#a5f3fc]"
           >
             <Plus className="h-4 w-4" /> Adicionar link
           </button>
@@ -139,7 +139,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
           type="button"
           onClick={save}
           disabled={busy}
-          className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold shadow-lg shadow-[#FF6600]/30 disabled:opacity-60"
+          className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold shadow-lg shadow-[#3b82f6]/30 disabled:opacity-60"
         >
           {busy && <Loader2 className="h-5 w-5 animate-spin" />}
           {busy ? "Salvando..." : "Salvar links"}

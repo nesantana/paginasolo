@@ -48,7 +48,7 @@ export function PublishButton({
         disabled={loading}
         className={
           className ||
-          "inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FF9C40] to-[#FF6600] px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white shadow-lg disabled:opacity-60"
+          "inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white shadow-lg disabled:opacity-60"
         }
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}

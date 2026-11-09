@@ -36,10 +36,10 @@ export default async function CartazPage({ params, searchParams }: Props) {
     margin: 1,
     width: 360,
     errorCorrectionLevel: "M",
-    color: { dark: "#0b1926", light: "#ffffff" },
+    color: { dark: "#0f172a", light: "#ffffff" },
   });
 
-  const color = tenant.primary_color || "#FF6600";
+  const color = tenant.primary_color || "#3b82f6";
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white py-6 print:py-0">

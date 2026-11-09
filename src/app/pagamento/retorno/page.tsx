@@ -29,8 +29,8 @@ function Retorno() {
   const active = status === "active";
 
   return (
-    <div className="min-h-dvh bg-[#07111a] text-white flex items-center justify-center p-6">
-      <div className="max-w-md w-full rounded-3xl border border-white/10 bg-[#0c1d2c] p-8 text-center space-y-4">
+    <div className="min-h-dvh bg-[#0a0e17] text-white flex items-center justify-center p-6">
+      <div className="max-w-md w-full rounded-3xl border border-white/10 bg-[#0f172a] p-8 text-center space-y-4">
         {active ? (
           <>
             <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
@@ -53,7 +53,7 @@ function Retorno() {
           </>
         ) : (
           <>
-            <Loader2 className="w-10 h-10 text-[#FF9C40] mx-auto animate-spin" />
+            <Loader2 className="w-10 h-10 text-[#67e8f9] mx-auto animate-spin" />
             <h1 className="text-xl font-extrabold">Confirmando seu pagamento…</h1>
             <p className="text-sm text-slate-300">
               Isso leva alguns segundos. Se o banco demorar para confirmar, o site

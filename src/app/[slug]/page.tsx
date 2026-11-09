@@ -146,7 +146,7 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
     },
   };
 
-  const color = tenant.primary_color || "#FF6600";
+  const color = tenant.primary_color || "#3b82f6";
   const services = tenant.services || [];
   const hours = tenant.opening_hours || "Segunda a Sábado, 08h às 18h";
   const gallery = tenant.images || [];
@@ -176,7 +176,7 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-[#060d14] text-white overflow-x-clip pb-24 sm:pb-0">
+    <div className="min-h-screen bg-[#0a0e17] text-white overflow-x-clip pb-24 sm:pb-0">
       {isPreview && (
         <div className="sticky top-0 z-50 bg-white text-slate-900 px-4 py-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-sm font-semibold">
           <span>Prévia — ainda não está no Google.</span>
@@ -551,7 +551,7 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
       </footer>
 
       {/* Barra fixa no celular */}
-      <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#060d14]/95 p-3 backdrop-blur">
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#0a0e17]/95 p-3 backdrop-blur">
         {waLink(
           "animate-pulse-ring flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-3.5 font-extrabold text-zinc-950",
           <>

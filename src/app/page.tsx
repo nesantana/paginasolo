@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPublishedTenants } from "@/lib/tenantStore";
 import { Reveal } from "@/components/Reveal";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   ArrowRight,
   BarChart3,
@@ -67,7 +68,7 @@ const DIFERENCIAIS = [
     icon: QrCode,
     t: "Cartaz com QR Code",
     d: "Imprima um cartaz pronto para a vitrine ou o balcão. O cliente aponta o celular e cai no seu site ou no seu WhatsApp.",
-    glow: "bg-[#FF6600]/30",
+    glow: "bg-[#3b82f6]/30",
   },
   {
     icon: ImageIcon,
@@ -91,19 +92,19 @@ const DIFERENCIAIS = [
     icon: Tag,
     t: "Promoção em destaque",
     d: "Uma faixa de oferta no topo do site, como “10% off na primeira visita”. Troque em segundos.",
-    glow: "bg-[#ff3d71]/30",
+    glow: "bg-[#8b5cf6]/30",
   },
   {
     icon: FileText,
     t: "Orçamento por link",
     d: "Escolha os serviços, digite o nome e o WhatsApp do cliente e envie um orçamento bonito em 1 toque. Você vê quando ele abriu e quando aceitou.",
-    glow: "bg-[#FF6600]/30",
+    glow: "bg-[#3b82f6]/30",
   },
   {
     icon: CalendarClock,
     t: "Follow-up que não deixa cliente esfriar",
     d: "Marque quando quer chamar de novo (amanhã, 7 dias...). No dia, o painel mostra quem você precisa chamar, com a mensagem pronta.",
-    glow: "bg-[#ff3d71]/30",
+    glow: "bg-[#8b5cf6]/30",
   },
   {
     icon: Link2,
@@ -123,14 +124,14 @@ export default async function PaginaSoloHome() {
   const tenants = (await listPublishedTenants()).slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-[#060d14] text-white overflow-x-clip">
+    <div className="min-h-screen bg-[#0a0e17] text-white overflow-x-clip">
       {/* ===== HERO ===== */}
       <section className="relative isolate">
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="grid-bg absolute inset-0" />
-          <div className="animate-blob absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-[#FF6600]/35 blur-[110px]" />
+          <div className="animate-blob absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-[#3b82f6]/35 blur-[110px]" />
           <div
-            className="animate-blob absolute top-40 -right-24 h-[26rem] w-[26rem] rounded-full bg-[#ff3d71]/25 blur-[110px]"
+            className="animate-blob absolute top-40 -right-24 h-[26rem] w-[26rem] rounded-full bg-[#8b5cf6]/25 blur-[110px]"
             style={{ animationDelay: "-6s" }}
           />
           <div
@@ -140,8 +141,8 @@ export default async function PaginaSoloHome() {
         </div>
 
         <header className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
-          <Link href="/" className="text-2xl font-extrabold tracking-tight">
-            Página<span className="text-[#FF9C40]">Solo</span>
+          <Link href="/" aria-label="Meu Site Novo">
+            <BrandLogo size={40} className="text-2xl" />
           </Link>
           <div className="flex items-center gap-2">
             <Link
@@ -162,7 +163,7 @@ export default async function PaginaSoloHome() {
         <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-24 pt-10 lg:grid-cols-2 lg:pb-32 lg:pt-16">
           <div className="text-center lg:text-left">
             <span
-              className="animate-fade-up glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-[#FFB35C]"
+              className="animate-fade-up glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-[#a5f3fc]"
               style={{ animationDelay: "0ms" }}
             >
               <Zap className="h-3.5 w-3.5" />
@@ -192,7 +193,7 @@ export default async function PaginaSoloHome() {
             >
               <Link
                 href="/criar"
-                className="btn-shine group inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-extrabold shadow-2xl shadow-[#FF6600]/30 transition hover:scale-[1.03] sm:w-auto"
+                className="btn-shine group inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.03] sm:w-auto"
               >
                 Criar meu site grátis
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
@@ -220,10 +221,10 @@ export default async function PaginaSoloHome() {
 
           {/* Celular + cards flutuantes */}
           <div className="relative mx-auto h-[31rem] w-full max-w-lg sm:h-[34rem]">
-            <div className="animate-float absolute left-1/2 top-0 w-[17rem] -translate-x-1/2 rounded-[2.4rem] border border-white/20 bg-[#0b1826] p-3 shadow-2xl shadow-black/60">
+            <div className="animate-float absolute left-1/2 top-0 w-[17rem] -translate-x-1/2 rounded-[2.4rem] border border-white/20 bg-[#0f172a] p-3 shadow-2xl shadow-black/60">
               <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-white/20" />
               <div className="overflow-hidden rounded-[1.7rem] bg-white text-slate-900">
-                <div className="bg-gradient-to-br from-[#FF8A2B] to-[#FF3D71] p-5 pb-8 text-white">
+                <div className="bg-gradient-to-br from-[#06b6d4] to-[#8b5cf6] p-5 pb-8 text-white">
                   <div className="flex items-center gap-2 text-[11px] font-bold opacity-90">
                     <MapPin className="h-3 w-3" /> Campo Grande - MS
                   </div>
@@ -282,7 +283,7 @@ export default async function PaginaSoloHome() {
               className="animate-pop-in absolute inset-x-0 bottom-2 flex justify-center sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-28 sm:justify-start"
               style={{ animationDelay: "900ms" }}
             >
-              <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f1c2b] px-4 py-3 shadow-2xl shadow-black/50">
+              <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f172a] px-4 py-3 shadow-2xl shadow-black/50">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/20">
                   <Bell className="h-4 w-4 text-emerald-400" />
                 </span>
@@ -297,9 +298,9 @@ export default async function PaginaSoloHome() {
               className="animate-pop-in absolute right-0 top-72 hidden sm:block"
               style={{ animationDelay: "1300ms" }}
             >
-              <div className="animate-float flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f1c2b] px-4 py-3 shadow-2xl shadow-black/50">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF6600]/20">
-                  <Search className="h-4 w-4 text-[#FF9C40]" />
+              <div className="animate-float flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f172a] px-4 py-3 shadow-2xl shadow-black/50">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3b82f6]/20">
+                  <Search className="h-4 w-4 text-[#67e8f9]" />
                 </span>
                 <div className="text-xs">
                   <p className="font-bold">Achou você no Google</p>
@@ -312,7 +313,7 @@ export default async function PaginaSoloHome() {
               className="animate-pop-in absolute right-0 top-10 hidden sm:block"
               style={{ animationDelay: "2100ms" }}
             >
-              <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f1c2b] px-4 py-3 shadow-2xl shadow-black/50">
+              <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f172a] px-4 py-3 shadow-2xl shadow-black/50">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white">
                   <QrCode className="h-6 w-6 text-slate-900" />
                 </span>
@@ -327,7 +328,7 @@ export default async function PaginaSoloHome() {
               className="animate-pop-in absolute right-2 bottom-6 hidden sm:block"
               style={{ animationDelay: "2500ms" }}
             >
-              <div className="animate-float flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f1c2b] px-4 py-3 shadow-2xl shadow-black/50">
+              <div className="animate-float flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f172a] px-4 py-3 shadow-2xl shadow-black/50">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400/20">
                   <CalendarCheck className="h-4 w-4 text-yellow-300" />
                 </span>
@@ -342,7 +343,7 @@ export default async function PaginaSoloHome() {
               className="animate-pop-in absolute left-2 bottom-6 hidden sm:block"
               style={{ animationDelay: "1700ms" }}
             >
-              <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f1c2b] px-4 py-3 shadow-2xl shadow-black/50">
+              <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f172a] px-4 py-3 shadow-2xl shadow-black/50">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500/20">
                   <BarChart3 className="h-4 w-4 text-sky-400" />
                 </span>
@@ -367,7 +368,7 @@ export default async function PaginaSoloHome() {
                   key={i}
                   className="glass flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-slate-200"
                 >
-                  <Icon className="h-4 w-4 text-[#FF9C40]" />
+                  <Icon className="h-4 w-4 text-[#67e8f9]" />
                   {n.label}
                 </span>
               );
@@ -385,13 +386,13 @@ export default async function PaginaSoloHome() {
         </Reveal>
 
         <div className="relative mt-16 grid gap-6 md:grid-cols-3">
-          <div className="absolute left-[16%] right-[16%] top-10 hidden h-px bg-gradient-to-r from-transparent via-[#FF6600]/60 to-transparent md:block" />
+          <div className="absolute left-[16%] right-[16%] top-10 hidden h-px bg-gradient-to-r from-transparent via-[#3b82f6]/60 to-transparent md:block" />
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             return (
               <Reveal key={s.t} delay={i * 140}>
-                <div className="glass group relative h-full rounded-3xl p-7 transition duration-300 hover:-translate-y-2 hover:border-[#FF6600]/50">
-                  <div className="btn-shine flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg shadow-[#FF6600]/30">
+                <div className="glass group relative h-full rounded-3xl p-7 transition duration-300 hover:-translate-y-2 hover:border-[#3b82f6]/50">
+                  <div className="btn-shine flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg shadow-[#3b82f6]/30">
                     <Icon className="h-6 w-6" />
                   </div>
                   <span className="absolute right-6 top-5 text-5xl font-extrabold text-white/[0.06]">
@@ -417,8 +418,8 @@ export default async function PaginaSoloHome() {
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           <Reveal className="md:col-span-2">
             <div className="glass relative h-full overflow-hidden rounded-3xl p-8">
-              <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#FF6600]/25 blur-3xl" />
-              <Search className="h-8 w-8 text-[#FF9C40]" />
+              <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#3b82f6]/25 blur-3xl" />
+              <Search className="h-8 w-8 text-[#67e8f9]" />
               <h3 className="mt-5 text-2xl font-extrabold">
                 Apareça quando procurarem na sua cidade
               </h3>
@@ -452,7 +453,7 @@ export default async function PaginaSoloHome() {
           <Reveal delay={120} className="md:col-span-2">
             <div className="glass relative h-full overflow-hidden rounded-3xl p-8">
               <div className="absolute -bottom-12 right-0 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
-              <BarChart3 className="h-8 w-8 text-[#FF9C40]" />
+              <BarChart3 className="h-8 w-8 text-[#67e8f9]" />
               <h3 className="mt-5 text-2xl font-extrabold">
                 Veja quantos clientes chamaram
               </h3>
@@ -466,11 +467,11 @@ export default async function PaginaSoloHome() {
 
       {/* ===== DIFERENCIAIS ===== */}
       <section className="relative isolate mx-auto max-w-6xl px-5 pb-24">
-        <div className="absolute left-1/2 top-10 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#ff3d71]/15 blur-[110px]" />
+        <div className="absolute left-1/2 top-10 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#8b5cf6]/15 blur-[110px]" />
         <Reveal className="text-center">
-          <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-[#FFB35C]">
+          <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-[#a5f3fc]">
             <Sparkles className="h-3.5 w-3.5" />
-            Só o PáginaSolo tem
+            Só o Meu Site Novo tem
           </span>
           <h2 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl">
             Mais que um site: uma{" "}
@@ -486,11 +487,11 @@ export default async function PaginaSoloHome() {
             const Icon = f.icon;
             return (
               <Reveal key={f.t} delay={(i % 3) * 120}>
-                <div className="glass group relative h-full overflow-hidden rounded-3xl p-7 transition duration-300 hover:-translate-y-2 hover:border-[#FF6600]/50">
+                <div className="glass group relative h-full overflow-hidden rounded-3xl p-7 transition duration-300 hover:-translate-y-2 hover:border-[#3b82f6]/50">
                   <div
                     className={`absolute -right-8 -top-8 h-28 w-28 rounded-full blur-3xl ${f.glow}`}
                   />
-                  <span className="btn-shine flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg shadow-[#FF6600]/30">
+                  <span className="btn-shine flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg shadow-[#3b82f6]/30">
                     <Icon className="h-6 w-6" />
                   </span>
                   <h3 className="mt-5 text-xl font-extrabold">{f.t}</h3>
@@ -506,10 +507,10 @@ export default async function PaginaSoloHome() {
       <section className="mx-auto max-w-5xl px-5 pb-24">
         <Reveal>
           <div className="relative overflow-hidden rounded-[2rem] p-px">
-            <div className="animate-spin-slow absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_70%,#FF6600_85%,#ff3d71_100%)]" />
-            <div className="relative grid items-center gap-8 rounded-[calc(2rem-1px)] bg-[#0a1520] p-8 sm:p-12 md:grid-cols-2">
+            <div className="animate-spin-slow absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_70%,#3b82f6_85%,#8b5cf6_100%)]" />
+            <div className="relative grid items-center gap-8 rounded-[calc(2rem-1px)] bg-[#0f172a] p-8 sm:p-12 md:grid-cols-2">
               <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-[#FF9C40]">
+                <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">
                   Plano único
                 </p>
                 <p className="mt-3 text-7xl font-extrabold tracking-tight">
@@ -541,7 +542,7 @@ export default async function PaginaSoloHome() {
                 </ul>
                 <Link
                   href="/criar"
-                  className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#FF6600]/30 transition hover:scale-[1.02]"
+                  className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#3b82f6]/30 transition hover:scale-[1.02]"
                 >
                   Criar meu site grátis
                   <ArrowRight className="h-5 w-5" />
@@ -564,7 +565,7 @@ export default async function PaginaSoloHome() {
                 <li key={t.id}>
                   <Link
                     href={`/${t.slug}`}
-                    className="glass group flex items-center justify-between rounded-2xl px-5 py-4 transition hover:-translate-y-1 hover:border-[#FF6600]/50"
+                    className="glass group flex items-center justify-between rounded-2xl px-5 py-4 transition hover:-translate-y-1 hover:border-[#3b82f6]/50"
                   >
                     <span>
                       <span className="block font-bold">{t.business_name}</span>
@@ -572,7 +573,7 @@ export default async function PaginaSoloHome() {
                         {t.category} · {t.city}
                       </span>
                     </span>
-                    <ArrowRight className="h-4 w-4 text-[#FF9C40] transition group-hover:translate-x-1" />
+                    <ArrowRight className="h-4 w-4 text-[#67e8f9] transition group-hover:translate-x-1" />
                   </Link>
                 </li>
               ))}
@@ -583,7 +584,7 @@ export default async function PaginaSoloHome() {
 
       {/* ===== CTA FINAL ===== */}
       <section className="relative isolate overflow-hidden border-t border-white/10 py-24 text-center">
-        <div className="animate-blob absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF6600]/30 blur-[100px]" />
+        <div className="animate-blob absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3b82f6]/30 blur-[100px]" />
         <Reveal>
           <h2 className="mx-auto max-w-2xl px-5 text-3xl font-extrabold tracking-tight sm:text-5xl">
             Seu concorrente já está no Google.{" "}
@@ -591,7 +592,7 @@ export default async function PaginaSoloHome() {
           </h2>
           <Link
             href="/criar"
-            className="btn-shine mt-9 inline-flex items-center gap-2 rounded-2xl px-9 py-4 text-lg font-extrabold shadow-2xl shadow-[#FF6600]/30 transition hover:scale-[1.04]"
+            className="btn-shine mt-9 inline-flex items-center gap-2 rounded-2xl px-9 py-4 text-lg font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.04]"
           >
             Criar meu site grátis
             <ArrowRight className="h-5 w-5" />
@@ -600,9 +601,9 @@ export default async function PaginaSoloHome() {
       </section>
 
       <footer className="border-t border-white/10 py-6 text-center text-sm text-slate-500">
-        PáginaSolo · MSSolo, Campo Grande - MS ·{" "}
+        Meu Site Novo ·{" "}
         <a
-          href="https://wa.me/5567981513750?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20P%C3%A1ginaSolo%20da%20MSSolo."
+          href="https://wa.me/5567981513750?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Meu%20Site%20Novo."
           target="_blank"
           rel="noopener noreferrer"
           className="underline underline-offset-4 hover:text-white"

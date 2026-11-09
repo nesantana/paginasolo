@@ -7,6 +7,7 @@ import { SiteExtras } from "@/components/SiteExtras";
 import { OwnerTools } from "@/components/OwnerTools";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   Users,
   MessageSquare,
@@ -204,7 +205,7 @@ const BUSINESS_PRESETS: PresetTemplate[] = [
 ];
 
 const COLOR_OPTIONS = [
-  { label: "Laranja MSSolo", hex: "#FF6600" },
+  { label: "Laranja", hex: "#FF6600" },
   { label: "Verde WhatsApp", hex: "#10B981" },
   { label: "Azul Confiança", hex: "#0284C7" },
   { label: "Vermelho Destaque", hex: "#E11D48" },
@@ -231,7 +232,7 @@ export default function ClientDashboardPage() {
   const [bizHours, setBizHours] = useState("Segunda a Sábado: 08h às 18h");
   const [bizHeadline, setBizHeadline] = useState("");
   const [bizDescription, setBizDescription] = useState("");
-  const [bizColor, setBizColor] = useState("#FF6600");
+  const [bizColor, setBizColor] = useState("#3b82f6");
   const [bizSlug, setBizSlug] = useState("");
   const [bizMetaPixel, setBizMetaPixel] = useState("");
   const [bizGoogleTag, setBizGoogleTag] = useState("");
@@ -280,7 +281,7 @@ export default function ClientDashboardPage() {
     setBizHours(t.opening_hours || "");
     setBizHeadline(t.headline || "");
     setBizDescription(t.description || "");
-    setBizColor(t.primary_color || "#FF6600");
+    setBizColor(t.primary_color || "#3b82f6");
     setBizSlug(t.slug);
     setBizMetaPixel(t.meta_pixel_id || "");
     setBizGoogleTag(t.google_tag_id || "");
@@ -307,7 +308,7 @@ export default function ClientDashboardPage() {
     setBizHours("Segunda a Sábado: 08h às 18h");
     setBizHeadline("");
     setBizDescription("");
-    setBizColor("#FF6600");
+    setBizColor("#3b82f6");
     setBizSlug("");
     setServices([
       {
@@ -397,7 +398,7 @@ export default function ClientDashboardPage() {
 
   if (!summary) {
     return (
-      <div className="min-h-screen bg-[#07111a] text-white flex items-center justify-center p-6 font-bold">
+      <div className="min-h-screen bg-[#0a0e17] text-white flex items-center justify-center p-6 font-bold">
         Abrindo o painel da sua página...
       </div>
     );
@@ -406,16 +407,13 @@ export default function ClientDashboardPage() {
   const { tenant, allTenants, metrics } = summary;
 
   return (
-    <div className="min-h-screen bg-[#07111a] text-white pb-16">
+    <div className="min-h-screen bg-[#0a0e17] text-white pb-16">
       {/* Barra Superior Simples */}
-      <header className="border-b border-white/10 bg-[#0b1926] sticky top-0 z-30">
+      <header className="border-b border-white/10 bg-[#0f172a] sticky top-0 z-30">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-baseline">
-              <span className="text-xl font-extrabold text-white">
-                Página<span className="text-[#FF9C40]">Solo</span>
-              </span>
-              <span className="h-2 w-2 rounded-full bg-[#FF6600] ml-1" />
+            <Link href="/" aria-label="Meu Site Novo">
+              <BrandLogo size={32} className="text-lg" />
             </Link>
 
             {allTenants.length > 1 && (
@@ -423,7 +421,7 @@ export default function ClientDashboardPage() {
                 value={tenant.id}
                 onChange={(e) => loadSummary(e.target.value)}
                 aria-label="Selecionar empresa"
-                className="rounded-xl border border-white/15 bg-[#07111a] px-3 py-2 text-xs font-bold text-white"
+                className="rounded-xl border border-white/15 bg-[#0a0e17] px-3 py-2 text-xs font-bold text-white"
               >
                 {allTenants.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -462,7 +460,7 @@ export default function ClientDashboardPage() {
             <OwnerTools key={tenant.id} tenant={tenant} />
 
             {/* Cartão Principal da Empresa */}
-            <div className="rounded-3xl bg-[#0c1d2c] border border-white/15 p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-xl">
+            <div className="rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-xl">
               <div className="space-y-1.5">
                 {tenant.subscription_status === "active" ? (
                   <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1">
@@ -473,9 +471,9 @@ export default function ClientDashboardPage() {
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-[#FF6600]/15 border border-[#FF6600]/40 px-3 py-1">
-                      <span className="h-2 w-2 rounded-full bg-[#FF9C40]" />
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#FF9C40]">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#3b82f6]/15 border border-[#3b82f6]/40 px-3 py-1">
+                      <span className="h-2 w-2 rounded-full bg-[#67e8f9]" />
+                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#67e8f9]">
                         {tenant.subscription_status === "draft"
                           ? "Prévia: ainda não está no Google"
                           : "Assinatura inativa: site fora do ar"}
@@ -505,7 +503,7 @@ export default function ClientDashboardPage() {
                 <button
                   type="button"
                   onClick={copySiteLink}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-[#07111a] hover:bg-white/10 px-4 py-3 text-xs sm:text-sm font-extrabold text-white cursor-pointer transition-all"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-[#0a0e17] hover:bg-white/10 px-4 py-3 text-xs sm:text-sm font-extrabold text-white cursor-pointer transition-all"
                 >
                   {copiedLink ? (
                     <>
@@ -514,7 +512,7 @@ export default function ClientDashboardPage() {
                     </>
                   ) : (
                     <>
-                      <Copy className="w-4 h-4 text-[#FF9C40]" />
+                      <Copy className="w-4 h-4 text-[#67e8f9]" />
                       <span>Copiar Link para Instagram / WhatsApp</span>
                     </>
                   )}
@@ -523,7 +521,7 @@ export default function ClientDashboardPage() {
                 <button
                   type="button"
                   onClick={startQuickEdit}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF9C40] to-[#FF6600] hover:from-[#FF6600] hover:to-[#e65c00] px-5 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-[#FF6600]/25 cursor-pointer transition-all"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] hover:from-[#0891b2] hover:to-[#4f46e5] px-5 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-[#3b82f6]/25 cursor-pointer transition-all"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>Editar Textos, Serviços ou WhatsApp</span>
@@ -534,7 +532,7 @@ export default function ClientDashboardPage() {
             {/* OS 3 CARTÕES SIMPLES DE RESULTADO */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Card 1: Pessoas que entraram no site */}
-              <div className="rounded-2xl bg-[#0c1d2c] border border-white/10 p-6">
+              <div className="rounded-2xl bg-[#0f172a] border border-white/10 p-6">
                 <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-slate-300">
                   <span>Visitas no seu site (30 dias)</span>
                   <Users className="w-5 h-5 text-sky-400" />
@@ -548,7 +546,7 @@ export default function ClientDashboardPage() {
               </div>
 
               {/* Card 2: Pessoas que clicaram no WhatsApp */}
-              <div className="rounded-2xl bg-[#0c1d2c] border border-emerald-500/30 p-6">
+              <div className="rounded-2xl bg-[#0f172a] border border-emerald-500/30 p-6">
                 <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-emerald-400">
                   <span>Chamaram no WhatsApp</span>
                   <MessageSquare className="w-5 h-5 text-emerald-400" />
@@ -562,12 +560,12 @@ export default function ClientDashboardPage() {
               </div>
 
               {/* Card 3: Aproveitamento */}
-              <div className="rounded-2xl bg-[#0c1d2c] border border-[#FF7113]/30 p-6">
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-[#FF9C40]">
+              <div className="rounded-2xl bg-[#0f172a] border border-[#38bdf8]/30 p-6">
+                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-[#67e8f9]">
                   <span>Aproveitamento do Site</span>
-                  <TrendingUp className="w-5 h-5 text-[#FF9C40]" />
+                  <TrendingUp className="w-5 h-5 text-[#67e8f9]" />
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#FF9C40] mt-2">
+                <div className="text-3xl sm:text-4xl font-extrabold text-[#67e8f9] mt-2">
                   {metrics.conversionRate}%
                 </div>
                 <p className="text-xs text-slate-300 mt-2">
@@ -581,10 +579,10 @@ export default function ClientDashboardPage() {
             </div>
 
             {/* GRÁFICO DE BARRAS DOS ÚLTIMOS 30 DIAS */}
-            <div className="rounded-2xl bg-[#0c1d2c] border border-white/15 p-5 sm:p-6 space-y-4">
+            <div className="rounded-2xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-[#FF9C40]" />
+                  <BarChart3 className="w-5 h-5 text-[#67e8f9]" />
                   <h2 className="text-base sm:text-lg font-extrabold text-white">
                     Movimento da sua página dia a dia (Últimos 30 dias)
                   </h2>
@@ -647,10 +645,10 @@ export default function ClientDashboardPage() {
 
         {/* MODO 2: CRIAR SITE EM 3 PASSOS SUPER SIMPLES */}
         {mode === "onboarding" && (
-          <div className="max-w-2xl mx-auto rounded-3xl bg-[#0c1d2c] border border-white/15 p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="max-w-2xl mx-auto rounded-3xl bg-[#0f172a] border border-white/15 p-6 sm:p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#FF9C40]">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#67e8f9]">
                   Passo {step} de 3 • Muito Fácil
                 </span>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
@@ -671,8 +669,8 @@ export default function ClientDashboardPage() {
             {step === 1 && (
               <div className="space-y-5">
                 {/* Botões de Modelo Pronto em 1 Clique */}
-                <div className="rounded-2xl bg-[#07111a] border border-white/10 p-4 space-y-2.5">
-                  <div className="text-xs font-extrabold text-[#FF9C40]">
+                <div className="rounded-2xl bg-[#0a0e17] border border-white/10 p-4 space-y-2.5">
+                  <div className="text-xs font-extrabold text-[#67e8f9]">
                     💡 Quer ir mais rápido? Toque no seu ramo para preencher um modelo pronto:
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -683,8 +681,8 @@ export default function ClientDashboardPage() {
                         onClick={() => applyPreset(preset)}
                         className={`rounded-xl px-3 py-2.5 text-xs font-bold text-left border transition-all cursor-pointer ${
                           selectedPreset === preset.id
-                            ? "bg-[#FF6600] border-[#FF9C40] text-white shadow-md"
-                            : "bg-[#0c1d2c] border-white/10 text-slate-200 hover:border-white/30"
+                            ? "bg-[#3b82f6] border-[#67e8f9] text-white shadow-md"
+                            : "bg-[#0f172a] border-white/10 text-slate-200 hover:border-white/30"
                         }`}
                       >
                         {preset.label}
@@ -706,7 +704,7 @@ export default function ClientDashboardPage() {
                         setBizSlug(slugify(e.target.value));
                       }}
                       placeholder="Ex: Silva Ar-Condicionado"
-                      className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-sm text-white focus:border-[#FF9C40] focus:outline-none"
+                      className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-sm text-white focus:border-[#67e8f9] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -718,7 +716,7 @@ export default function ClientDashboardPage() {
                       value={bizWhatsapp}
                       onChange={(e) => setBizWhatsapp(e.target.value)}
                       placeholder="Ex: 67 98151-3750"
-                      className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-sm text-white focus:border-[#FF9C40] focus:outline-none"
+                      className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-sm text-white focus:border-[#67e8f9] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -733,7 +731,7 @@ export default function ClientDashboardPage() {
                       value={bizCategory}
                       onChange={(e) => setBizCategory(e.target.value)}
                       placeholder="Ex: Conserto e Limpeza de Ar-Condicionado"
-                      className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-sm text-white focus:border-[#FF9C40] focus:outline-none"
+                      className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-sm text-white focus:border-[#67e8f9] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -745,7 +743,7 @@ export default function ClientDashboardPage() {
                       value={bizCity}
                       onChange={(e) => setBizCity(e.target.value)}
                       placeholder="Ex: Campo Grande - MS"
-                      className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-sm text-white focus:border-[#FF9C40] focus:outline-none"
+                      className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-sm text-white focus:border-[#67e8f9] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -759,7 +757,7 @@ export default function ClientDashboardPage() {
                     value={bizAddress}
                     onChange={(e) => setBizAddress(e.target.value)}
                     placeholder="Ex: Av. Afonso Pena, 1500 - Centro (ou Atendimento em Domicílio)"
-                    className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-sm text-white focus:border-[#FF9C40] focus:outline-none"
+                    className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-sm text-white focus:border-[#67e8f9] focus:outline-none"
                   />
                 </div>
 
@@ -767,7 +765,7 @@ export default function ClientDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF9C40] to-[#FF6600] px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer"
                   >
                     <span>Continuar para o Passo 2</span>
                     <ArrowRight className="w-4 h-4" />
@@ -787,13 +785,13 @@ export default function ClientDashboardPage() {
                     value={bizHeadline}
                     onChange={(e) => setBizHeadline(e.target.value)}
                     placeholder="Ex: Atendimento Rápido com Garantia e Orçamento pelo WhatsApp"
-                    className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3 text-sm text-white focus:border-[#FF9C40] focus:outline-none"
+                    className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-sm text-white focus:border-[#67e8f9] focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-extrabold text-[#FF9C40]">
+                    <label className="text-xs font-extrabold text-[#67e8f9]">
                       Lista dos serviços que você faz (o cliente pode clicar para pedir orçamento):
                     </label>
                     <button
@@ -818,7 +816,7 @@ export default function ClientDashboardPage() {
                   {services.map((srv, idx) => (
                     <div
                       key={idx}
-                      className="rounded-2xl bg-[#07111a] border border-white/10 p-3.5 space-y-2.5"
+                      className="rounded-2xl bg-[#0a0e17] border border-white/10 p-3.5 space-y-2.5"
                     >
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input
@@ -833,7 +831,7 @@ export default function ClientDashboardPage() {
                             );
                           }}
                           placeholder="Nome do serviço (Ex: Limpeza Completa)"
-                          className="flex-1 rounded-xl border border-white/10 bg-[#0c1d2c] px-3 py-2 text-xs sm:text-sm text-white font-bold"
+                          className="flex-1 rounded-xl border border-white/10 bg-[#0f172a] px-3 py-2 text-xs sm:text-sm text-white font-bold"
                         />
                         <div className="flex gap-2">
                           <input
@@ -850,7 +848,7 @@ export default function ClientDashboardPage() {
                               );
                             }}
                             placeholder="Valor (ou Sob Consulta)"
-                            className="w-full sm:w-44 rounded-xl border border-white/10 bg-[#0c1d2c] px-3 py-2 text-xs text-emerald-300 font-bold"
+                            className="w-full sm:w-44 rounded-xl border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-emerald-300 font-bold"
                           />
                           {services.length > 1 && (
                             <button
@@ -880,7 +878,7 @@ export default function ClientDashboardPage() {
                           );
                         }}
                         placeholder="Explicação rápida (Ex: Serviço com garantia e atendimento no mesmo dia)"
-                        className="w-full rounded-xl border border-white/10 bg-[#0c1d2c] px-3 py-2 text-xs text-slate-300"
+                        className="w-full rounded-xl border border-white/10 bg-[#0f172a] px-3 py-2 text-xs text-slate-300"
                       />
                     </div>
                   ))}
@@ -898,7 +896,7 @@ export default function ClientDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setStep(3)}
-                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF9C40] to-[#FF6600] px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer"
                   >
                     <span>Ir para o Último Passo</span>
                     <ArrowRight className="w-4 h-4" />
@@ -912,7 +910,7 @@ export default function ClientDashboardPage() {
                 {/* Escolha de Cor Visual */}
                 <div>
                   <label className="block text-xs font-bold text-slate-200 mb-2 flex items-center gap-1.5">
-                    <Palette className="w-4 h-4 text-[#FF9C40]" />
+                    <Palette className="w-4 h-4 text-[#67e8f9]" />
                     <span>Escolha a cor de destaque do seu site:</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -924,7 +922,7 @@ export default function ClientDashboardPage() {
                         className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold border cursor-pointer transition-all ${
                           bizColor === c.hex
                             ? "border-white bg-white/15 text-white"
-                            : "border-white/10 bg-[#07111a] text-slate-300"
+                            : "border-white/10 bg-[#0a0e17] text-slate-300"
                         }`}
                       >
                         <span
@@ -941,7 +939,7 @@ export default function ClientDashboardPage() {
                   <label className="block text-xs font-bold text-slate-200 mb-1.5">
                     Como vai ficar o link (endereço) do seu site:
                   </label>
-                  <div className="flex items-center rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-3">
+                  <div className="flex items-center rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3">
                     <span className="text-xs text-slate-400 font-mono">
                       paginasolo.com.br/
                     </span>
@@ -950,12 +948,12 @@ export default function ClientDashboardPage() {
                       value={bizSlug}
                       onChange={(e) => setBizSlug(slugify(e.target.value))}
                       placeholder="nome-da-sua-empresa"
-                      className="flex-1 bg-transparent text-sm font-mono font-extrabold text-[#FF9C40] focus:outline-none"
+                      className="flex-1 bg-transparent text-sm font-mono font-extrabold text-[#67e8f9] focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-[#07111a] border border-white/10 p-4 text-xs space-y-1.5">
+                <div className="rounded-2xl bg-[#0a0e17] border border-white/10 p-4 text-xs space-y-1.5">
                   <div className="text-slate-400 uppercase font-bold text-[10px]">
                     Como sua empresa vai aparecer nas buscas do Google:
                   </div>
@@ -998,10 +996,10 @@ export default function ClientDashboardPage() {
 
         {/* MODO 3: EDIÇÃO FÁCIL DE TEXTOS, SERVIÇOS E WHATSAPP */}
         {mode === "quick_edit" && (
-          <div className="max-w-2xl mx-auto rounded-3xl bg-[#0c1d2c] border border-white/15 p-6 sm:p-8 shadow-2xl space-y-5">
+          <div className="max-w-2xl mx-auto rounded-3xl bg-[#0f172a] border border-white/15 p-6 sm:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#FF9C40]">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#67e8f9]">
                   Alteração Simples e Imediata
                 </span>
                 <h2 className="text-lg sm:text-xl font-extrabold text-white">
@@ -1017,8 +1015,8 @@ export default function ClientDashboardPage() {
               </button>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-[#07111a] p-4 space-y-3">
-              <div className="text-xs font-extrabold uppercase tracking-wider text-[#FF9C40]">
+            <div className="rounded-2xl border border-white/10 bg-[#0a0e17] p-4 space-y-3">
+              <div className="text-xs font-extrabold uppercase tracking-wider text-[#67e8f9]">
                 Pixels de anúncios (opcional)
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1032,7 +1030,7 @@ export default function ClientDashboardPage() {
                     placeholder="Ex: 123456789012345"
                     value={bizMetaPixel}
                     onChange={(e) => setBizMetaPixel(e.target.value)}
-                    className="w-full rounded-xl border border-white/15 bg-[#0c1d2c] px-3.5 py-2.5 text-sm font-mono text-white"
+                    className="w-full rounded-xl border border-white/15 bg-[#0f172a] px-3.5 py-2.5 text-sm font-mono text-white"
                   />
                 </div>
                 <div>
@@ -1044,7 +1042,7 @@ export default function ClientDashboardPage() {
                     placeholder="Ex: G-ABC123XYZ ou AW-123456789"
                     value={bizGoogleTag}
                     onChange={(e) => setBizGoogleTag(e.target.value)}
-                    className="w-full rounded-xl border border-white/15 bg-[#0c1d2c] px-3.5 py-2.5 text-sm font-mono text-white"
+                    className="w-full rounded-xl border border-white/15 bg-[#0f172a] px-3.5 py-2.5 text-sm font-mono text-white"
                   />
                 </div>
               </div>
@@ -1062,7 +1060,7 @@ export default function ClientDashboardPage() {
                   type="text"
                   value={bizName}
                   onChange={(e) => setBizName(e.target.value)}
-                  className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-2.5 text-sm text-white"
+                  className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-2.5 text-sm text-white"
                 />
               </div>
               <div>
@@ -1073,7 +1071,7 @@ export default function ClientDashboardPage() {
                   type="text"
                   value={bizWhatsapp}
                   onChange={(e) => setBizWhatsapp(e.target.value)}
-                  className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-2.5 text-sm font-mono text-white"
+                  className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-2.5 text-sm font-mono text-white"
                 />
               </div>
             </div>
@@ -1086,7 +1084,7 @@ export default function ClientDashboardPage() {
                 type="text"
                 value={bizHeadline}
                 onChange={(e) => setBizHeadline(e.target.value)}
-                className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-2.5 text-sm text-white"
+                className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-2.5 text-sm text-white"
               />
             </div>
 
@@ -1098,7 +1096,7 @@ export default function ClientDashboardPage() {
                 rows={2}
                 value={bizDescription}
                 onChange={(e) => setBizDescription(e.target.value)}
-                className="w-full rounded-xl border border-white/15 bg-[#07111a] p-3 text-sm text-white"
+                className="w-full rounded-xl border border-white/15 bg-[#0a0e17] p-3 text-sm text-white"
               />
             </div>
 
@@ -1111,7 +1109,7 @@ export default function ClientDashboardPage() {
                   type="text"
                   value={bizAddress}
                   onChange={(e) => setBizAddress(e.target.value)}
-                  className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-2.5 text-sm text-white"
+                  className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-2.5 text-sm text-white"
                 />
               </div>
               <div>
@@ -1122,7 +1120,7 @@ export default function ClientDashboardPage() {
                   type="text"
                   value={bizHours}
                   onChange={(e) => setBizHours(e.target.value)}
-                  className="w-full rounded-xl border border-white/15 bg-[#07111a] px-3.5 py-2.5 text-sm text-white"
+                  className="w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-2.5 text-sm text-white"
                 />
               </div>
             </div>
@@ -1130,7 +1128,7 @@ export default function ClientDashboardPage() {
             {/* Edição rápida dos serviços também */}
             <div className="space-y-2.5 pt-2 border-t border-white/10">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-extrabold text-[#FF9C40]">
+                <label className="text-xs font-extrabold text-[#67e8f9]">
                   Serviços exibidos na sua página:
                 </label>
                 <button
@@ -1155,7 +1153,7 @@ export default function ClientDashboardPage() {
               {services.map((srv, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl bg-[#07111a] border border-white/10 p-3 space-y-2"
+                  className="rounded-xl bg-[#0a0e17] border border-white/10 p-3 space-y-2"
                 >
                   <div className="flex gap-2">
                     <input
@@ -1170,7 +1168,7 @@ export default function ClientDashboardPage() {
                         );
                       }}
                       placeholder="Nome do serviço..."
-                      className="flex-1 rounded-lg border border-white/10 bg-[#0c1d2c] px-3 py-1.5 text-xs text-white font-bold"
+                      className="flex-1 rounded-lg border border-white/10 bg-[#0f172a] px-3 py-1.5 text-xs text-white font-bold"
                     />
                     <input
                       type="text"
@@ -1184,7 +1182,7 @@ export default function ClientDashboardPage() {
                         );
                       }}
                       placeholder="Preço / Condição"
-                      className="w-36 rounded-lg border border-white/10 bg-[#0c1d2c] px-3 py-1.5 text-xs text-emerald-300 font-bold"
+                      className="w-36 rounded-lg border border-white/10 bg-[#0f172a] px-3 py-1.5 text-xs text-emerald-300 font-bold"
                     />
                     {services.length > 1 && (
                       <button
@@ -1212,7 +1210,7 @@ export default function ClientDashboardPage() {
                       );
                     }}
                     placeholder="Breve descrição do serviço..."
-                    className="w-full rounded-lg border border-white/10 bg-[#0c1d2c] px-3 py-1.5 text-xs text-slate-300"
+                    className="w-full rounded-lg border border-white/10 bg-[#0f172a] px-3 py-1.5 text-xs text-slate-300"
                   />
                 </div>
               ))}
@@ -1230,7 +1228,7 @@ export default function ClientDashboardPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => handlePublishOrSave(true)}
-                className="rounded-xl bg-gradient-to-r from-[#FF9C40] to-[#FF6600] px-7 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer"
+                className="rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-7 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer"
               >
                 {saving ? "Salvando..." : "Salvar Alterações no Site"}
               </button>

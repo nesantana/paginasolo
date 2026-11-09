@@ -33,7 +33,7 @@ export default async function LinksPage({ params }: Props) {
   // Recurso do plano ativo: rascunho ou assinatura parada não publica.
   if (!tenant || !isPublished(tenant)) notFound();
 
-  const color = /^#[0-9a-f]{6}$/i.test(tenant.primary_color) ? tenant.primary_color : "#FF6600";
+  const color = /^#[0-9a-f]{6}$/i.test(tenant.primary_color) ? tenant.primary_color : "#3b82f6";
   const wa = `https://wa.me/${tenant.whatsapp_number}?text=${encodeURIComponent(
     `Olá! Vim pelo Instagram da ${tenant.business_name} e gostaria de um orçamento.`
   )}`;
@@ -48,7 +48,7 @@ export default async function LinksPage({ params }: Props) {
     "group flex w-full items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.07] px-5 py-4 text-left font-bold backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15";
 
   return (
-    <div className="relative isolate min-h-dvh overflow-x-clip bg-[#060d14] px-5 pb-12 pt-12 text-white">
+    <div className="relative isolate min-h-dvh overflow-x-clip bg-[#0a0e17] px-5 pb-12 pt-12 text-white">
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="grid-bg absolute inset-0" />
         <div
@@ -171,7 +171,7 @@ export default async function LinksPage({ params }: Props) {
         <p className="mt-10 text-center text-xs text-slate-500">
           Feito com{" "}
           <a href="/" className="font-bold text-slate-400 underline underline-offset-2">
-            PáginaSolo
+            Meu Site Novo
           </a>
         </p>
       </main>

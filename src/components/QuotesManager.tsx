@@ -71,7 +71,7 @@ export function QuotesManager({ tenant }: { tenant: TenantRow }) {
         <button
           type="button"
           onClick={() => setShowForm(true)}
-          className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold shadow-lg shadow-[#FF6600]/30"
+          className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold shadow-lg shadow-[#3b82f6]/30"
         >
           <Plus className="h-5 w-5" /> Novo orçamento
         </button>
@@ -90,7 +90,7 @@ export function QuotesManager({ tenant }: { tenant: TenantRow }) {
 
       {quotes.length > 0 && (
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-white/12 bg-[#0c1d2c] p-4">
+          <div className="rounded-2xl border border-white/12 bg-[#0f172a] p-4">
             <p className="text-xs font-bold text-slate-400">Em aberto</p>
             <p className="mt-1 text-xl font-extrabold">{formatBRL(openTotal)}</p>
           </div>
@@ -119,7 +119,7 @@ export function QuotesManager({ tenant }: { tenant: TenantRow }) {
       ) : tab === "followup" ? (
         <div className="space-y-6">
           {section("Atrasados", groups.late, "text-red-300")}
-          {section("Chamar hoje", groups.today, "text-[#FFB35C]")}
+          {section("Chamar hoje", groups.today, "text-[#a5f3fc]")}
           {section("Próximos dias", groups.upcoming, "text-slate-400")}
           {section("Sem data de retorno", groups.noDate, "text-slate-500")}
           {dueNow + groups.upcoming.length + groups.noDate.length === 0 && (

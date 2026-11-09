@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin — PáginaSolo",
+  title: "Admin — Meu Site Novo",
   robots: { index: false, follow: false },
 };
 

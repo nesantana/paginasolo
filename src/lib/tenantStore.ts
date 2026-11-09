@@ -109,7 +109,7 @@ const DEMO_TENANT: TenantRow = {
     "Instalação, Higienização e Conserto de Ar-Condicionado em Campo Grande com Garantia de 90 Dias.",
   description:
     "Atendimento rápido no mesmo dia para residências, clínicas e empresas em toda Campo Grande - MS. Técnicos certificados, ferramental com bomba de vácuo e nota fiscal.",
-  primary_color: "#FF6600",
+  primary_color: "#3b82f6",
   services: [
     {
       title: "Instalação de Split e Inverter (9.000 a 60.000 BTUs)",

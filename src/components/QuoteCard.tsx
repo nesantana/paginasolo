@@ -109,7 +109,7 @@ export function QuoteCard({ quote: q, business, origin, compact, onPatch, onDele
     fu === "late"
       ? { text: `Atrasado ${diffDays(q.followup_at!, today)}d`, cls: "bg-red-500/20 text-red-300" }
       : fu === "today"
-        ? { text: "Chamar hoje", cls: "bg-[#FF6600]/25 text-[#FFB35C]" }
+        ? { text: "Chamar hoje", cls: "bg-[#3b82f6]/25 text-[#a5f3fc]" }
         : fu === "upcoming"
           ? { text: `Chamar em ${formatDateBR(q.followup_at)}`, cls: "bg-white/10 text-slate-300" }
           : null;
@@ -117,7 +117,7 @@ export function QuoteCard({ quote: q, business, origin, compact, onPatch, onDele
   const sentDays = q.sent_at ? diffDays(q.sent_at.slice(0, 10), today) : null;
 
   return (
-    <article className="rounded-2xl border border-white/12 bg-[#0c1d2c] p-4">
+    <article className="rounded-2xl border border-white/12 bg-[#0f172a] p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-base font-extrabold">{q.customer_name}</p>
@@ -234,7 +234,7 @@ export function QuoteCard({ quote: q, business, origin, compact, onPatch, onDele
                 type="button"
                 disabled={busy}
                 onClick={() => run({ followup_at: addDaysISO(r.days) })}
-                className="rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-bold hover:bg-[#FF6600]/30 disabled:opacity-60"
+                className="rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-bold hover:bg-[#3b82f6]/30 disabled:opacity-60"
               >
                 {r.label}
               </button>

@@ -45,7 +45,7 @@ export default function ConfirmarEntradaPage() {
   }, []);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#060d14] px-5 text-center text-white">
+    <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] px-5 text-center text-white">
       {error ? (
         <div className="max-w-sm space-y-4">
           <p className="text-lg font-bold">{error}</p>
@@ -58,7 +58,7 @@ export default function ConfirmarEntradaPage() {
         </div>
       ) : (
         <p className="flex items-center gap-3 text-lg font-bold">
-          <Loader2 className="h-5 w-5 animate-spin text-[#FF9C40]" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#67e8f9]" />
           Abrindo o seu painel...
         </p>
       )}

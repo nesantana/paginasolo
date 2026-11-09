@@ -344,8 +344,8 @@ export function ChatBuilder() {
             className={`animate-pop-in flex items-end gap-2 ${m.from === "user" ? "justify-end" : "justify-start"}`}
           >
             {m.from === "bot" && (
-              <span className="btn-shine mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold shadow-lg shadow-[#FF6600]/30">
-                PS
+              <span className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center">
+                <img src="/brand/logo-meusitenovo.svg" alt="" className="h-8 w-8" />
               </span>
             )}
             <div
@@ -367,8 +367,8 @@ export function ChatBuilder() {
 
         {typing && (
           <div className="animate-pop-in flex items-end gap-2" aria-label="Digitando">
-            <span className="btn-shine mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold">
-              PS
+            <span className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center">
+              <img src="/brand/logo-meusitenovo.svg" alt="" className="h-8 w-8" />
             </span>
             <div className="glass flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-4">
               {[0, 1, 2].map((d) => (
@@ -384,7 +384,7 @@ export function ChatBuilder() {
 
         {busy === "build" && (
           <div className="glass animate-pop-in flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-200">
-            <Loader2 className="h-5 w-5 animate-spin text-[#FF9C40]" />{" "}
+            <Loader2 className="h-5 w-5 animate-spin text-[#67e8f9]" />{" "}
             {
               [
                 "Escrevendo os textos…",
@@ -411,7 +411,7 @@ export function ChatBuilder() {
               <iframe
                 src={`/${result.slug}`}
                 title="Prévia do seu site"
-                className="h-[480px] w-full rounded-[1.5rem] bg-[#07111a]"
+                className="h-[480px] w-full rounded-[1.5rem] bg-[#0a0e17]"
               />
             </div>
 
@@ -460,7 +460,7 @@ export function ChatBuilder() {
       </div>
 
       {!done && !typing && messages.length > 0 && (
-        <div className="border-t border-white/10 bg-[#060d14]/90 backdrop-blur-xl px-4 py-3 space-y-2.5">
+        <div className="border-t border-white/10 bg-[#0a0e17]/90 backdrop-blur-xl px-4 py-3 space-y-2.5">
           {error && <p className="text-xs font-bold text-red-300">{error}</p>}
 
           {(step.kind === "chips" || step.kind === "color") && (
@@ -470,7 +470,7 @@ export function ChatBuilder() {
                   <button
                     key={c}
                     onClick={() => submitText(c)}
-                    className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FF9C40] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
+                    className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#67e8f9] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
                   >
                     {c}
                   </button>
@@ -481,7 +481,7 @@ export function ChatBuilder() {
                     key={c.hex}
                     onClick={() => advance(c.hex, { from: "user", text: c.label })}
                     aria-label={c.label}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FF9C40] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#67e8f9] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
                   >
                     <span className="h-4 w-4 rounded-full" style={{ backgroundColor: c.hex }} />
                     {c.label}
@@ -502,7 +502,7 @@ export function ChatBuilder() {
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={busy === "logo"}
-                className="inline-flex items-center gap-2 btn-shine rounded-full px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-[#FF6600]/30 disabled:opacity-60"
+                className="inline-flex items-center gap-2 btn-shine rounded-full px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-[#3b82f6]/30 disabled:opacity-60"
               >
                 {busy === "logo" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                 Enviar logo
@@ -534,7 +534,7 @@ export function ChatBuilder() {
                   placeholder={step.placeholder}
                   rows={4}
                   autoFocus
-                  className="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF9C40]"
+                  className="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#67e8f9]"
                 />
               ) : (
                 <input
@@ -545,13 +545,13 @@ export function ChatBuilder() {
                   type={step.inputMode === "email" ? "email" : "text"}
                   autoFocus
                   autoComplete="off"
-                  className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-3.5 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF9C40]"
+                  className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-3.5 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#67e8f9]"
                 />
               )}
               <button
                 type="submit"
                 aria-label="Enviar"
-                className="btn-shine h-12 w-12 shrink-0 rounded-full text-white flex items-center justify-center shadow-lg shadow-[#FF6600]/30 transition hover:scale-110"
+                className="btn-shine h-12 w-12 shrink-0 rounded-full text-white flex items-center justify-center shadow-lg shadow-[#3b82f6]/30 transition hover:scale-110"
               >
                 <ArrowUp className="w-5 h-5" />
               </button>

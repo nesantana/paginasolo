@@ -83,7 +83,7 @@ export function parseTenantInput(
       opening_hours: optStr(b.opening_hours, 120),
       headline: optStr(b.headline, 160),
       description: optStr(b.description, 400),
-      primary_color: COLOR_RE.test(color) ? color : "#FF6600",
+      primary_color: COLOR_RE.test(color) ? color : "#3b82f6",
       services: cleanServices(b.services),
       logo_url: logo && logo.length < 200_000 && LOGO_RE.test(logo) ? logo : null,
       payer_email: payerRaw || null,
