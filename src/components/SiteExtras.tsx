@@ -16,6 +16,7 @@ import type {
   TenantTestimonial,
 } from "@/types/database.types";
 import { defaultFaq } from "@/lib/faqDefaults";
+import { ThemePicker } from "@/components/ThemePicker";
 
 type Point = { pageviews: number; whatsappClicks: number };
 
@@ -163,6 +164,8 @@ export function SiteExtras({
           </div>
         </div>
       </div>
+
+      <ThemePicker initial={tenant.theme} brandColor={tenant.primary_color} />
 
       {/* Oferta */}
       <div className={card}>

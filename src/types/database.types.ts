@@ -77,6 +77,7 @@ export type Database = {
           offer_text: string | null;
           google_reviews_url: string | null;
           links: TenantLink[];
+          theme: string;
           logo_url: string | null;
           is_active: boolean;
           subscription_status: string;
@@ -112,6 +113,7 @@ export type Database = {
           offer_text?: string | null;
           google_reviews_url?: string | null;
           links?: TenantLink[];
+          theme?: string;
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;
@@ -147,6 +149,7 @@ export type Database = {
           offer_text?: string | null;
           google_reviews_url?: string | null;
           links?: TenantLink[];
+          theme?: string;
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;

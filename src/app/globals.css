@@ -9,6 +9,12 @@
   }
 }
 
+/* Fonte de títulos dos temas Restaurante e Beleza */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
 /* ---------- Animações ---------- */
 @keyframes float-y {
   0%, 100% { transform: translateY(0); }

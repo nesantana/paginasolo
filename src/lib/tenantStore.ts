@@ -13,6 +13,7 @@ import { hashToken } from "@/lib/editAuth";
 import { slugCandidates } from "@/lib/slug";
 import type { TenantInput, TenantExtras } from "@/lib/validate";
 import { defaultFaq } from "@/lib/faqDefaults";
+import { suggestTheme, type ThemeId } from "@/lib/themes";
 
 /**
  * Camada de dados do PáginaSolo.
@@ -76,7 +77,7 @@ const baseRow = (): Pick<
   | "owner_id" | "custom_domain" | "edit_token_hash" | "payer_email"
   | "mp_preapproval_id" | "meta_pixel_id" | "google_tag_id" | "images"
   | "complimentary" | "comp_note"
-  | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links"
+  | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links" | "theme"
 > => ({
   owner_id: null,
   complimentary: false,
@@ -93,6 +94,7 @@ const baseRow = (): Pick<
   offer_text: null,
   google_reviews_url: null,
   links: [],
+  theme: "moderno",
 });
 
 const DEMO_TENANT: TenantRow = {
@@ -388,6 +390,7 @@ export async function createDraftTenant(
     meta_pixel_id: input.meta_pixel_id,
     google_tag_id: input.google_tag_id,
     faq: defaultFaq(input),
+    theme: suggestTheme(input.category),
     edit_token_hash: hashToken(token),
     is_active: true,
     subscription_status: "draft",
@@ -426,6 +429,14 @@ export async function updateTenantExtras(
   extras: TenantExtras
 ): Promise<TenantRow | null> {
   return patchTenant(id, extras);
+}
+
+/** Tema visual do site (escolhido pelo dono). */
+export async function updateTenantTheme(
+  id: string,
+  theme: ThemeId
+): Promise<TenantRow | null> {
+  return patchTenant(id, { theme });
 }
 
 /** Página de links (edição pelo dono já autenticado). */
