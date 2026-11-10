@@ -38,11 +38,11 @@ async function shrinkPhoto(file: File): Promise<string | null> {
   return null;
 }
 
-const card = "rounded-2xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4";
+const card = "rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4";
 const input =
-  "w-full rounded-xl border border-white/15 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
+  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none";
 const ghostBtn =
-  "inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#0a0e17] hover:bg-white/10 px-3.5 py-2.5 text-xs font-extrabold text-white cursor-pointer transition-colors";
+  "inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3.5 py-2.5 text-xs font-extrabold text-slate-900 cursor-pointer transition-colors";
 
 export function SiteExtras({
   tenant,
@@ -121,9 +121,9 @@ export function SiteExtras({
       <div className="grid gap-4 md:grid-cols-2">
         <div className={card}>
           <h2 className="text-base font-extrabold">Resumo da semana</h2>
-          <p className="text-sm text-slate-300">
-            <strong className="text-white">{views}</strong> visitas e{" "}
-            <strong className="text-emerald-400">{clicks}</strong> pessoas
+          <p className="text-sm text-slate-600">
+            <strong className="text-slate-900">{views}</strong> visitas e{" "}
+            <strong className="text-emerald-600">{clicks}</strong> pessoas
             chamaram no WhatsApp nos últimos 7 dias.
           </p>
           <a
@@ -132,14 +132,14 @@ export function SiteExtras({
             rel="noopener noreferrer"
             className={ghostBtn}
           >
-            <MessageSquare className="h-4 w-4 text-emerald-400" />
+            <MessageSquare className="h-4 w-4 text-emerald-600" />
             Enviar resumo para o meu WhatsApp
           </a>
         </div>
 
         <div className={card}>
           <h2 className="text-base font-extrabold">Cartaz com QR Code</h2>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-slate-600">
             Imprima e cole no balcão, na vitrine ou no carro.
           </p>
           <div className="flex flex-wrap gap-2.5">
@@ -149,7 +149,7 @@ export function SiteExtras({
               rel="noopener noreferrer"
               className={ghostBtn}
             >
-              <QrCode className="h-4 w-4 text-[#67e8f9]" />
+              <QrCode className="h-4 w-4 text-blue-700" />
               QR do meu site
             </a>
             <a
@@ -158,7 +158,7 @@ export function SiteExtras({
               rel="noopener noreferrer"
               className={ghostBtn}
             >
-              <QrCode className="h-4 w-4 text-emerald-400" />
+              <QrCode className="h-4 w-4 text-emerald-600" />
               QR direto no WhatsApp
             </a>
           </div>
@@ -177,7 +177,7 @@ export function SiteExtras({
           placeholder="Ex: 10% de desconto no primeiro serviço"
           className={input}
         />
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-500">
           Deixe vazio para não mostrar nada.
         </p>
       </div>
@@ -194,7 +194,7 @@ export function SiteExtras({
             onClick={() => fileRef.current?.click()}
             className={`${ghostBtn} disabled:opacity-40`}
           >
-            <ImagePlus className="h-4 w-4 text-[#67e8f9]" />
+            <ImagePlus className="h-4 w-4 text-blue-700" />
             Adicionar
           </button>
           <input
@@ -207,7 +207,7 @@ export function SiteExtras({
           />
         </div>
         {images.length === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             Mostre antes e depois, sua equipe ou sua loja. Site com fotos passa
             mais confiança.
           </p>
@@ -247,18 +247,18 @@ export function SiteExtras({
             }
             className={`${ghostBtn} disabled:opacity-40`}
           >
-            <Plus className="h-4 w-4 text-[#67e8f9]" />
+            <Plus className="h-4 w-4 text-blue-700" />
             Adicionar
           </button>
         </div>
         {testimonials.length === 0 && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             Copie elogios que clientes reais mandaram e cole aqui, com a
             permissão deles.
           </p>
         )}
         {testimonials.map((t, i) => (
-          <div key={i} className="space-y-2 rounded-xl bg-[#0a0e17] p-3.5">
+          <div key={i} className="space-y-2 rounded-xl bg-slate-50 p-3.5">
             <input
               value={t.name}
               onChange={(e) =>
@@ -291,14 +291,14 @@ export function SiteExtras({
               onClick={() =>
                 setTestimonials(testimonials.filter((_, j) => j !== i))
               }
-              className="text-xs font-bold text-red-400 hover:text-red-300"
+              className="text-xs font-bold text-red-400 hover:text-red-600"
             >
               Remover
             </button>
           </div>
         ))}
         <div>
-          <label className="mb-1.5 block text-xs font-bold text-slate-300">
+          <label className="mb-1.5 block text-xs font-bold text-slate-600">
             Link das suas avaliações no Google (opcional)
           </label>
           <input
@@ -320,15 +320,15 @@ export function SiteExtras({
             onClick={() => setFaq([...faq, { q: "", a: "" }])}
             className={`${ghostBtn} disabled:opacity-40`}
           >
-            <Plus className="h-4 w-4 text-[#67e8f9]" />
+            <Plus className="h-4 w-4 text-blue-700" />
             Adicionar
           </button>
         </div>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-500">
           Já deixamos algumas prontas. Edite com as respostas do seu negócio.
         </p>
         {faq.map((f, i) => (
-          <div key={i} className="space-y-2 rounded-xl bg-[#0a0e17] p-3.5">
+          <div key={i} className="space-y-2 rounded-xl bg-slate-50 p-3.5">
             <input
               value={f.q}
               onChange={(e) =>
@@ -351,7 +351,7 @@ export function SiteExtras({
             <button
               type="button"
               onClick={() => setFaq(faq.filter((_, j) => j !== i))}
-              className="text-xs font-bold text-red-400 hover:text-red-300"
+              className="text-xs font-bold text-red-400 hover:text-red-600"
             >
               Remover
             </button>
@@ -364,7 +364,7 @@ export function SiteExtras({
           type="button"
           onClick={save}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-[#3b82f6]/25 disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60 cursor-pointer"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           {saving ? "Salvando..." : "Salvar fotos, depoimentos e perguntas"}

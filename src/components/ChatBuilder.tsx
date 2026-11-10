@@ -323,15 +323,15 @@ export function ChatBuilder() {
   return (
     <div className="mx-auto w-full max-w-2xl flex flex-col min-h-[calc(100dvh-4rem)]">
       <div className="px-4 pt-4">
-        <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-400">
+        <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-500">
           <span>
             {result ? "Site pronto!" : `Passo ${Math.min(stepIdx + 1, STEPS.length)} de ${STEPS.length}`}
           </span>
           <span>{result ? 100 : progress}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
           <div
-            className="btn-shine h-2 rounded-full transition-all duration-700"
+            className="bg-blue-600 text-white hover:bg-blue-700 h-2 rounded-full transition-all duration-700"
             style={{ width: `${result ? 100 : Math.max(progress, 6)}%` }}
           />
         </div>
@@ -351,8 +351,8 @@ export function ChatBuilder() {
             <div
               className={`max-w-[82%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed whitespace-pre-line shadow-lg ${
                 m.from === "user"
-                  ? "btn-shine text-white rounded-br-md font-semibold"
-                  : "glass text-slate-100 rounded-bl-md"
+                  ? "bg-blue-600 text-white hover:bg-blue-700 text-white rounded-br-md font-semibold"
+                  : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
               }`}
             >
               {m.image ? (
@@ -370,7 +370,7 @@ export function ChatBuilder() {
             <span className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center">
               <img src="/brand/logo-meusitenovo.svg" alt="" className="h-8 w-8" />
             </span>
-            <div className="glass flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-4">
+            <div className="bg-white border border-slate-200 flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-4">
               {[0, 1, 2].map((d) => (
                 <span
                   key={d}
@@ -383,8 +383,8 @@ export function ChatBuilder() {
         )}
 
         {busy === "build" && (
-          <div className="glass animate-pop-in flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-200">
-            <Loader2 className="h-5 w-5 animate-spin text-[#67e8f9]" />{" "}
+          <div className="bg-white border border-slate-200 animate-pop-in flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-700">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-700" />{" "}
             {
               [
                 "Escrevendo os textos…",
@@ -399,7 +399,7 @@ export function ChatBuilder() {
         {done && !busy && !result && (
           <button
             onClick={() => void build(answers)}
-            className="btn-shine rounded-full px-6 py-3 text-sm font-extrabold text-white"
+            className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-6 py-3 text-sm font-extrabold text-white"
           >
             Tentar de novo
           </button>
@@ -407,33 +407,33 @@ export function ChatBuilder() {
 
         {result && (
           <div className="space-y-4 pt-2">
-            <div className="animate-pop-in animate-float mx-auto w-[280px] rounded-[2rem] border-4 border-white/20 bg-black p-1.5 shadow-[0_30px_80px_-10px_rgba(255,102,0,0.45)]">
+            <div className="mx-auto w-[280px] rounded-[2rem] border-4 border-slate-300 bg-black p-1.5 shadow-md">
               <iframe
                 src={`/${result.slug}`}
-                title="Prévia do seu site"
-                className="h-[480px] w-full rounded-[1.5rem] bg-[#0a0e17]"
+                title="Seu site"
+                className="h-[480px] w-full rounded-[1.5rem] bg-slate-50"
               />
             </div>
 
-            <div className="glass rounded-2xl p-5 space-y-3">
-              <p className="text-sm text-slate-200">
-                Seu site está pronto. Para aparecer no Google e ficar no ar, ative a assinatura de{" "}
-                <strong className="text-white">R$ 37/mês</strong>, sem fidelidade.
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+              <p className="text-sm text-slate-700">
+                Seu site está pronto e já está no ar, de graça. Para mandar orçamento, fazer contrato com Pix e organizar a agenda, libere as ferramentas por{" "}
+                <strong className="text-slate-900">R$ 37/mês</strong>, sem fidelidade.
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <PublishButton label="Publicar agora — R$ 37/mês" />
+                <PublishButton label="Liberar ferramentas — R$ 37/mês" />
                 <a
                   href={`/${result.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900"
                 >
                   <ExternalLink className="w-3.5 h-3.5" /> Abrir em tela cheia
                 </a>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-xs text-amber-100 space-y-2">
+            <div className="rounded-2xl border border-amber-300 bg-amber-400/10 p-4 text-xs text-amber-100 space-y-2">
               <p className="font-bold">Guarde este link: é a sua chave para editar o site.</p>
               <div className="flex items-center gap-2">
                 <input
@@ -460,8 +460,8 @@ export function ChatBuilder() {
       </div>
 
       {!done && !typing && messages.length > 0 && (
-        <div className="border-t border-white/10 bg-[#0a0e17]/90 backdrop-blur-xl px-4 py-3 space-y-2.5">
-          {error && <p className="text-xs font-bold text-red-300">{error}</p>}
+        <div className="border-t border-slate-200 bg-white/95 backdrop-blur-xl px-4 py-3 space-y-2.5">
+          {error && <p className="text-xs font-bold text-red-600">{error}</p>}
 
           {(step.kind === "chips" || step.kind === "color") && (
             <div className="flex flex-wrap gap-2">
@@ -470,7 +470,7 @@ export function ChatBuilder() {
                   <button
                     key={c}
                     onClick={() => submitText(c)}
-                    className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#67e8f9] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
+                    className="rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-blue-600 hover:scale-105 px-4 py-2.5 text-sm font-bold text-slate-900 transition"
                   >
                     {c}
                   </button>
@@ -481,7 +481,7 @@ export function ChatBuilder() {
                     key={c.hex}
                     onClick={() => advance(c.hex, { from: "user", text: c.label })}
                     aria-label={c.label}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#67e8f9] hover:scale-105 px-4 py-2.5 text-sm font-bold text-white transition"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-blue-600 hover:scale-105 px-4 py-2.5 text-sm font-bold text-slate-900 transition"
                   >
                     <span className="h-4 w-4 rounded-full" style={{ backgroundColor: c.hex }} />
                     {c.label}
@@ -502,7 +502,7 @@ export function ChatBuilder() {
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={busy === "logo"}
-                className="inline-flex items-center gap-2 btn-shine rounded-full px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-[#3b82f6]/30 disabled:opacity-60"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 rounded-full px-5 py-3 text-sm font-extrabold text-white disabled:opacity-60"
               >
                 {busy === "logo" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                 Enviar logo
@@ -513,7 +513,7 @@ export function ChatBuilder() {
           {step.skipLabel && (
             <button
               onClick={() => advance("", { from: "user", text: step.skipLabel! })}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900"
             >
               <SkipForward className="w-3.5 h-3.5" /> {step.skipLabel}
             </button>
@@ -534,7 +534,7 @@ export function ChatBuilder() {
                   placeholder={step.placeholder}
                   rows={4}
                   autoFocus
-                  className="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#67e8f9]"
+                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600"
                 />
               ) : (
                 <input
@@ -545,13 +545,13 @@ export function ChatBuilder() {
                   type={step.inputMode === "email" ? "email" : "text"}
                   autoFocus
                   autoComplete="off"
-                  className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-3.5 text-base text-white placeholder:text-slate-500 focus:outline-none focus:border-[#67e8f9]"
+                  className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-5 py-3.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600"
                 />
               )}
               <button
                 type="submit"
                 aria-label="Enviar"
-                className="btn-shine h-12 w-12 shrink-0 rounded-full text-white flex items-center justify-center shadow-lg shadow-[#3b82f6]/30 transition hover:scale-110"
+                className="bg-blue-600 text-white hover:bg-blue-700 h-12 w-12 shrink-0 rounded-full text-white flex items-center justify-center"
               >
                 <ArrowUp className="w-5 h-5" />
               </button>

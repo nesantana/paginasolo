@@ -255,7 +255,8 @@ export function suggestTheme(category: string): ThemeId {
     return "beleza";
   if (has(["eletric", "encanad", "ar-condicionado", "ar condicionado", "climatiz", "reforma", "pintor", "pintura", "mecanic", "chaveiro", "marceneiro", "serralh", "dedetiz", "limpeza", "pedreiro", "instala", "manutenc", "conserto", "vidracar", "jardin", "mudanc", "frete"]))
     return "servicos";
-  return "moderno";
+  // Padrão simples e claro; o dono troca depois no painel.
+  return "servicos";
 }
 
 /** Preto ou branco, o que ler melhor sobre a cor da marca (hex #rrggbb). */

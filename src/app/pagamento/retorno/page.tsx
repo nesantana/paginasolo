@@ -29,15 +29,14 @@ function Retorno() {
   const active = status === "active";
 
   return (
-    <div className="min-h-dvh bg-[#0a0e17] text-white flex items-center justify-center p-6">
-      <div className="max-w-md w-full rounded-3xl border border-white/10 bg-[#0f172a] p-8 text-center space-y-4">
+    <div className="min-h-dvh bg-slate-50 text-slate-900 flex items-center justify-center p-6">
+      <div className="max-w-md w-full rounded-3xl border border-slate-200 bg-white p-8 text-center space-y-4">
         {active ? (
           <>
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-            <h1 className="text-2xl font-extrabold">Seu site está no ar! 🎉</h1>
-            <p className="text-sm text-slate-300">
-              Ele já pode ser encontrado no Google. O Google leva alguns dias para listar sites novos,
-              mas ele já está acessível para quem receber o seu link.
+            <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+            <h1 className="text-2xl font-extrabold">Ferramentas liberadas! 🎉</h1>
+            <p className="text-sm text-slate-600">
+              Orçamentos, contratos, cobrança por Pix, agenda e página de links já estão no seu painel.
             </p>
             <Link
               href={`/${slug}`}
@@ -46,20 +45,20 @@ function Retorno() {
               Ver meu site
             </Link>
             <div>
-              <Link href="/dashboard" className="text-xs font-bold text-slate-300 underline">
+              <Link href="/dashboard" className="text-xs font-bold text-slate-600 underline">
                 Ir para o painel
               </Link>
             </div>
           </>
         ) : (
           <>
-            <Loader2 className="w-10 h-10 text-[#67e8f9] mx-auto animate-spin" />
+            <Loader2 className="w-10 h-10 text-blue-700 mx-auto animate-spin" />
             <h1 className="text-xl font-extrabold">Confirmando seu pagamento…</h1>
-            <p className="text-sm text-slate-300">
-              Isso leva alguns segundos. Se o banco demorar para confirmar, o site
-              entra no ar sozinho assim que o pagamento cair. Não precisa fazer nada.
+            <p className="text-sm text-slate-600">
+              Isso leva alguns segundos. Se o banco demorar para confirmar, as ferramentas
+              são liberadas sozinhas assim que o pagamento cair. Seu site continua no ar.
             </p>
-            <Link href="/dashboard" className="text-xs font-bold text-slate-300 underline">
+            <Link href="/dashboard" className="text-xs font-bold text-slate-600 underline">
               Ir para o painel
             </Link>
           </>

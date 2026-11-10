@@ -78,6 +78,9 @@ export type Database = {
           google_reviews_url: string | null;
           links: TenantLink[];
           theme: string;
+          pix_key: string | null;
+          pix_key_type: string | null;
+          owner_doc: string | null;
           logo_url: string | null;
           is_active: boolean;
           subscription_status: string;
@@ -114,6 +117,9 @@ export type Database = {
           google_reviews_url?: string | null;
           links?: TenantLink[];
           theme?: string;
+          pix_key?: string | null;
+          pix_key_type?: string | null;
+          owner_doc?: string | null;
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;
@@ -150,6 +156,9 @@ export type Database = {
           google_reviews_url?: string | null;
           links?: TenantLink[];
           theme?: string;
+          pix_key?: string | null;
+          pix_key_type?: string | null;
+          owner_doc?: string | null;
           logo_url?: string | null;
           is_active?: boolean;
           subscription_status?: string;

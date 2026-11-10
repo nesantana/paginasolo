@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getTenantByToken } from "@/lib/tenantStore";
 import { EDIT_COOKIE, editCookieOptions } from "@/lib/editAuth";
+import { HINT_COOKIE, OWNER_HINT_MAX_AGE, hintCookieOptions } from "@/lib/sessionHint";
 
 /** Link mágico do painel: valida o token, grava o cookie e manda para /dashboard. */
 export async function GET(request: Request) {
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
   res.headers.set("Referrer-Policy", "no-referrer");
   if (tenant) {
     (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
+    (await cookies()).set(HINT_COOKIE, "o", hintCookieOptions(OWNER_HINT_MAX_AGE));
   }
   return res;
 }

@@ -5,7 +5,7 @@ import { Loader2, Rocket } from "lucide-react";
 
 /** Abre o checkout de assinatura do Mercado Pago para o dono do site (identificado pelo cookie). */
 export function PublishButton({
-  label = "Publicar meu site",
+  label = "Liberar ferramentas",
   className = "",
 }: {
   label?: string;
@@ -48,7 +48,7 @@ export function PublishButton({
         disabled={loading}
         className={
           className ||
-          "inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white shadow-lg disabled:opacity-60"
+          "inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60"
         }
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}

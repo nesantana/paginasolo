@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { getLatestTenantByEmail, rotateEditToken } from "@/lib/tenantStore";
 import { EDIT_COOKIE, editCookieOptions, newEditToken } from "@/lib/editAuth";
+import { ADMIN_HINT_MAX_AGE, HINT_COOKIE, OWNER_HINT_MAX_AGE, hintCookieOptions } from "@/lib/sessionHint";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { ADMIN_COOKIE, adminCookieOptions, createAdminSession, isAdminEmail } from "@/lib/adminAuth";
 
@@ -43,7 +44,10 @@ export async function POST(request: Request) {
   // Um login só. Quem está em ADMIN_EMAILS ganha também a sessão de admin e cai em /admin
   // (de lá há um atalho para o próprio painel, se tiver site). Os demais vão para o painel do site.
   const admin = isAdminEmail(email) ? createAdminSession(email) : null;
-  if (admin) (await cookies()).set(ADMIN_COOKIE, admin, adminCookieOptions);
+  if (admin) {
+    (await cookies()).set(ADMIN_COOKIE, admin, adminCookieOptions);
+    (await cookies()).set(HINT_COOKIE, "a", hintCookieOptions(ADMIN_HINT_MAX_AGE));
+  }
 
   if (!tenant) {
     if (admin) return NextResponse.json({ ok: true, redirect: "/admin" });
@@ -53,5 +57,6 @@ export async function POST(request: Request) {
   const token = newEditToken();
   await rotateEditToken(tenant.id, token);
   (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
+  if (!admin) (await cookies()).set(HINT_COOKIE, "o", hintCookieOptions(OWNER_HINT_MAX_AGE));
   return NextResponse.json({ ok: true, redirect: admin ? "/admin" : "/dashboard" });
 }

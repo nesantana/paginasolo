@@ -3,9 +3,9 @@ project_id = "paginasolo"
 # Só os e-mails do Auth ficam versionados aqui. O que não está declarado
 # neste arquivo não é alterado pelo `supabase config push`.
 [auth.email.template.magic_link]
-subject = "Seu acesso ao PáginaSolo"
+subject = "Seu acesso ao Meu Site Novo"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.confirmation]
-subject = "Confirme seu e-mail no PáginaSolo"
+subject = "Confirme seu e-mail no Meu Site Novo"
 content_path = "./supabase/templates/confirmation.html"

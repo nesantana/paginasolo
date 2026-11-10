@@ -33,23 +33,18 @@ export default function EntrarPage() {
   }
 
   return (
-    <div className="relative isolate flex min-h-dvh items-center justify-center overflow-x-clip bg-[#0a0e17] px-5 text-white">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="grid-bg absolute inset-0" />
-        <div className="animate-blob absolute -top-32 -left-24 h-[24rem] w-[24rem] rounded-full bg-[#3b82f6]/30 blur-[110px]" />
-      </div>
-
-      <div className="animate-fade-up w-full max-w-md">
+    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-5 text-slate-900">
+      <div className="w-full max-w-md">
         <Link href="/" aria-label="Meu Site Novo" className="flex justify-center">
           <BrandLogo size={44} className="text-2xl" />
         </Link>
 
-        <div className="glass mt-8 rounded-3xl p-7 sm:p-8">
-          <span className="btn-shine flex h-12 w-12 items-center justify-center rounded-2xl">
+        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-7 sm:p-8">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
             <Mail className="h-6 w-6" />
           </span>
           <h1 className="mt-5 text-2xl font-extrabold">Entrar no meu painel</h1>
-          <p className="mt-2 text-slate-300">
+          <p className="mt-2 text-slate-600">
             Digite o e-mail que você usou para criar o site. Enviamos um link de
             acesso.
           </p>
@@ -63,12 +58,12 @@ export default function EntrarPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="voce@email.com"
-              className="w-full rounded-2xl border border-white/15 bg-white/5 px-5 py-3.5 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none"
             />
             <button
               type="submit"
               disabled={busy}
-              className="btn-shine flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold shadow-lg shadow-[#3b82f6]/30 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 font-bold text-white hover:bg-blue-700 disabled:opacity-60"
             >
               {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
               {busy ? "Enviando..." : "Enviar link de acesso"}
@@ -79,7 +74,7 @@ export default function EntrarPage() {
             <p
               role="status"
               className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${
-                msg.ok ? "bg-emerald-500/15 text-emerald-200" : "bg-red-500/15 text-red-200"
+                msg.ok ? "bg-emerald-50 text-emerald-900" : "bg-red-50 text-red-800"
               }`}
             >
               {msg.text}
@@ -87,9 +82,9 @@ export default function EntrarPage() {
           )}
         </div>
 
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Ainda não tem site?{" "}
-          <Link href="/criar" className="font-bold text-[#67e8f9] underline underline-offset-4">
+          <Link href="/criar" className="font-bold text-blue-700 underline underline-offset-4">
             Criar agora
           </Link>
         </p>

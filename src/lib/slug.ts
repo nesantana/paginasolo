@@ -1,5 +1,5 @@
 export const RESERVED_SLUGS = new Set([
-  "api", "app", "www", "dashboard", "painel", "criar", "admin", "login", "entrar", "cartaz", "o",
+  "api", "app", "www", "dashboard", "painel", "criar", "admin", "login", "entrar", "cartaz", "o", "c", "financeiro",
   "pagamento", "sitemap", "robots", "preco", "precos", "termos", "privacidade",
   "suporte", "ajuda", "blog", "mail", "ftp", "static", "assets", "_next",
 ]);

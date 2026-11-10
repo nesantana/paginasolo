@@ -5,7 +5,7 @@ const BASE = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replac
 
 export const revalidate = 3600;
 
-/** Só sites PAGOS entram no sitemap. Rascunhos ficam de fora (e com noindex). */
+/** Todo site ativo entra no sitemap (o site é grátis). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tenants = await listPublishedTenants();
   return [

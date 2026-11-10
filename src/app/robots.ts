@@ -5,7 +5,7 @@ const BASE = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replac
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/api/", "/dashboard", "/pagamento/", "/admin"] },
+      { userAgent: "*", allow: "/", disallow: ["/api/", "/dashboard", "/pagamento/", "/admin", "/c/", "/o/"] },
     ],
     sitemap: `${BASE}/sitemap.xml`,
   };

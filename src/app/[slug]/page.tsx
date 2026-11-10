@@ -4,7 +4,7 @@ import { getTenantBySlug } from "@/lib/tenantStore";
 import Script from "next/script";
 import type { ReactNode } from "react";
 import { PageviewBeacon, TrackedLink } from "@/components/TenantTracker";
-import { PublishButton } from "@/components/PublishButton";
+import { OwnerBar } from "@/components/OwnerBar";
 import {
   ArrowRight,
   CheckCircle2,
@@ -61,11 +61,8 @@ export async function generateMetadata({
     title: seoTitle,
     description: seoDescription,
     metadataBase: new URL(BASE),
-    // Prévia (ainda não paga) nunca vai para o Google.
-    robots:
-      tenant.subscription_status === "active"
-        ? { index: true, follow: true }
-        : { index: false, follow: false },
+    // Site grátis: todo site ativo pode ser encontrado no Google.
+    robots: tenant.is_active ? { index: true, follow: true } : { index: false, follow: false },
     alternates: {
       canonical: `/${tenant.slug}`,
     },
@@ -94,7 +91,8 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
     notFound();
   }
 
-  const isPreview = tenant.subscription_status !== "active";
+  // O site é grátis e fica no ar para todos. O plano pago libera as ferramentas (e os pixels de anúncio).
+  const paid = tenant.subscription_status === "active";
   const cleanPhone = tenant.whatsapp_number.replace(/\D/g, "");
   const phoneWithDdi = cleanPhone.startsWith("55")
     ? cleanPhone
@@ -228,23 +226,15 @@ export default async function TenantPublicLandingPage({ params }: PageProps) {
       className={`min-h-screen overflow-x-clip pb-24 sm:pb-0 ${th.root}`}
       data-theme={th.id}
     >
-      {isPreview && (
-        <div className="sticky top-0 z-50 bg-white text-slate-900 px-4 py-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-sm font-semibold shadow-md">
-          <span>Prévia — ainda não está no Google.</span>
-          <PublishButton
-            label="Publicar por R$ 37/mês"
-            className="rounded-full bg-slate-900 text-white px-4 py-1 text-xs font-bold disabled:opacity-60"
-          />
-        </div>
-      )}
+      <OwnerBar slug={tenant.slug} paid={paid} />
 
-      {!isPreview && <PageviewBeacon tenantId={tenant.id} />}
+      <PageviewBeacon tenantId={tenant.id} />
 
-      {/* Pixels de anúncio (IDs validados no cadastro; só em site publicado) */}
-      {!isPreview && tenant.meta_pixel_id && (
+      {/* Pixels de anúncio (IDs validados no cadastro; recurso do plano pago) */}
+      {paid && tenant.meta_pixel_id && (
         <Script id="meta-pixel" strategy="afterInteractive">{`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","${tenant.meta_pixel_id}");fbq("track","PageView");`}</Script>
       )}
-      {!isPreview && tenant.google_tag_id && (
+      {paid && tenant.google_tag_id && (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${tenant.google_tag_id}`} strategy="afterInteractive" />
           <Script id="gtag-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date());gtag("config","${tenant.google_tag_id}");`}</Script>

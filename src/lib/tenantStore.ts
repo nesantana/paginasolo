@@ -57,6 +57,7 @@ export function toPublicTenant(t: TenantRow): TenantRow {
   };
 }
 
+/** Plano pago ativo (ferramentas liberadas: links, orçamentos, contratos...). */
 export const isPublished = (t: TenantRow) =>
   t.is_active && t.subscription_status === "active";
 
@@ -77,7 +78,7 @@ const baseRow = (): Pick<
   | "owner_id" | "custom_domain" | "edit_token_hash" | "payer_email"
   | "mp_preapproval_id" | "meta_pixel_id" | "google_tag_id" | "images"
   | "complimentary" | "comp_note"
-  | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links" | "theme"
+  | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links" | "theme" | "pix_key" | "pix_key_type" | "owner_doc"
 > => ({
   owner_id: null,
   complimentary: false,
@@ -95,6 +96,9 @@ const baseRow = (): Pick<
   google_reviews_url: null,
   links: [],
   theme: "moderno",
+  pix_key: null,
+  pix_key_type: null,
+  owner_doc: null,
 });
 
 const DEMO_TENANT: TenantRow = {
@@ -340,21 +344,34 @@ export const rotateEditToken = (id: string, token: string) =>
 
 export const getTenantById = (id: string) => findTenant({ by: "id", value: id });
 
-/** Só sites pagos (home, sitemap). */
+/** Todo site ativo (home, sitemap). O site é grátis; o plano pago libera as ferramentas. */
 export async function listPublishedTenants(): Promise<TenantRow[]> {
   if (isAdminConfigured()) {
     const { data } = await getAdminClient()
       .from("tenants")
       .select("slug, business_name, category, city, updated_at, id, is_active, subscription_status")
       .eq("is_active", true)
-      .eq("subscription_status", "active")
       .order("created_at", { ascending: false })
       .limit(5000);
     const rows = (data || []) as unknown as TenantRow[];
     return rows.some((r) => r.slug === DEMO_SLUG) ? rows : [...rows, DEMO_TENANT];
   }
   const store = await readLocalStore();
-  return store.tenants.filter(isPublished);
+  return store.tenants.filter((t) => t.is_active);
+}
+
+/** Donos com plano ativo e e-mail: quem recebe o resumo diário da agenda. */
+export async function listTenantsForDigest(): Promise<TenantRow[]> {
+  if (!isAdminConfigured()) return [];
+  const { data, error } = await getAdminClient()
+    .from("tenants")
+    .select("*")
+    .eq("is_active", true)
+    .eq("subscription_status", "active")
+    .not("payer_email", "is", null)
+    .limit(5000);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (data || []) as unknown as TenantRow[];
 }
 
 /** Cria o rascunho e devolve o token de edição em texto puro (só existe aqui, uma vez). */
@@ -437,6 +454,14 @@ export async function updateTenantTheme(
   theme: ThemeId
 ): Promise<TenantRow | null> {
   return patchTenant(id, { theme });
+}
+
+/** Chave Pix e documento de quem recebe (usados nos contratos e cobranças). */
+export async function updateTenantPix(
+  id: string,
+  patch: { pix_key: string | null; pix_key_type: string | null; owner_doc: string | null }
+): Promise<TenantRow | null> {
+  return patchTenant(id, patch);
 }
 
 /** Página de links (edição pelo dono já autenticado). */

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, FileText, Link2, Lock } from "lucide-react";
+import { ArrowRight, CalendarDays, CalendarClock, FileText, Link2, Lock, Wallet } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import { QuoteCard } from "@/components/QuoteCard";
 import { useQuotes } from "@/components/useQuotes";
@@ -12,37 +12,30 @@ function Tile({
   icon: Icon,
   title,
   text,
-  badge,
   locked,
 }: {
   href: string;
   icon: typeof FileText;
   title: string;
   text: string;
-  badge?: number;
   locked: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="group relative flex items-start gap-3 rounded-2xl border border-white/15 bg-[#0f172a] p-4 transition hover:-translate-y-0.5 hover:border-[#3b82f6]/50"
+      className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-400 hover:shadow-sm"
     >
-      <span className="btn-shine flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
         <Icon className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2 font-extrabold">
+        <span className="flex items-center gap-2 font-bold text-slate-900">
           {title}
-          {locked && <Lock className="h-3.5 w-3.5 text-slate-500" />}
+          {locked && <Lock className="h-3.5 w-3.5 text-slate-400" />}
         </span>
-        <span className="block text-xs text-slate-400">{locked ? "Plano ativo" : text}</span>
+        <span className="block text-sm text-slate-500">{locked ? "Libere por R$ 37/mês" : text}</span>
       </span>
-      {!!badge && (
-        <span className="absolute right-3 top-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-[#3b82f6] px-1.5 text-xs font-extrabold">
-          {badge}
-        </span>
-      )}
-      <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-white" />
+      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-blue-700" />
     </Link>
   );
 }
@@ -63,26 +56,19 @@ function FollowupToday({ tenant }: { tenant: TenantRow }) {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return (
-    <section className="space-y-3 rounded-3xl border border-[#3b82f6]/40 bg-[#3b82f6]/[0.07] p-4 sm:p-5">
-      <h2 className="flex items-center gap-2 text-lg font-extrabold">
-        <CalendarClock className="h-5 w-5 text-[#67e8f9]" />
+    <section className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
+      <h2 className="flex items-center gap-2 text-lg font-bold text-amber-950">
+        <CalendarClock className="h-5 w-5 text-amber-700" />
         Quem chamar hoje
-        <span className="rounded-full bg-[#3b82f6] px-2 py-0.5 text-xs">{due.length}</span>
+        <span className="rounded-full bg-amber-600 px-2 py-0.5 text-xs text-white">{due.length}</span>
       </h2>
       <div className="space-y-3">
         {due.slice(0, 5).map((q) => (
-          <QuoteCard
-            key={q.id}
-            quote={q}
-            business={tenant.business_name}
-            origin={origin}
-            compact
-            onPatch={patch}
-          />
+          <QuoteCard key={q.id} quote={q} business={tenant.business_name} origin={origin} compact onPatch={patch} />
         ))}
       </div>
       {due.length > 5 && (
-        <Link href="/dashboard/orcamentos" className="block text-center text-sm font-bold text-[#a5f3fc] underline underline-offset-4">
+        <Link href="/dashboard/orcamentos" className="block text-center text-sm font-bold text-blue-700 underline underline-offset-4">
           Ver os outros {due.length - 5}
         </Link>
       )}
@@ -94,24 +80,15 @@ function FollowupToday({ tenant }: { tenant: TenantRow }) {
 export function OwnerTools({ tenant }: { tenant: TenantRow }) {
   const paid = tenant.is_active && tenant.subscription_status === "active";
   return (
-    <div className="space-y-4">
+    <section className="space-y-3">
+      <h2 className="text-lg font-bold">Suas ferramentas</h2>
       {paid && <FollowupToday tenant={tenant} />}
       <div className="grid gap-3 sm:grid-cols-2">
-        <Tile
-          href="/dashboard/orcamentos"
-          icon={FileText}
-          title="Orçamentos e follow-up"
-          text="Envie por link e seja lembrado de chamar"
-          locked={!paid}
-        />
-        <Tile
-          href="/dashboard/links"
-          icon={Link2}
-          title="Página de links"
-          text="Um link só para o Instagram"
-          locked={!paid}
-        />
+        <Tile href="/dashboard/agenda" icon={CalendarDays} title="Agenda" text="Serviços marcados e aviso por e-mail" locked={!paid} />
+        <Tile href="/dashboard/financeiro" icon={Wallet} title="Contratos e pagamentos" text="Contrato, Pix e o que falta receber" locked={!paid} />
+        <Tile href="/dashboard/orcamentos" icon={FileText} title="Orçamentos" text="Envie por link e lembre de chamar" locked={!paid} />
+        <Tile href="/dashboard/links" icon={Link2} title="Página de links" text="Um link só para o Instagram" locked={!paid} />
       </div>
-    </div>
+    </section>
   );
 }
