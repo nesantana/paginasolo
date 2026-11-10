@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import {
-  deleteAppointment, isAppointmentId, isTimeValue, patchAppointment, type AppointmentPatch,
+  appointmentsBetween, deleteAppointment, getAppointment, isAppointmentId, isTimeValue, patchAppointment, type AppointmentPatch,
 } from "@/lib/agendaStore";
+import { warningsFor } from "@/lib/agendaConflicts";
+import { tenantTimeZone, todayIn } from "@/lib/digest";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import { parseIsoDate } from "@/lib/validate";
+import { completeContractIfDone } from "@/lib/flow";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -31,9 +34,34 @@ export async function PATCH(request: Request, { params }: Ctx) {
   if (!patch) return NextResponse.json({ ok: false, error: "Ação inválida." }, { status: 400 });
 
   try {
+    // Remarcar para um horário que conflita: pede confirmação.
+    if ("reschedule" in patch && b.force !== true) {
+      const current = await getAppointment(auth.tenant.id, id);
+      if (current) {
+        const sameDay = await appointmentsBetween(auth.tenant.id, patch.reschedule.starts_on, patch.reschedule.starts_on);
+        const warnings = warningsFor(
+          { id, customer_name: current.customer_name, starts_on: patch.reschedule.starts_on, start_time: patch.reschedule.start_time, duration_min: current.duration_min },
+          sameDay,
+          todayIn(tenantTimeZone(auth.tenant.city))
+        );
+        if (warnings.length) {
+          return NextResponse.json({ ok: false, needsConfirm: true, warnings }, { status: 409, headers: NO_STORE });
+        }
+      }
+    }
     const appointment = await patchAppointment(auth.tenant.id, id, patch);
     if (!appointment) return NextResponse.json({ ok: false, error: "Serviço não encontrado." }, { status: 404 });
-    return NextResponse.json({ ok: true, appointment }, { headers: NO_STORE });
+    // Integração: último serviço do contrato concluído -> contrato concluído (saldo passa a vencer).
+    let contractCompleted = false;
+    if ("status" in patch && patch.status === "done" && appointment.contract_id) {
+      try {
+        await completeContractIfDone(auth.tenant.id, appointment);
+        contractCompleted = true;
+      } catch (e) {
+        console.error("concluir contrato:", e);
+      }
+    }
+    return NextResponse.json({ ok: true, appointment, contractCompleted }, { headers: NO_STORE });
   } catch (e) {
     console.error("agenda PATCH:", e);
     return NextResponse.json({ ok: false, error: "Não foi possível salvar." }, { status: 500 });

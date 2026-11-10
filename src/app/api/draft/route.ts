@@ -5,7 +5,7 @@ import { parseTenantInput } from "@/lib/validate";
 import { generateCopy } from "@/lib/ai";
 import { createDraftTenant } from "@/lib/tenantStore";
 import { EDIT_COOKIE, editCookieOptions, newEditToken } from "@/lib/editAuth";
-import { HINT_COOKIE, OWNER_HINT_MAX_AGE, hintCookieOptions } from "@/lib/sessionHint";
+import { HINT_COOKIE, OWNER_HINT_MAX_AGE, hintCookieOptions, mergeHint } from "@/lib/sessionHint";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 /** Recebe as respostas do chat, gera o texto, cria o rascunho (preview) e o acesso por token. */
@@ -58,7 +58,8 @@ export async function POST(request: Request) {
   );
 
   (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
-  (await cookies()).set(HINT_COOKIE, "o", hintCookieOptions(OWNER_HINT_MAX_AGE));
+  const jar = await cookies();
+  jar.set(HINT_COOKIE, mergeHint(jar.get(HINT_COOKIE)?.value, "o"), hintCookieOptions(OWNER_HINT_MAX_AGE));
   try {
     revalidatePath(`/${tenant.slug}`);
   } catch {

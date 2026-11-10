@@ -23,7 +23,14 @@ export type AppointmentInput = {
   notes: string | null;
   starts_on: string;
   start_time: string | null;
+  duration_min: number;
 };
+
+/** Duração em minutos (15 a 720); padrão 1 hora. */
+export function parseDuration(v: unknown): number {
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) && n >= 15 && n <= 720 ? n : 60;
+}
 
 export function parseAppointment(raw: unknown): AppointmentInput | { error: string } {
   const b = (raw ?? {}) as Record<string, unknown>;
@@ -48,6 +55,7 @@ export function parseAppointment(raw: unknown): AppointmentInput | { error: stri
     notes: str(b.notes, 500) || null,
     starts_on,
     start_time: time || null,
+    duration_min: parseDuration(b.duration_min),
   };
 }
 
@@ -62,6 +70,12 @@ export async function listAppointments(tenantId: string, fromISO: string): Promi
     .limit(500);
   if (error) fail(error);
   return (data || []) as AppointmentRow[];
+}
+
+export async function getAppointment(tenantId: string, id: string): Promise<AppointmentRow | null> {
+  const { data, error } = await db().from("appointments").select("*").eq("id", id).eq("tenant_id", tenantId).maybeSingle();
+  if (error) fail(error);
+  return (data as AppointmentRow) || null;
 }
 
 export async function createAppointment(tenantId: string, input: AppointmentInput): Promise<AppointmentRow> {
@@ -170,4 +184,30 @@ export async function claimDigest(tenantId: string, dayISO: string): Promise<boo
 
 export async function releaseDigest(tenantId: string, dayISO: string): Promise<void> {
   await db().from("agenda_digests").delete().eq("tenant_id", tenantId).eq("day", dayISO);
+}
+
+// ---------- integração com contratos ----------
+
+export async function appointmentExistsForContract(tenantId: string, contractId: string): Promise<boolean> {
+  const { data, error } = await db()
+    .from("appointments")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("contract_id", contractId)
+    .neq("status", "cancelled")
+    .limit(1);
+  if (error) fail(error);
+  return (data || []).length > 0;
+}
+
+/** Quantos serviços ainda marcados (não concluídos) esse contrato tem. */
+export async function openAppointmentsForContract(tenantId: string, contractId: string): Promise<number> {
+  const { count, error } = await db()
+    .from("appointments")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .eq("contract_id", contractId)
+    .eq("status", "scheduled");
+  if (error) fail(error);
+  return count ?? 0;
 }

@@ -4,6 +4,7 @@ import type { AppointmentRow } from "@/types/finance";
 import { appointmentsBetween, claimDigest, openPaymentsDueUntil, releaseDigest } from "@/lib/agendaStore";
 import { sendEmail, type MailResult } from "@/lib/mailer";
 import { formatBRL, formatDateBR } from "@/lib/quoteUi";
+import { conflictIds, endTime } from "@/lib/agendaConflicts";
 
 const TZ_BY_UF: Record<string, string> = {
   AC: "America/Rio_Branco", AM: "America/Manaus", RO: "America/Porto_Velho",
@@ -34,7 +35,7 @@ const hhmm = (t: string | null) => (t ? t.slice(0, 5) : "");
 type PayItem = Awaited<ReturnType<typeof openPaymentsDueUntil>>[number];
 
 function apptLine(a: AppointmentRow) {
-  const when = hhmm(a.start_time) || "Horário a combinar";
+  const when = a.start_time ? `${hhmm(a.start_time)}–${endTime(a.start_time, a.duration_min)}` : "Horário a combinar";
   return { when, a };
 }
 
@@ -47,12 +48,14 @@ export function buildDigest(opts: {
   panelUrl: string;
 }) {
   const { today, appointmentsToday, appointmentsTomorrow, payments } = opts;
+  const clash = conflictIds(appointmentsToday);
   const overdue = payments.filter((p) => p.due_date < today);
   const dueToday = payments.filter((p) => p.due_date === today);
 
   const subjectParts: string[] = [];
   if (appointmentsToday.length) subjectParts.push(`${appointmentsToday.length} serviço${appointmentsToday.length > 1 ? "s" : ""} hoje`);
   if (dueToday.length + overdue.length) subjectParts.push(`${dueToday.length + overdue.length} cobrança${dueToday.length + overdue.length > 1 ? "s" : ""}`);
+  if (clash.size > 0) subjectParts.push("conflito de horário");
   const subject = `Sua agenda de hoje: ${subjectParts.join(" e ")}`;
 
   // ----- texto simples -----
@@ -60,7 +63,7 @@ export function buildDigest(opts: {
   if (appointmentsToday.length) {
     t.push("SERVIÇOS DE HOJE");
     for (const { when, a } of appointmentsToday.map(apptLine)) {
-      t.push(`- ${when} · ${a.customer_name} · ${a.title}${a.address ? ` · ${a.address}` : ""}${a.customer_phone ? ` · ${a.customer_phone}` : ""}`);
+      t.push(`- ${when} · ${a.customer_name} · ${a.title}${a.address ? ` · ${a.address}` : ""}${a.customer_phone ? ` · ${a.customer_phone}` : ""}${clash.has(a.id) ? " · ATENÇÃO: conflito de horário" : ""}`);
       if (a.notes) t.push(`  Obs.: ${a.notes}`);
     }
     t.push("");
@@ -100,7 +103,12 @@ export function buildDigest(opts: {
           row(
             `${esc(a.customer_name)} · ${esc(a.title)}`,
             esc(when),
-            [a.address && esc(a.address), a.customer_phone && esc(a.customer_phone), a.notes && `Obs.: ${esc(a.notes)}`].filter(Boolean).join("<br>")
+            [
+              clash.has(a.id) && `<span style="color:#dc2626;font-weight:700;">Atenção: conflito de horário</span>`,
+              a.address && esc(a.address),
+              a.customer_phone && esc(a.customer_phone),
+              a.notes && `Obs.: ${esc(a.notes)}`,
+            ].filter(Boolean).join("<br>")
           )
         )
         .join("")

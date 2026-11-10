@@ -298,3 +298,50 @@ export async function informPayment(
   if (error) fail(error);
   return (data as PaymentRow) || null;
 }
+
+// ---------- integração entre as etapas ----------
+
+export async function contractExistsForQuote(tenantId: string, quoteId: string): Promise<boolean> {
+  const { data, error } = await db()
+    .from("contracts")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("quote_id", quoteId)
+    .limit(1);
+  if (error) fail(error);
+  return (data || []).length > 0;
+}
+
+/**
+ * Troca a forma de pagamento de um contrato que ainda não recebeu nada.
+ * "locked" = já tem parcela paga/avisada, ou o contrato foi concluído/cancelado.
+ */
+export async function replacePayments(
+  tenantId: string,
+  contractId: string,
+  payments: { label: string; amount_cents: number; due_kind: string; due_date: string | null }[]
+): Promise<ContractWithPayments | null | "locked"> {
+  const current = await getContractForTenant(tenantId, contractId);
+  if (!current) return null;
+  if (current.status === "cancelled" || current.status === "completed") return "locked";
+  if (current.payments.some((p) => p.status === "paid" || p.status === "informed")) return "locked";
+
+  const { error: dErr } = await db().from("payments").delete().eq("contract_id", contractId).eq("tenant_id", tenantId);
+  if (dErr) fail(dErr);
+  const { error: iErr } = await db()
+    .from("payments")
+    .insert(
+      payments.map((p, i) => ({
+        contract_id: contractId,
+        tenant_id: tenantId,
+        position: i,
+        label: p.label,
+        amount_cents: p.amount_cents,
+        due_kind: p.due_kind,
+        due_date: p.due_date,
+        status: "pending",
+      }))
+    );
+  if (iErr) fail(iErr);
+  return getContractForTenant(tenantId, contractId);
+}

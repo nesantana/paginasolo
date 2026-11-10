@@ -60,6 +60,8 @@ export type AppointmentRow = {
   starts_on: string;
   /** "HH:MM:SS" ou null */
   start_time: string | null;
+  /** duração em minutos (padrão 60) */
+  duration_min: number;
   status: AppointmentStatus;
   done_at: string | null;
   created_at: string;

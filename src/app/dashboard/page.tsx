@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PublishButton } from "@/components/PublishButton";
 import { SiteExtras } from "@/components/SiteExtras";
 import { OwnerTools } from "@/components/OwnerTools";
+import { TodayAgenda } from "@/components/TodayAgenda";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
-  Users,
-  MessageSquare,
-  TrendingUp,
   ExternalLink,
   CheckCircle2,
-  BarChart3,
   Edit3,
   Trash2,
   Plus,
@@ -144,11 +140,6 @@ export default function ClientDashboardPage() {
     }
   };
 
-  const maxDailyViews = useMemo(() => {
-    if (!summary) return 10;
-    return Math.max(10, ...summary.metrics.dailySeries.map((d) => d.pageviews));
-  }, [summary]);
-
   if (!summary) {
     return (
       <div className="min-h-screen bg-[#0a0e17] text-white flex items-center justify-center p-6 font-bold">
@@ -222,156 +213,76 @@ export default function ClientDashboardPage() {
         {/* VISÃO GERAL */}
         {mode === "overview" && (
           <div className="space-y-6">
-            {/* Ferramentas do hub + quem chamar hoje */}
+            {/* 1. AGENDA: a primeira coisa do dia */}
+            <TodayAgenda key={`agenda-${tenant.id}`} tenant={tenant} />
+
+            {/* 2. Atalhos: contratos, orçamentos, links (+ quem chamar hoje) */}
             <OwnerTools key={tenant.id} tenant={tenant} />
 
-            {/* Cartão Principal da Empresa */}
-            <div className="rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-xl">
-              <div className="space-y-1.5">
-                {paid ? (
+            {/* 3. Meu site, em um cartão curto */}
+            <div className="rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
                   <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1">
                     <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
-                      Plano ativo: ferramentas liberadas
+                      Seu site está no ar
                     </span>
                   </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-[#3b82f6]/15 border border-[#3b82f6]/40 px-3 py-1">
-                      <span className="h-2 w-2 rounded-full bg-[#67e8f9]" />
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#67e8f9]">
-                        {tenant.subscription_status === "draft" ? "Site no ar" : "Plano inativo: ferramentas bloqueadas"}
-                      </span>
-                    </div>
-                    <PublishButton
-                      label={tenant.subscription_status === "draft" ? "Liberar ferramentas por R$ 37/mês" : "Reativar por R$ 37/mês"}
-                    />
-                  </div>
-                )}
-
-                <h1 className="text-xl sm:text-2xl font-extrabold text-white pt-1">{tenant.business_name}</h1>
-
-                <p className="text-xs sm:text-sm text-slate-300">
-                  Ramo: <strong className="text-white">{tenant.category}</strong> • Cidade:{" "}
-                  <strong className="text-white">{tenant.city}</strong>
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={copySiteLink}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-[#0a0e17] hover:bg-white/10 px-4 py-3 text-xs sm:text-sm font-extrabold text-white cursor-pointer transition-all"
-                >
-                  {copiedLink ? (
-                    <>
-                      <Check className="w-4 h-4 text-emerald-400" />
-                      <span className="text-emerald-300">Link Copiado!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 text-[#67e8f9]" />
-                      <span>Copiar Link para Instagram / WhatsApp</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={startQuickEdit}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] hover:from-[#0891b2] hover:to-[#4f46e5] px-5 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-[#3b82f6]/25 cursor-pointer transition-all"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  <span>Editar Textos, Serviços ou WhatsApp</span>
-                </button>
+                  <h2 className="mt-2 truncate text-xl font-extrabold text-white">{tenant.business_name}</h2>
+                  <p className="text-sm text-slate-400">
+                    {metrics.monthlyPageviews} visitas · {metrics.monthlyWhatsappClicks} chamaram no WhatsApp (30 dias)
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/${tenant.slug}`}
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-[#0a0e17] hover:bg-white/10 px-4 py-2.5 text-sm font-extrabold text-white transition-all"
+                  >
+                    Ver meu site <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={copySiteLink}
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-[#0a0e17] hover:bg-white/10 px-4 py-2.5 text-sm font-extrabold text-white cursor-pointer transition-all"
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-400" />
+                        <span className="text-emerald-300">Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 text-[#67e8f9]" />
+                        <span>Copiar link</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={startQuickEdit}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] hover:from-[#0891b2] hover:to-[#4f46e5] px-4 py-2.5 text-sm font-extrabold text-white cursor-pointer transition-all"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Editar textos e serviços</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* OS 3 CARTÕES SIMPLES DE RESULTADO */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="rounded-2xl bg-[#0f172a] border border-white/10 p-6">
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-slate-300">
-                  <span>Visitas no seu site (30 dias)</span>
-                  <Users className="w-5 h-5 text-sky-400" />
-                </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-white mt-2">{metrics.monthlyPageviews}</div>
-                <p className="text-xs text-slate-400 mt-2">Quantas pessoas abriram sua página neste mês</p>
+            {/* 4. Opções do site (visual, fotos, perguntas...) fechadas por padrão */}
+            <details className="group rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-6">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-extrabold [&::-webkit-details-marker]:hidden">
+                <span>Mais opções do meu site</span>
+                <span className="text-xs font-bold text-slate-400 group-open:hidden">visual, fotos, perguntas, cartaz</span>
+                <span className="hidden text-xs font-bold text-slate-400 group-open:inline">fechar</span>
+              </summary>
+              <div className="mt-5">
+              <SiteExtras key={tenant.id} tenant={tenant} series={metrics.dailySeries} />
               </div>
+            </details>
 
-              <div className="rounded-2xl bg-[#0f172a] border border-emerald-500/30 p-6">
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-emerald-400">
-                  <span>Chamaram no WhatsApp</span>
-                  <MessageSquare className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 mt-2">{metrics.monthlyWhatsappClicks}</div>
-                <p className="text-xs text-slate-300 mt-2">Clientes interessados que clicaram para falar com você</p>
-              </div>
-
-              <div className="rounded-2xl bg-[#0f172a] border border-[#38bdf8]/30 p-6">
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-[#67e8f9]">
-                  <span>Aproveitamento do Site</span>
-                  <TrendingUp className="w-5 h-5 text-[#67e8f9]" />
-                </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#67e8f9] mt-2">{metrics.conversionRate}%</div>
-                <p className="text-xs text-slate-300 mt-2">
-                  De cada 100 pessoas que entram, cerca de{" "}
-                  <strong className="text-white">{Math.round(metrics.conversionRate)}</strong> chamam no WhatsApp
-                </p>
-              </div>
-            </div>
-
-            {/* GRÁFICO DE BARRAS DOS ÚLTIMOS 30 DIAS */}
-            <div className="rounded-2xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-[#67e8f9]" />
-                  <h2 className="text-base sm:text-lg font-extrabold text-white">
-                    Movimento da sua página dia a dia (Últimos 30 dias)
-                  </h2>
-                </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <span className="inline-flex items-center gap-1.5 text-slate-300">
-                    <span className="h-3 w-3 rounded-sm bg-sky-500/60" />
-                    Visitas no site
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-emerald-300 font-bold">
-                    <span className="h-3 w-3 rounded-sm bg-emerald-400" />
-                    Cliques no WhatsApp
-                  </span>
-                </div>
-              </div>
-
-              <div className="h-48 pt-6 pb-2 px-1 flex items-end gap-1 sm:gap-1.5 border-b border-white/10 overflow-x-auto">
-                {metrics.dailySeries.map((point) => {
-                  const viewHeightPct = Math.max(6, Math.round((point.pageviews / maxDailyViews) * 100));
-                  const clickHeightPct = Math.max(
-                    point.whatsappClicks > 0 ? 6 : 0,
-                    Math.round((point.whatsappClicks / maxDailyViews) * 100)
-                  );
-                  return (
-                    <div
-                      key={point.date}
-                      className="flex-1 min-w-[14px] h-full flex flex-col justify-end items-center group relative"
-                      title={`Dia ${point.label}: ${point.pageviews} visitas • ${point.whatsappClicks} pessoas chamaram no WhatsApp`}
-                    >
-                      <div className="w-full h-full flex items-end justify-center gap-[2px]">
-                        <div
-                          className="w-1/2 rounded-t bg-sky-500/50 group-hover:bg-sky-400 transition-all"
-                          style={{ height: `${viewHeightPct}%` }}
-                        />
-                        <div
-                          className="w-1/2 rounded-t bg-emerald-400 group-hover:bg-emerald-300 transition-all"
-                          style={{ height: `${clickHeightPct}%` }}
-                        />
-                      </div>
-                      <span className="text-[9px] text-slate-400 mt-1.5 hidden md:block">{point.label.slice(0, 2)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <SiteExtras key={tenant.id} tenant={tenant} series={metrics.dailySeries} />
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getContractByCode, signContract } from "@/lib/financeStore";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { appointmentFromSignedContract } from "@/lib/flow";
 
 type Ctx = { params: Promise<{ code: string }> };
 
@@ -26,6 +27,12 @@ export async function POST(request: Request, { params }: Ctx) {
     if (!c) return NextResponse.json({ ok: false, error: "Contrato não encontrado." }, { status: 404 });
     const saved = await signContract(c, name, ip);
     if (!saved) return NextResponse.json({ ok: false, error: "Este contrato foi encerrado." }, { status: 409 });
+    // Integração: contrato aceito com data de entrega já entra na agenda.
+    try {
+      await appointmentFromSignedContract(saved);
+    } catch (e) {
+      console.error("agenda a partir do contrato:", e);
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("contrato assinar:", e);

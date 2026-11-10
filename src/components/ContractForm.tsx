@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import type { QuoteRow } from "@/types/database.types";
 import type { ContractWithPayments } from "@/types/finance";
@@ -20,10 +20,13 @@ const PRESETS: { id: string; name: string; hint: string; pct: number; balance: "
 
 export function ContractForm({
   quotes,
+  initialQuoteId,
   onCreated,
   onCancel,
 }: {
   quotes: QuoteRow[];
+  /** Vindo do painel: "X aceitou o orçamento → Gerar contrato" já abre preenchido. */
+  initialQuoteId?: string;
   onCreated: (c: ContractWithPayments) => void;
   onCancel: () => void;
 }) {
@@ -82,6 +85,11 @@ export function ContractForm({
     if (q.total_cents > 0) setTotal(centsToInput(q.total_cents));
     setRows(null);
   }
+
+  useEffect(() => {
+    if (initialQuoteId) fromQuote(initialQuoteId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuoteId]);
 
   function editRow(i: number, patch: Partial<InstallmentDraft>) {
     setRows((cur) => (cur ?? generated).map((r, idx) => (idx === i ? { ...r, ...patch } : r)));

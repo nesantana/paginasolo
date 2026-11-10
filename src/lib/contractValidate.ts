@@ -33,20 +33,13 @@ export type ContractInput = {
   }[];
 };
 
-export function parseContractInput(raw: unknown, today: string): ContractInput | { error: string } {
-  const b = (raw ?? {}) as Record<string, unknown>;
-
-  const title = str(b.title, 140);
-  if (!title) return { error: "Descreva o serviço do contrato." };
-  const customer_name = str(b.customer_name, 80);
-  if (!customer_name) return { error: "Informe o nome do cliente." };
-  const customer_phone = normalizeCustomerPhone(b.customer_phone);
-  if (!customer_phone) return { error: "Telefone do cliente inválido. Use DDD + número." };
-
-  const total = Math.round(Number(b.total_cents) || 0);
-  if (total <= 0 || total > MAX_CENTS) return { error: "Informe o valor total do contrato." };
-
-  const rawPay = Array.isArray(b.payments) ? b.payments.slice(0, 24) : [];
+/** Valida a lista de parcelas: valores, datas e soma igual ao total do contrato. */
+export function parsePayments(
+  raw: unknown,
+  total: number,
+  today: string
+): ContractInput["payments"] | { error: string } {
+  const rawPay = Array.isArray(raw) ? raw.slice(0, 24) : [];
   const payments: ContractInput["payments"] = [];
   for (const p of rawPay) {
     const o = (p ?? {}) as Record<string, unknown>;
@@ -62,6 +55,24 @@ export function parseContractInput(raw: unknown, today: string): ContractInput |
   if (payments.length === 0) return { error: "Defina como o cliente vai pagar." };
   const sum = payments.reduce((n, p) => n + p.amount_cents, 0);
   if (sum !== total) return { error: "A soma das parcelas precisa ser igual ao valor total do contrato." };
+  return payments;
+}
+
+export function parseContractInput(raw: unknown, today: string): ContractInput | { error: string } {
+  const b = (raw ?? {}) as Record<string, unknown>;
+
+  const title = str(b.title, 140);
+  if (!title) return { error: "Descreva o serviço do contrato." };
+  const customer_name = str(b.customer_name, 80);
+  if (!customer_name) return { error: "Informe o nome do cliente." };
+  const customer_phone = normalizeCustomerPhone(b.customer_phone);
+  if (!customer_phone) return { error: "Telefone do cliente inválido. Use DDD + número." };
+
+  const total = Math.round(Number(b.total_cents) || 0);
+  if (total <= 0 || total > MAX_CENTS) return { error: "Informe o valor total do contrato." };
+
+  const payments = parsePayments(b.payments, total, today);
+  if ("error" in payments) return payments;
 
   const quote = typeof b.quote_id === "string" && UUID_RE.test(b.quote_id) ? b.quote_id : null;
 

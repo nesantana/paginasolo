@@ -57,6 +57,7 @@ export async function POST(request: Request) {
   const token = newEditToken();
   await rotateEditToken(tenant.id, token);
   (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
-  if (!admin) (await cookies()).set(HINT_COOKIE, "o", hintCookieOptions(OWNER_HINT_MAX_AGE));
+  // Admin que também tem site: "b" (os dois atalhos). Só dono: "o".
+  (await cookies()).set(HINT_COOKIE, admin ? "b" : "o", hintCookieOptions(OWNER_HINT_MAX_AGE));
   return NextResponse.json({ ok: true, redirect: admin ? "/admin" : "/dashboard" });
 }

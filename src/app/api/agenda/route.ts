@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { createAppointment, listAppointments, parseAppointment } from "@/lib/agendaStore";
+import { appointmentsBetween, createAppointment, listAppointments, parseAppointment } from "@/lib/agendaStore";
+import { warningsFor } from "@/lib/agendaConflicts";
+import { parseIsoDate } from "@/lib/validate";
 import { listContracts } from "@/lib/financeStore";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import { addDays, tenantTimeZone, todayIn } from "@/lib/digest";
@@ -7,13 +9,14 @@ import { mailConfigured } from "@/lib/mailer";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 /** Agenda do dono: serviços de uma semana atrás em diante + contratos para preencher rápido. */
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requirePaidOwner();
   if ("res" in auth) return auth.res;
   try {
     const today = todayIn(tenantTimeZone(auth.tenant.city));
+    const asked = parseIsoDate(new URL(request.url).searchParams.get("from"));
     const [appointments, contracts] = await Promise.all([
-      listAppointments(auth.tenant.id, addDays(today, -7)),
+      listAppointments(auth.tenant.id, asked || addDays(today, -7)),
       listContracts(auth.tenant.id),
     ]);
     return NextResponse.json(
@@ -56,6 +59,20 @@ export async function POST(request: Request) {
   const input = parseAppointment(body);
   if ("error" in input) return NextResponse.json({ ok: false, error: input.error }, { status: 400 });
   try {
+    // Avisos (conflito de horário, dia cheio, data passada...): pede confirmação, não trava.
+    const force = (body as { force?: unknown } | null)?.force === true;
+    if (!force) {
+      const today = todayIn(tenantTimeZone(auth.tenant.city));
+      const sameDay = await appointmentsBetween(auth.tenant.id, input.starts_on, input.starts_on);
+      const warnings = warningsFor(
+        { customer_name: input.customer_name, starts_on: input.starts_on, start_time: input.start_time, duration_min: input.duration_min },
+        sameDay,
+        today
+      );
+      if (warnings.length) {
+        return NextResponse.json({ ok: false, needsConfirm: true, warnings }, { status: 409, headers: NO_STORE });
+      }
+    }
     const appointment = await createAppointment(auth.tenant.id, input);
     return NextResponse.json({ ok: true, appointment }, { headers: NO_STORE });
   } catch (e) {

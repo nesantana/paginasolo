@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Check, Clock, Loader2, MapPin, Mail, MessageCircle, Phone, RotateCcw, Trash2, X } from "lucide-react";
+import { AlertTriangle, CalendarPlus, Check, Clock, Loader2, MapPin, Mail, MessageCircle, Phone, RotateCcw, Trash2, X } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import type { AppointmentRow } from "@/types/finance";
 import { formatDateBR, whatsappLink } from "@/lib/quoteUi";
+import { DURATIONS, conflictIds, endTime, warningsFor, type Warning } from "@/lib/agendaConflicts";
 
 type ContractLite = { id: string; customer_name: string; customer_phone: string; title: string; delivery_date: string | null };
 
@@ -39,6 +40,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [prefill, setPrefill] = useState<string>("");
+  const [initialDay, setInitialDay] = useState<string>("");
   const [msg, setMsg] = useState("");
 
   const flash = (t: string) => {
@@ -64,6 +66,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
     const q = new URLSearchParams(window.location.search);
     if (q.get("novo")) setAdding(true);
     if (q.get("contrato")) setPrefill(q.get("contrato")!);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(q.get("dia") || "")) setInitialDay(q.get("dia")!);
   }, [load]);
 
   const groups = useMemo(() => {
@@ -75,6 +78,8 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
     return { late, byDay: [...byDay.entries()], done };
   }, [items, today]);
 
+  const conflicts = useMemo(() => conflictIds(items), [items]);
+
   async function update(id: string, body: Record<string, unknown>) {
     const res = await fetch(`/api/agenda/${id}`, {
       method: "PATCH",
@@ -82,6 +87,12 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       body: JSON.stringify(body),
     });
     const d = await res.json().catch(() => ({}));
+    if (res.status === 409 && d.needsConfirm) {
+      // Remarcar para um horário com aviso: a pessoa decide.
+      const text = (d.warnings as Warning[]).map((w) => "• " + w.text).join("\n");
+      if (confirm(text + "\n\nRemarcar mesmo assim?")) return update(id, { ...body, force: true });
+      return;
+    }
     if (!res.ok || !d.ok) return flash(d.error || "Não foi possível salvar.");
     setItems((cur) => cur.map((a) => (a.id === id ? d.appointment : a)));
   }
@@ -138,6 +149,8 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
           today={today}
           contracts={contracts}
           prefillContract={prefill}
+          initialDay={initialDay}
+          others={items}
           onCancel={() => setAdding(false)}
           onCreated={(a) => {
             setItems((cur) => [...cur, a].sort((x, y) => (x.starts_on + (x.start_time || "99")).localeCompare(y.starts_on + (y.start_time || "99"))));
@@ -154,7 +167,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       {groups.late.length > 0 && (
         <Section title="Ficaram para trás" tone="warn">
           {groups.late.map((a) => (
-            <Card key={a.id} a={a} tenant={tenant} today={today} onUpdate={update} onRemove={remove} />
+            <Card key={a.id} a={a} tenant={tenant} today={today} conflict={conflicts.has(a.id)} onUpdate={update} onRemove={remove} />
           ))}
         </Section>
       )}
@@ -168,7 +181,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       {groups.byDay.map(([day, list]) => (
         <Section key={day} title={dayTitle(day, today)} badge={day === today ? todayCount : undefined}>
           {list.map((a) => (
-            <Card key={a.id} a={a} tenant={tenant} today={today} onUpdate={update} onRemove={remove} />
+            <Card key={a.id} a={a} tenant={tenant} today={today} conflict={conflicts.has(a.id)} onUpdate={update} onRemove={remove} />
           ))}
         </Section>
       ))}
@@ -207,9 +220,10 @@ function Section({ title, badge, tone, children }: { title: string; badge?: numb
 }
 
 function Card({
-  a, tenant, today, onUpdate, onRemove,
+  a, tenant, today, conflict, onUpdate, onRemove,
 }: {
   a: AppointmentRow;
+  conflict: boolean;
   tenant: TenantRow;
   today: string;
   onUpdate: (id: string, body: Record<string, unknown>) => Promise<void>;
@@ -235,7 +249,7 @@ function Card({
           </p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
             <span className="inline-flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-slate-400" /> {a.start_time ? hhmm(a.start_time) : "Horário a combinar"}
+              <Clock className="h-4 w-4 text-slate-400" /> {a.start_time ? `${hhmm(a.start_time)}–${endTime(a.start_time, a.duration_min)}` : "Horário a combinar"}
               {a.starts_on < today && ` · era ${formatDateBR(a.starts_on)}`}
             </span>
             {a.address && (
@@ -249,6 +263,11 @@ function Card({
               </a>
             )}
           </p>
+          {conflict && (
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-2.5 py-0.5 text-xs font-bold text-red-300">
+              <AlertTriangle className="h-3.5 w-3.5" /> Conflito de horário
+            </p>
+          )}
           {a.notes && <p className="text-sm text-slate-400">Obs.: {a.notes}</p>}
         </div>
         <button onClick={() => onRemove(a)} aria-label="Excluir" className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-red-300">
@@ -304,11 +323,13 @@ function Card({
 }
 
 function AppointmentForm({
-  today, contracts, prefillContract, onCreated, onCancel,
+  today, contracts, prefillContract, initialDay, others, onCreated, onCancel,
 }: {
   today: string;
   contracts: ContractLite[];
   prefillContract: string;
+  initialDay: string;
+  others: AppointmentRow[];
   onCreated: (a: AppointmentRow) => void;
   onCancel: () => void;
 }) {
@@ -316,8 +337,10 @@ function AppointmentForm({
   const [customer, setCustomer] = useState("");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
-  const [day, setDay] = useState(today);
+  const [day, setDay] = useState(initialDay || today);
   const [time, setTime] = useState("");
+  const [duration, setDuration] = useState(60);
+  const [serverWarn, setServerWarn] = useState<Warning[]>([]);
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
@@ -352,6 +375,16 @@ function AppointmentForm({
     { l: "Semana que vem", v: addDays(today, 7) },
   ];
 
+  // Avisos ao vivo: conflito de horário, dia cheio, data passada, domingo, mesmo cliente.
+  const warnings = useMemo(
+    () =>
+      day
+        ? warningsFor({ customer_name: customer.trim() || "Cliente", starts_on: day, start_time: time || null, duration_min: duration }, others, today)
+        : [],
+    [day, time, duration, customer, others, today]
+  );
+  const shownWarnings = serverWarn.length ? serverWarn : warnings;
+
   async function save() {
     setBusy(true);
     setError("");
@@ -366,11 +399,18 @@ function AppointmentForm({
           title,
           starts_on: day,
           start_time: time || null,
+          duration_min: duration,
           address,
           notes,
+          // Se há aviso na tela, a pessoa já viu: salvar vale como "mesmo assim".
+          force: shownWarnings.length > 0,
         }),
       });
       const d = await res.json().catch(() => ({}));
+      if (res.status === 409 && d.needsConfirm) {
+        setServerWarn(d.warnings as Warning[]);
+        return;
+      }
       if (!res.ok || !d.ok) return setError(d.error || "Não foi possível salvar.");
       onCreated(d.appointment);
     } catch {
@@ -430,8 +470,16 @@ function AppointmentForm({
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <input type="date" value={day} min={today} onChange={(e) => setDay(e.target.value)} className={field} aria-label="Dia" />
-          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={field} aria-label="Horário (opcional)" />
+          <input type="time" value={time} onChange={(e) => { setTime(e.target.value); setServerWarn([]); }} className={field} aria-label="Horário (opcional)" />
         </div>
+        <label className={lbl}>
+          Quanto tempo leva
+          <select value={duration} onChange={(e) => { setDuration(Number(e.target.value)); setServerWarn([]); }} className={field}>
+            {DURATIONS.map((o) => (
+              <option key={o.min} value={o.min}>{o.label}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <label className={lbl}>
@@ -443,13 +491,24 @@ function AppointmentForm({
         <input value={notes} onChange={(e) => setNotes(e.target.value)} className={field} maxLength={500} placeholder="Ex.: levar escada grande" />
       </label>
 
+      {shownWarnings.length > 0 && (
+        <div role="alert" className="space-y-1 rounded-xl border border-amber-400/40 bg-amber-400/15 p-3 text-sm text-amber-100">
+          {shownWarnings.map((w, i) => (
+            <p key={i} className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" /> {w.text}
+            </p>
+          ))}
+          <p className="text-xs text-amber-200/80">Você pode salvar mesmo assim ou mudar o dia e o horário.</p>
+        </div>
+      )}
+
       {error && <p className="text-sm font-semibold text-red-300">{error}</p>}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <button onClick={onCancel} className="rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-slate-200 hover:bg-white/10">
           Cancelar
         </button>
         <button onClick={save} disabled={busy || !customer.trim() || !day} className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-6 py-3 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />} Salvar na agenda
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {shownWarnings.length > 0 ? "Salvar mesmo assim" : "Salvar na agenda"}
         </button>
       </div>
     </div>

@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LayoutDashboard, LogOut } from "lucide-react";
 
-type Who = "guest" | "owner" | "admin";
+type Who = "guest" | "owner" | "admin" | "both";
 
 function readWho(): Who {
   try {
     const m = document.cookie.match(/(?:^|; )ps_in=([^;]+)/);
+    if (m?.[1] === "b") return "both";
     if (m?.[1] === "a") return "admin";
     if (m?.[1] === "o") return "owner";
   } catch {
@@ -41,10 +42,17 @@ export function AuthNav({
   }
   return (
     <span className="inline-flex items-center gap-1">
-      <Link href={who === "admin" ? "/admin" : "/dashboard"} className={className}>
-        <LayoutDashboard className="mr-1.5 inline h-4 w-4" />
-        {who === "admin" ? "Painel admin" : manageLabel}
-      </Link>
+      {who !== "admin" && (
+        <Link href="/dashboard" className={className}>
+          <LayoutDashboard className="mr-1.5 inline h-4 w-4" />
+          {manageLabel}
+        </Link>
+      )}
+      {(who === "admin" || who === "both") && (
+        <Link href="/admin" className={className}>
+          {who === "both" ? "Painel admin" : (<><LayoutDashboard className="mr-1.5 inline h-4 w-4" />Painel admin</>)}
+        </Link>
+      )}
       {showLogout && (
         <button
           type="button"

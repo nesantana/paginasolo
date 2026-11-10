@@ -10,10 +10,10 @@ import type { ContractWithPayments, PaymentRow } from "@/types/finance";
 import { ContractForm } from "@/components/ContractForm";
 import {
   METHODS, VIEW_CLASS, VIEW_LABEL, chargeMessage, contractMessage, contractProgress, contractUrl,
-  paymentView, summarize, dueText,
+  paymentView, summarize, dueText, buildPlan,
 } from "@/lib/contractUi";
 import { PIX_TYPES, buildPixPayload, prettyPixKey, type PixKeyType } from "@/lib/pix";
-import { formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
+import { addDaysISO, formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
 
 type Pix = { pix_key: string | null; pix_key_type: PixKeyType | null; owner_doc: string | null };
 
@@ -33,6 +33,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [initialQuote, setInitialQuote] = useState("");
   const [filter, setFilter] = useState<"open" | "all">("open");
   const [toast, setToast] = useState("");
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -55,6 +56,10 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
 
   useEffect(() => {
     void load();
+    // Vindo do painel ("Gerar contrato" de um orçamento aceito): já abre o formulário preenchido.
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("novo")) setCreating(true);
+    if (q.get("orcamento")) setInitialQuote(q.get("orcamento")!);
   }, [load]);
 
   const today = todayISO();
@@ -79,6 +84,20 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
     setContracts((cur) =>
       cur.map((x) => (x.id === c.id ? { ...x, payments: x.payments.map((y) => (y.id === p.id ? data.payment : y)) } : x))
     );
+  }
+
+  /** Troca a forma de pagamento de um contrato que ainda não recebeu nada (ex.: o gerado do orçamento). */
+  async function changePlan(c: ContractWithPayments, upfrontPct: number, balance: "completion" | "installments", installments = 1) {
+    const payments = buildPlan(c.total_cents, { upfrontPct, balance, installments, today: todayISO(), firstDue: addDaysISO(30) });
+    const res = await fetch(`/api/contratos/${c.id}/plano`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payments }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) return flash(data.error || "Não foi possível trocar a forma de pagamento.");
+    setContracts((cur) => cur.map((x) => (x.id === c.id ? data.contract : x)));
+    flash("Forma de pagamento atualizada.");
   }
 
   async function contractStatus(c: ContractWithPayments, status: string) {
@@ -180,6 +199,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
       {creating ? (
         <ContractForm
           quotes={quotes}
+          initialQuoteId={initialQuote}
           onCancel={() => setCreating(false)}
           onCreated={(c) => {
             setContracts((cur) => [c, ...cur]);
@@ -220,6 +240,11 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
               <div className="min-w-0">
                 <p className="truncate font-extrabold">{c.customer_name}</p>
                 <p className="truncate text-sm text-slate-400">{c.title}</p>
+                {c.quote_id && c.status === "draft" && (
+                  <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-[#3b82f6]/15 px-2.5 py-0.5 text-xs font-bold text-[#a5f3fc]">
+                    Gerado do orçamento aceito. Confira e envie.
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="font-extrabold">{formatBRL(c.total_cents)}</p>
@@ -235,6 +260,22 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
                 {formatBRL(prog.paid)} de {formatBRL(prog.total)} recebidos ({prog.pct}%)
               </p>
             </div>
+
+            {!cancelled && c.status !== "completed" && !c.payments.some((p) => p.status === "paid" || p.status === "informed") && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-400">Forma de pagamento:</span>
+                {([
+                  ["Tudo no início", 100, "completion", 1],
+                  ["Tudo no final", 0, "completion", 1],
+                  ["50% + 50%", 50, "completion", 1],
+                  ["Entrada + 3x", 30, "installments", 3],
+                ] as const).map(([label, pct, bal, n]) => (
+                  <button key={label} onClick={() => changePlan(c, pct, bal, n)} className={ghost}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <ul className="space-y-2">
               {c.payments.map((p) => (

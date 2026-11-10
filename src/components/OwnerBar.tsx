@@ -14,7 +14,7 @@ export function OwnerBar({ slug, paid }: { slug: string; paid: boolean }) {
 
   useEffect(() => {
     // Só pergunta ao servidor se este aparelho tem sessão (evita requisição à toa para visitantes).
-    if (!/(?:^|; )ps_in=[ao](?:;|$)/.test(document.cookie)) return;
+    if (!/(?:^|; )ps_in=[aob](?:;|$)/.test(document.cookie)) return;
     let alive = true;
     fetch("/api/tenants", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
