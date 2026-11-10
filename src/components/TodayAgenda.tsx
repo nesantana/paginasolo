@@ -10,6 +10,7 @@ import type { TenantRow } from "@/types/database.types";
 import type { AppointmentRow, ContractWithPayments } from "@/types/finance";
 import type { QuoteRow } from "@/types/database.types";
 import { PublishButton } from "@/components/PublishButton";
+import { DayQuickAdd } from "@/components/DayQuickAdd";
 import { conflictIds, endTime, hhmm } from "@/lib/agendaConflicts";
 import { summarize } from "@/lib/contractUi";
 import { formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
@@ -59,6 +60,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [loading, setLoading] = useState(paid);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const [selected, setSelected] = useState(() => todayISO());
   const [cursor, setCursor] = useState(() => {
     const t = todayISO();
@@ -175,6 +177,11 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
               </a>
             )}
           </p>
+          {a.contract_id && contracts.find((c) => c.id === a.contract_id) && (
+            <Link href="/dashboard/financeiro" className="mt-1.5 mr-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-bold text-slate-200 hover:bg-white/15">
+              <FileText className="h-3.5 w-3.5" /> Contrato de {first(contracts.find((c) => c.id === a.contract_id)!.customer_name)}
+            </Link>
+          )}
           {conflicts.has(a.id) && (
             <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-2.5 py-0.5 text-xs font-bold text-red-300">
               <AlertTriangle className="h-3.5 w-3.5" /> Conflito de horário
@@ -185,7 +192,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
           <button
             onClick={() => done(a.id)}
             disabled={busyId === a.id || !paid}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-500 px-3 py-2 text-xs font-extrabold text-zinc-950 hover:bg-emerald-400 disabled:opacity-60"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-extrabold text-zinc-950 hover:bg-emerald-400 disabled:opacity-60"
           >
             {busyId === a.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Concluído
           </button>
@@ -202,11 +209,11 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-white/10"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-white/10"
           >
             <MessageCircle className="h-3.5 w-3.5 text-emerald-400" /> Avisar cliente
           </a>
-          <a href={`tel:+${a.customer_phone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-white/10">
+          <a href={`tel:+${a.customer_phone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-white/10">
             <Phone className="h-3.5 w-3.5" /> Ligar
           </a>
         </div>
@@ -234,12 +241,13 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
-        <Link
-          href={`/dashboard/agenda?novo=1&dia=${selected}`}
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
           className="inline-flex items-center gap-2 rounded-xl btn-shine px-5 py-3 text-sm font-extrabold text-white hover:brightness-110"
         >
           <Plus className="h-4 w-4" /> Marcar um serviço
-        </Link>
+        </button>
       </div>
 
       <div>
@@ -256,14 +264,26 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
             const isToday = day === today;
             const isSel = day === selected;
             const open = list.filter((a) => a.status === "scheduled").length;
+            const allDone = list.length > 0 && open === 0;
+            const tone = hasConflict
+              ? "border-red-400/70 bg-red-500/20"
+              : open > 0
+                ? "border-[#3b82f6]/70 bg-[#3b82f6]/25"
+                : allDone
+                  ? "border-emerald-400/50 bg-emerald-500/15"
+                  : "border-white/5 bg-white/[0.03] hover:bg-white/10";
             return (
               <button
                 key={day}
                 type="button"
-                onClick={() => setSelected(day)}
-                className={`flex h-14 flex-col items-center justify-start gap-1 rounded-xl border p-1.5 text-sm font-bold transition sm:h-16 ${
-                  isSel ? "border-[#67e8f9] bg-[#3b82f6]/25 text-white" : isToday ? "border-[#3b82f6]/60 bg-[#3b82f6]/10 text-white" : "border-white/5 bg-white/[0.03] text-slate-300 hover:bg-white/10"
-                }`}
+                onClick={() => {
+                  setSelected(day);
+                  setAdding(false);
+                }}
+                aria-label={`${Number(day.slice(8, 10))}: ${list.length ? `${list.length} serviço(s)` : "nada marcado"}`}
+                className={`relative flex h-14 flex-col items-center justify-start gap-1 rounded-xl border p-1.5 text-sm font-bold transition sm:h-16 ${tone} ${
+                  isSel ? "ring-2 ring-[#67e8f9]" : isToday ? "ring-1 ring-white/50" : ""
+                } ${list.length ? "text-white" : "text-slate-300"}`}
               >
                 <span>{Number(day.slice(8, 10))}</span>
                 {list.length > 0 && (
@@ -271,21 +291,21 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
                     {list.slice(0, 3).map((a) => (
                       <span
                         key={a.id}
-                        className={`h-1.5 w-1.5 rounded-full ${conflicts.has(a.id) ? "bg-red-400" : a.status === "done" ? "bg-emerald-400" : "bg-[#67e8f9]"}`}
+                        className={`h-2 w-2 rounded-full ${conflicts.has(a.id) ? "bg-red-400" : a.status === "done" ? "bg-emerald-400" : "bg-[#67e8f9]"}`}
                       />
                     ))}
                   </span>
                 )}
-                {open > 3 && <span className="text-[9px] text-slate-400">+{open - 3}</span>}
+                {list.length > 3 && <span className="text-[10px] text-slate-300">+{list.length - 3}</span>}
                 {hasConflict && <span className="sr-only">conflito</span>}
               </button>
             );
           })}
         </div>
         <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-          <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-[#67e8f9]" /> marcado</span>
-          <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> feito</span>
-          <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-red-400" /> conflito</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#67e8f9]" /> tem serviço</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> feito</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-400" /> conflito</span>
         </p>
       </div>
 
@@ -299,9 +319,36 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
         {dayList.length > 0 ? (
           <ul className="space-y-2">{dayList.map((a) => row(a))}</ul>
         ) : (
-          <p className="rounded-2xl border border-dashed border-white/15 p-4 text-sm text-slate-400">
-            Nenhum serviço nesse dia. Combinou algo com um cliente? Marque aqui e você recebe o aviso por e-mail no dia.
-          </p>
+          !adding && (
+            <p className="rounded-2xl border border-dashed border-white/15 p-4 text-sm text-slate-400">
+              Nada marcado nesse dia. Combinou algo com um cliente? Marque aqui e você recebe o aviso por e-mail no dia.
+            </p>
+          )
+        )}
+        {adding ? (
+          <DayQuickAdd
+            key={selected}
+            day={selected}
+            today={today}
+            items={items}
+            contracts={contracts}
+            quotes={quotes}
+            onClose={() => setAdding(false)}
+            onCreated={(a) => {
+              setItems((cur) => [...cur, a]);
+              setSelected(a.starts_on);
+              setCursor({ y: Number(a.starts_on.slice(0, 4)), m: Number(a.starts_on.slice(5, 7)) - 1 });
+              setAdding(false);
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#3b82f6]/50 px-4 py-3 text-sm font-extrabold text-[#a5f3fc] hover:bg-[#3b82f6]/10"
+          >
+            <Plus className="h-4 w-4" /> Marcar serviço neste dia
+          </button>
         )}
       </div>
 

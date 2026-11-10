@@ -464,7 +464,7 @@ export default function ClientDashboardPage() {
 
               {services.map((srv, idx) => (
                 <div key={idx} className="rounded-xl bg-[#0a0e17] border border-white/10 p-3 space-y-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <input
                       type="text"
                       value={srv.title}
@@ -473,7 +473,7 @@ export default function ClientDashboardPage() {
                         setServices((prev) => prev.map((item, i) => (i === idx ? { ...item, title: val } : item)));
                       }}
                       placeholder="Nome do serviço..."
-                      className="flex-1 rounded-lg border border-white/10 bg-[#0f172a] px-3 py-1.5 text-xs text-white font-bold"
+                      className="flex-1 rounded-lg border border-white/10 bg-[#0f172a] px-3 py-2 text-sm text-white font-bold"
                     />
                     <input
                       type="text"
@@ -483,13 +483,13 @@ export default function ClientDashboardPage() {
                         setServices((prev) => prev.map((item, i) => (i === idx ? { ...item, price_optional: val } : item)));
                       }}
                       placeholder="Preço / Condição"
-                      className="w-36 rounded-lg border border-white/10 bg-[#0f172a] px-3 py-1.5 text-xs text-emerald-300 font-bold"
+                      className="w-full sm:w-36 rounded-lg border border-white/10 bg-[#0f172a] px-3 py-1.5 text-xs text-emerald-300 font-bold"
                     />
                     {services.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setServices((prev) => prev.filter((_, i) => i !== idx))}
-                        className="text-rose-400 p-1 cursor-pointer"
+                        className="self-end sm:self-auto text-rose-400 p-2 cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -509,7 +509,7 @@ export default function ClientDashboardPage() {
               ))}
             </div>
 
-            <div className="pt-3 flex justify-end gap-3">
+            <div className="sticky bottom-0 -mx-6 sm:-mx-8 -mb-6 sm:-mb-8 mt-2 flex justify-end gap-3 rounded-b-3xl border-t border-white/10 bg-[#0f172a]/95 px-6 sm:px-8 py-4 backdrop-blur">
               <button
                 type="button"
                 onClick={() => setMode("overview")}
@@ -521,7 +521,7 @@ export default function ClientDashboardPage() {
                 type="button"
                 disabled={saving}
                 onClick={handleSave}
-                className="rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-7 py-3 text-xs sm:text-sm font-extrabold text-white shadow-lg cursor-pointer disabled:opacity-60"
+                className="flex-1 sm:flex-none rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] px-7 py-3.5 text-sm font-extrabold text-white shadow-lg cursor-pointer disabled:opacity-60"
               >
                 {saving ? "Salvando..." : "Salvar Alterações no Site"}
               </button>

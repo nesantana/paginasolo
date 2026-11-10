@@ -119,3 +119,19 @@
   .reveal { opacity: 1; transform: none; }
   html { scroll-behavior: auto; }
 }
+
+/* Celular: campos com 16px (o iPhone dá zoom abaixo disso) e área de toque confortável. */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select {
+    min-height: 44px;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+}
