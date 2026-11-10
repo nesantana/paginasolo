@@ -9,10 +9,10 @@ import { formatDateBR, whatsappLink } from "@/lib/quoteUi";
 type ContractLite = { id: string; customer_name: string; customer_phone: string; title: string; delivery_date: string | null };
 
 const field =
-  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none";
-const lbl = "block space-y-1 text-sm font-semibold text-slate-700";
+  "w-full rounded-xl border border-white/15 bg-[#0f172a] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
+const lbl = "block space-y-1 text-sm font-semibold text-slate-200";
 const smallBtn =
-  "inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-60";
+  "inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-[#0f172a] px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-white/10 disabled:opacity-60";
 
 const addDays = (iso: string, n: number) => {
   const d = new Date(`${iso}T12:00:00`);
@@ -101,7 +101,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
 
   if (loading)
     return (
-      <p className="flex items-center gap-2 text-slate-500">
+      <p className="flex items-center gap-2 text-slate-400">
         <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
       </p>
     );
@@ -110,20 +110,20 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
 
   return (
     <div className="space-y-5">
-      {msg && <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900">{msg}</div>}
+      {msg && <div className="rounded-xl border border-[#3b82f6]/40 bg-[#3b82f6]/15 px-4 py-3 text-sm font-semibold text-slate-200">{msg}</div>}
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#0f172a] p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <Mail className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
-          <p className="text-sm text-slate-600">
+          <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#67e8f9]" />
+          <p className="text-sm text-slate-300">
             {email ? (
               <>
-                De manhã, nos dias em que você tem serviço ou cobrança, mandamos um resumo para <strong className="text-slate-900">{email}</strong>.
+                De manhã, nos dias em que você tem serviço ou cobrança, mandamos um resumo para <strong className="text-white">{email}</strong>.
               </>
             ) : (
               "Seu site não tem e-mail cadastrado, então o aviso do dia não pode ser enviado."
             )}
-            {!emailReady && <span className="mt-1 block text-xs text-amber-700">O envio de e-mail ainda não foi ativado neste ambiente.</span>}
+            {!emailReady && <span className="mt-1 block text-xs text-amber-300">O envio de e-mail ainda não foi ativado neste ambiente.</span>}
           </p>
         </div>
         {email && emailReady && (
@@ -146,7 +146,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
           }}
         />
       ) : (
-        <button onClick={() => setAdding(true)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-4 text-base font-bold text-white hover:bg-blue-700">
+        <button onClick={() => setAdding(true)} className="flex w-full items-center justify-center gap-2 rounded-xl btn-shine px-6 py-4 text-base font-bold text-white hover:brightness-110">
           <CalendarPlus className="h-5 w-5" /> Marcar um serviço
         </button>
       )}
@@ -160,7 +160,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       )}
 
       {groups.byDay.length === 0 && groups.late.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        <p className="rounded-2xl border border-dashed border-white/15 bg-[#0f172a] p-8 text-center text-sm text-slate-400">
           Nenhum serviço marcado. Quando combinar um dia com o cliente, marque aqui e você recebe o aviso no dia.
         </p>
       )}
@@ -174,11 +174,11 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       ))}
 
       {groups.done.length > 0 && (
-        <details className="rounded-2xl border border-slate-200 bg-white p-4">
-          <summary className="cursor-pointer text-sm font-bold text-slate-600">Concluídos recentemente ({groups.done.length})</summary>
+        <details className="rounded-2xl border border-white/10 bg-[#0f172a] p-4">
+          <summary className="cursor-pointer text-sm font-bold text-slate-300">Concluídos recentemente ({groups.done.length})</summary>
           <div className="mt-3 space-y-2">
             {groups.done.map((a) => (
-              <div key={a.id} className="flex items-center justify-between gap-2 text-sm text-slate-600">
+              <div key={a.id} className="flex items-center justify-between gap-2 text-sm text-slate-300">
                 <span className="truncate">
                   {formatDateBR(a.starts_on)} · {a.customer_name} · {a.title}
                 </span>
@@ -199,7 +199,7 @@ function Section({ title, badge, tone, children }: { title: string; badge?: numb
     <section className="space-y-2">
       <h2 className={`flex items-center gap-2 text-sm font-bold uppercase tracking-wide ${tone === "warn" ? "text-amber-700" : "text-slate-500"}`}>
         {title}
-        {!!badge && <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">{badge}</span>}
+        {!!badge && <span className="rounded-full btn-shine px-2 py-0.5 text-xs text-white">{badge}</span>}
       </h2>
       <div className="space-y-2">{children}</div>
     </section>
@@ -226,14 +226,14 @@ function Card({
     `${a.address ? `\nLocal: ${a.address}` : ""}\nAté lá!`;
 
   return (
-    <article className={`rounded-2xl border bg-white p-4 ${a.starts_on < today && a.status === "scheduled" ? "border-amber-300" : "border-slate-200"} ${cancelled ? "opacity-50" : ""}`}>
+    <article className={`rounded-2xl border bg-[#0f172a] p-4 ${a.starts_on < today && a.status === "scheduled" ? "border-amber-400/40" : "border-white/10"} ${cancelled ? "opacity-50" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <p className="font-bold text-slate-900">
+          <p className="font-bold text-white">
             {a.customer_name}
-            <span className="font-normal text-slate-500"> · {a.title}</span>
+            <span className="font-normal text-slate-400"> · {a.title}</span>
           </p>
-          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
             <span className="inline-flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-slate-400" /> {a.start_time ? hhmm(a.start_time) : "Horário a combinar"}
               {a.starts_on < today && ` · era ${formatDateBR(a.starts_on)}`}
@@ -243,15 +243,15 @@ function Card({
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-blue-700 hover:underline"
+                className="inline-flex items-center gap-1.5 text-[#67e8f9] hover:underline"
               >
                 <MapPin className="h-4 w-4" /> {a.address}
               </a>
             )}
           </p>
-          {a.notes && <p className="text-sm text-slate-500">Obs.: {a.notes}</p>}
+          {a.notes && <p className="text-sm text-slate-400">Obs.: {a.notes}</p>}
         </div>
-        <button onClick={() => onRemove(a)} aria-label="Excluir" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600">
+        <button onClick={() => onRemove(a)} aria-label="Excluir" className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-red-300">
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -264,7 +264,7 @@ function Card({
           {a.customer_phone && (
             <>
               <a href={whatsappLink(a.customer_phone, confirmText)} target="_blank" rel="noopener noreferrer" className={smallBtn}>
-                <MessageCircle className="h-3.5 w-3.5 text-emerald-600" /> Confirmar com o cliente
+                <MessageCircle className="h-3.5 w-3.5 text-emerald-400" /> Confirmar com o cliente
               </a>
               <a href={`tel:+${a.customer_phone}`} className={smallBtn}>
                 <Phone className="h-3.5 w-3.5" /> Ligar
@@ -279,7 +279,7 @@ function Card({
       )}
 
       {moving && (
-        <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-end">
+        <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3 sm:flex-row sm:items-end">
           <label className={`${lbl} flex-1`}>
             Novo dia
             <input type="date" value={day} min={today} onChange={(e) => setDay(e.target.value)} className={field} />
@@ -293,7 +293,7 @@ function Card({
               await onUpdate(a.id, { starts_on: day, start_time: time || null });
               setMoving(false);
             }}
-            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700"
+            className="rounded-xl btn-shine px-5 py-3 text-sm font-bold text-white hover:brightness-110"
           >
             Salvar
           </button>
@@ -381,8 +381,8 @@ function AppointmentForm({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 className="text-lg font-bold text-slate-900">Marcar um serviço</h2>
+    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#0f172a] p-5">
+      <h2 className="text-lg font-bold text-white">Marcar um serviço</h2>
 
       {contracts.length > 0 && (
         <label className={lbl}>
@@ -415,14 +415,14 @@ function AppointmentForm({
       </label>
 
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-slate-700">Que dia?</p>
+        <p className="text-sm font-semibold text-slate-200">Que dia?</p>
         <div className="flex flex-wrap gap-2">
           {chips.map((c) => (
             <button
               key={c.l}
               type="button"
               onClick={() => setDay(c.v)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold ${day === c.v ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold ${day === c.v ? "border-[#67e8f9] btn-shine text-white" : "border-white/15 bg-[#0f172a] text-slate-200 hover:bg-white/10"}`}
             >
               {c.l}
             </button>
@@ -443,12 +443,12 @@ function AppointmentForm({
         <input value={notes} onChange={(e) => setNotes(e.target.value)} className={field} maxLength={500} placeholder="Ex.: levar escada grande" />
       </label>
 
-      {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+      {error && <p className="text-sm font-semibold text-red-300">{error}</p>}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <button onClick={onCancel} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">
+        <button onClick={onCancel} className="rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-slate-200 hover:bg-white/10">
           Cancelar
         </button>
-        <button onClick={save} disabled={busy || !customer.trim() || !day} className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50">
+        <button onClick={save} disabled={busy || !customer.trim() || !day} className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-6 py-3 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} Salvar na agenda
         </button>
       </div>

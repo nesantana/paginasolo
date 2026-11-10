@@ -11,7 +11,7 @@ export default function AgendaPage() {
   return (
     <OwnerShell title="Agenda" subtitle="Marque o dia combinado com o cliente e receba o aviso por e-mail no dia.">
       {!tenant ? (
-        <p className="flex items-center gap-2 text-slate-500">
+        <p className="flex items-center gap-2 text-slate-400">
           <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
         </p>
       ) : paid ? (

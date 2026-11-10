@@ -107,13 +107,13 @@ export const VIEW_LABEL: Record<PaymentView, string> = {
 };
 
 export const VIEW_CLASS: Record<PaymentView, string> = {
-  paid: "bg-emerald-50 text-emerald-700 border-emerald-300",
-  informed: "bg-sky-50 text-sky-700 border-sky-300",
-  overdue: "bg-red-50 text-red-600 border-red-300",
-  today: "bg-amber-50 text-amber-700 border-amber-300",
-  upcoming: "bg-slate-100 text-slate-600 border-slate-200",
-  on_completion: "bg-violet-50 text-violet-700 border-violet-300",
-  cancelled: "bg-slate-50 text-slate-500 border-slate-200",
+  paid: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  informed: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+  overdue: "bg-red-500/15 text-red-300 border-red-500/30",
+  today: "bg-amber-400/15 text-amber-300 border-amber-400/30",
+  upcoming: "bg-white/10 text-slate-300 border-white/10",
+  on_completion: "bg-violet-500/15 text-violet-300 border-violet-500/30",
+  cancelled: "bg-[#0a0e17] text-slate-400 border-white/10",
 };
 
 export const METHODS = ["Pix", "Dinheiro", "Cartão", "Transferência", "Boleto", "Outro"];

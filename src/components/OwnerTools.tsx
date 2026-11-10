@@ -23,19 +23,19 @@ function Tile({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-400 hover:shadow-sm"
+      className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0f172a] p-4 transition hover:border-[#3b82f6]/50 hover:shadow-sm"
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6]/15 text-[#67e8f9]">
         <Icon className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2 font-bold text-slate-900">
+        <span className="flex items-center gap-2 font-bold text-white">
           {title}
           {locked && <Lock className="h-3.5 w-3.5 text-slate-400" />}
         </span>
-        <span className="block text-sm text-slate-500">{locked ? "Libere por R$ 37/mês" : text}</span>
+        <span className="block text-sm text-slate-400">{locked ? "Libere por R$ 37/mês" : text}</span>
       </span>
-      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-blue-700" />
+      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#67e8f9]" />
     </Link>
   );
 }
@@ -56,9 +56,9 @@ function FollowupToday({ tenant }: { tenant: TenantRow }) {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return (
-    <section className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold text-amber-950">
-        <CalendarClock className="h-5 w-5 text-amber-700" />
+    <section className="space-y-3 rounded-2xl border border-amber-400/30 bg-amber-400/15 p-4 sm:p-5">
+      <h2 className="flex items-center gap-2 text-lg font-bold text-amber-100">
+        <CalendarClock className="h-5 w-5 text-amber-300" />
         Quem chamar hoje
         <span className="rounded-full bg-amber-600 px-2 py-0.5 text-xs text-white">{due.length}</span>
       </h2>
@@ -68,7 +68,7 @@ function FollowupToday({ tenant }: { tenant: TenantRow }) {
         ))}
       </div>
       {due.length > 5 && (
-        <Link href="/dashboard/orcamentos" className="block text-center text-sm font-bold text-blue-700 underline underline-offset-4">
+        <Link href="/dashboard/orcamentos" className="block text-center text-sm font-bold text-[#67e8f9] underline underline-offset-4">
           Ver os outros {due.length - 5}
         </Link>
       )}

@@ -11,7 +11,7 @@ function Mini({ t, color }: { t: Theme; color: string }) {
     <div className="h-1 rounded-full" style={{ width: w, backgroundColor: text, opacity: o }} />
   );
   return (
-    <div className="h-36 w-full overflow-hidden rounded-xl border border-slate-200 p-3" style={{ backgroundColor: bg }}>
+    <div className="h-36 w-full overflow-hidden rounded-xl border border-white/10 p-3" style={{ backgroundColor: bg }}>
       <div className="flex items-center justify-between">
         <div className="h-3 w-3 rounded" style={{ backgroundColor: color }} />
         <div className="h-2 w-8 rounded-full bg-[#25D366]" />
@@ -110,10 +110,10 @@ export function ThemePicker({
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+    <div className="space-y-4 rounded-2xl border border-white/10 bg-[#0f172a] p-5 sm:p-6">
       <div>
         <h2 className="text-base font-extrabold">Visual do site</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-slate-300">
           Escolha o formato que combina com o seu negócio. Seus textos, fotos e cores continuam os mesmos.
         </p>
       </div>
@@ -134,8 +134,8 @@ export function ThemePicker({
               aria-pressed={selected}
               className={`group relative flex flex-col gap-2 rounded-2xl border p-2 text-left transition ${
                 selected
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-slate-200 bg-slate-50 hover:border-slate-400"
+                  ? "border-[#67e8f9] bg-[#3b82f6]/15"
+                  : "border-white/10 bg-[#0a0e17] hover:border-white/40"
               } disabled:opacity-70`}
             >
               <Mini t={t} color={color} />
@@ -143,7 +143,7 @@ export function ThemePicker({
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-extrabold">{t.name}</span>
                   {busy === id ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-700" />
+                    <Loader2 className="h-4 w-4 animate-spin text-[#67e8f9]" />
                   ) : selected ? (
                     <span
                       className="flex h-5 w-5 items-center justify-center rounded-full"
@@ -153,7 +153,7 @@ export function ThemePicker({
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{t.bestFor}</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-slate-400">{t.bestFor}</p>
               </div>
             </button>
           );

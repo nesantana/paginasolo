@@ -28,22 +28,22 @@ const date = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 
 function statusOf(t: Row): { label: string; cls: string; key: string } {
   if (t.subscription_status === "active" && t.complimentary)
-    return { label: "Premium (cortesia)", cls: "bg-amber-50 text-amber-700 border-amber-300", key: "premium" };
+    return { label: "Premium (cortesia)", cls: "bg-amber-400/15 text-amber-300 border-amber-400/30", key: "premium" };
   if (t.subscription_status === "active")
-    return { label: "Pagante", cls: "bg-emerald-50 text-emerald-700 border-emerald-300", key: "paying" };
+    return { label: "Pagante", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", key: "paying" };
   if (t.subscription_status === "draft")
-    return { label: "Grátis", cls: "bg-slate-100 text-slate-600 border-slate-200", key: "draft" };
-  return { label: "Inativo", cls: "bg-red-50 text-red-600 border-red-300", key: "inactive" };
+    return { label: "Grátis", cls: "bg-white/10 text-slate-300 border-white/10", key: "draft" };
+  return { label: "Inativo", cls: "bg-red-500/15 text-red-300 border-red-500/30", key: "inactive" };
 }
 
 function Login() {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-5 text-slate-900">
-      <div className="w-full max-w-sm space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-7 text-center">
+    <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] px-5 text-white">
+      <div className="w-full max-w-sm space-y-4 rounded-3xl border border-white/10 bg-[#0a0e17] p-7 text-center">
         <BrandLogo size={40} className="justify-center text-2xl" />
         <h1 className="text-xl font-extrabold">Painel administrativo</h1>
-        <p className="text-sm text-slate-600">Entre com o seu e-mail, o mesmo login de todo mundo.</p>
-        <a href="/entrar" className="block rounded-2xl bg-blue-600 px-6 py-3 font-extrabold">
+        <p className="text-sm text-slate-300">Entre com o seu e-mail, o mesmo login de todo mundo.</p>
+        <a href="/entrar" className="block rounded-2xl btn-shine px-6 py-3 font-extrabold">
           Entrar
         </a>
       </div>
@@ -102,8 +102,8 @@ export default function AdminPage() {
 
   if (state === "loading")
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-50 text-slate-900">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-700" />
+      <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] text-white">
+        <Loader2 className="h-6 w-6 animate-spin text-[#67e8f9]" />
       </div>
     );
   if (state === "login" || !data) return <Login />;
@@ -118,17 +118,17 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-dvh bg-slate-50 pb-16 text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div className="min-h-dvh bg-[#0a0e17] pb-16 text-white">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0a0e17]/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
           <span className="text-lg font-extrabold">
             <BrandLogo size={32} />{" "}
-            <span className="ml-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">admin</span>
+            <span className="ml-1 rounded-full bg-[#3b82f6]/15 px-2 py-0.5 text-xs text-[#67e8f9]">admin</span>
           </span>
-          <div className="flex items-center gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-3 text-xs text-slate-300">
             <span className="hidden sm:inline">{data.admin}</span>
             {data.hasSite && (
-              <a href="/dashboard" className="rounded-full border border-slate-200 px-3 py-1.5 font-bold hover:bg-slate-100">
+              <a href="/dashboard" className="rounded-full border border-white/10 px-3 py-1.5 font-bold hover:bg-white/10">
                 Meu site
               </a>
             )}
@@ -137,7 +137,7 @@ export default function AdminPage() {
                 await fetch("/api/admin/sair", { method: "POST" });
                 setState("login");
               }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 font-bold hover:bg-slate-100"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 font-bold hover:bg-white/10"
             >
               <LogOut className="h-3.5 w-3.5" /> Sair
             </button>
@@ -146,35 +146,35 @@ export default function AdminPage() {
       </header>
 
       <main className="mx-auto max-w-6xl space-y-6 px-4 pt-6">
-        {toast && <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900">{toast}</div>}
+        {toast && <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-3 text-sm font-bold text-emerald-200">{toast}</div>}
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {cards.map((c) => (
             <div
               key={c.label}
-              className={`rounded-2xl border p-4 ${c.hl ? "col-span-2 border-blue-200 bg-blue-50 lg:col-span-1" : "border-white/10 bg-white/5"}`}
+              className={`rounded-2xl border p-4 ${c.hl ? "col-span-2 border-[#3b82f6]/40 bg-[#3b82f6]/15 lg:col-span-1" : "border-white/10 bg-white/5"}`}
             >
-              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                {c.label} {c.hl && <TrendingUp className="h-4 w-4 text-blue-700" />}
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                {c.label} {c.hl && <TrendingUp className="h-4 w-4 text-[#67e8f9]" />}
               </div>
               <div className="mt-2 text-2xl font-extrabold sm:text-3xl">{c.value}</div>
-              <div className="mt-1 text-xs text-slate-500">{c.sub}</div>
+              <div className="mt-1 text-xs text-slate-400">{c.sub}</div>
             </div>
           ))}
         </section>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Faturamento bruto estimado (pagantes × preço do plano), antes das taxas do Mercado Pago. Cortesias não contam.
         </p>
 
         <section className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Buscar por nome, e-mail, cidade ou link"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm placeholder:text-slate-400 focus:border-blue-600 focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-[#0a0e17] py-2.5 pl-9 pr-3 text-sm placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none"
               />
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -182,7 +182,7 @@ export default function AdminPage() {
                 <button
                   key={k}
                   onClick={() => setFilter(k)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#3b82f6] text-white" : "border border-slate-200 text-slate-600 hover:bg-white/10"}`}
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#3b82f6] text-white" : "border border-white/10 text-slate-300 hover:bg-white/10"}`}
                 >
                   {l}
                 </button>
@@ -191,29 +191,29 @@ export default function AdminPage() {
           </div>
 
           <div className="space-y-2">
-            {rows.length === 0 && <p className="py-8 text-center text-sm text-slate-500">Nenhum site encontrado.</p>}
+            {rows.length === 0 && <p className="py-8 text-center text-sm text-slate-400">Nenhum site encontrado.</p>}
             {rows.map((t) => {
               const st = statusOf(t);
               const open = grantFor === t.id;
               return (
-                <div key={t.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div key={t.id} className="rounded-2xl border border-white/10 bg-[#0a0e17] p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate font-extrabold">{t.business_name}</span>
                         <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${st.cls}`}>{st.label}</span>
                       </div>
-                      <div className="mt-0.5 truncate text-xs text-slate-500">
+                      <div className="mt-0.5 truncate text-xs text-slate-400">
                         {t.category} • {t.city} • {t.payer_email || "sem e-mail"} • criado em {date(t.created_at)}
                       </div>
-                      {t.comp_note && <div className="mt-0.5 text-xs text-amber-700">{t.comp_note}</div>}
+                      {t.comp_note && <div className="mt-0.5 text-xs text-amber-300">{t.comp_note}</div>}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <a
                         href={`/${t.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold hover:bg-slate-100"
+                        className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-xs font-bold hover:bg-white/10"
                       >
                         Ver <ExternalLink className="h-3 w-3" />
                       </a>
@@ -221,7 +221,7 @@ export default function AdminPage() {
                         <button
                           disabled={busyId === t.id}
                           onClick={() => act(t.id, false)}
-                          className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                          className="rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-60"
                         >
                           Remover premium
                         </button>
@@ -239,13 +239,13 @@ export default function AdminPage() {
                     </div>
                   </div>
                   {open && (
-                    <div className="mt-3 flex flex-col gap-2 border-t border-slate-200 pt-3 sm:flex-row">
+                    <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3 sm:flex-row">
                       <input
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="Motivo (opcional): parceiro, teste, indicação…"
                         maxLength={120}
-                        className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none"
+                        className="flex-1 rounded-xl border border-white/10 bg-[#0a0e17] px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none"
                       />
                       <button
                         disabled={busyId === t.id}

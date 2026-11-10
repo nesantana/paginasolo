@@ -41,11 +41,11 @@ const VALIDITY = [
 ] as const;
 
 const field =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none";
+  "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 
 const chip = (on: boolean) =>
   `rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
-    on ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-100"
+    on ? "btn-shine text-white" : "bg-white/10 text-slate-300 hover:bg-white/10"
   }`;
 
 export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose }: Props) {
@@ -108,16 +108,16 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
   if (created) {
     const url = quoteUrl(origin, created.code);
     return (
-      <div className="space-y-4 rounded-3xl border border-emerald-300 bg-white p-5 sm:p-6">
-        <p className="flex items-center gap-2 text-lg font-extrabold text-emerald-700">
+      <div className="space-y-4 rounded-3xl border border-emerald-500/30 bg-[#0f172a] p-5 sm:p-6">
+        <p className="flex items-center gap-2 text-lg font-extrabold text-emerald-300">
           <Check className="h-5 w-5" /> Orçamento criado
         </p>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-300">
           Para <strong>{created.customer_name}</strong> ·{" "}
           {created.total_cents > 0 ? formatBRL(created.total_cents) : "valor a combinar"}
           {created.followup_at && " · lembrete de contato agendado"}
         </p>
-        <p className="break-all rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500">{url}</p>
+        <p className="break-all rounded-xl bg-[#0a0e17] px-4 py-3 text-xs text-slate-400">{url}</p>
         <div className="flex flex-wrap gap-2">
           <a
             href={whatsappLink(
@@ -146,14 +146,14 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
                 window.prompt("Copie o link:", url);
               }
             }}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm font-bold"
           >
             <Copy className="h-4 w-4" /> {copied ? "Copiado!" : "Copiar link"}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl px-5 py-3 text-sm font-bold text-slate-500 hover:text-slate-900"
+            className="rounded-xl px-5 py-3 text-sm font-bold text-slate-400 hover:text-white"
           >
             Fechar
           </button>
@@ -166,7 +166,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
   return (
     <form
       onSubmit={submit}
-      className="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6"
+      className="space-y-5 rounded-3xl border border-white/10 bg-[#0f172a] p-5 sm:p-6"
     >
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-extrabold">Novo orçamento</h2>
@@ -174,7 +174,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
           type="button"
           onClick={onClose}
           aria-label="Fechar"
-          className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+          className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
         >
           <X className="h-5 w-5" />
         </button>
@@ -201,7 +201,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-bold text-slate-600">O que você vai fazer</p>
+        <p className="text-sm font-bold text-slate-300">O que você vai fazer</p>
         {services.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {services.map((s, i) => (
@@ -209,7 +209,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
                 key={`${s.title}-${i}`}
                 type="button"
                 onClick={() => addService(s)}
-                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-left text-xs font-bold text-slate-700 hover:border-blue-600 hover:bg-slate-100"
+                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-[#0a0e17] px-3 py-1.5 text-left text-xs font-bold text-slate-200 hover:border-[#67e8f9] hover:bg-white/10"
               >
                 <Plus className="h-3.5 w-3.5 shrink-0" />
                 <span className="max-w-[16rem] truncate">{s.title}</span>
@@ -219,7 +219,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         )}
 
         {lines.map((l, i) => (
-          <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-[1fr_5.5rem_8rem_auto]">
+          <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded-xl bg-[#0a0e17] p-3 sm:grid-cols-[1fr_5.5rem_8rem_auto]">
             <input
               className={`${field} col-span-2 sm:col-span-1`}
               value={l.title}
@@ -249,7 +249,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
               type="button"
               onClick={() => setLines((x) => x.filter((_, k) => k !== i))}
               aria-label="Remover item"
-              className="rounded-xl px-2.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
+              className="rounded-xl px-2.5 text-slate-400 hover:bg-red-500/10 hover:text-red-300"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -259,14 +259,14 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         <button
           type="button"
           onClick={() => setLines((l) => [...l, { title: "", qty: 1, price: "" }])}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 hover:text-blue-700"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#67e8f9] hover:text-[#67e8f9]"
         >
           <Plus className="h-4 w-4" /> Item avulso
         </button>
 
         {total > 0 && (
           <p className="text-right text-lg font-extrabold">
-            Total <span className="text-blue-700">{formatBRL(total)}</span>
+            Total <span className="text-[#67e8f9]">{formatBRL(total)}</span>
           </p>
         )}
       </div>
@@ -282,7 +282,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="mb-2 text-sm font-bold text-slate-600">Validade do orçamento</p>
+          <p className="mb-2 text-sm font-bold text-slate-300">Validade do orçamento</p>
           <div className="flex flex-wrap gap-2">
             {VALIDITY.map((v) => (
               <button key={v.label} type="button" onClick={() => setValidDays(v.days)} className={chip(validDays === v.days)}>
@@ -292,7 +292,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
           </div>
         </div>
         <div>
-          <p className="mb-2 text-sm font-bold text-slate-600">Me lembrar de chamar em</p>
+          <p className="mb-2 text-sm font-bold text-slate-300">Me lembrar de chamar em</p>
           <div className="flex flex-wrap gap-2">
             {FOLLOWUPS.map((v) => (
               <button key={v.label} type="button" onClick={() => setFollowDays(v.days)} className={chip(followDays === v.days)}>
@@ -304,7 +304,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
       </div>
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+        <p role="alert" className="rounded-xl bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-200">
           {error}
         </p>
       )}
@@ -312,7 +312,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
       <button
         type="submit"
         disabled={busy}
-        className="bg-blue-600 text-white hover:bg-blue-700 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold disabled:opacity-60"
+        className="btn-shine text-white hover:brightness-110 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold disabled:opacity-60"
       >
         {busy && <Loader2 className="h-5 w-5 animate-spin" />}
         {busy ? "Criando..." : "Criar orçamento"}

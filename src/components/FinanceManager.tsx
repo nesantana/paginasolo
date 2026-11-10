@@ -17,11 +17,11 @@ import { formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
 
 type Pix = { pix_key: string | null; pix_key_type: PixKeyType | null; owner_doc: string | null };
 
-const card = "rounded-2xl border border-slate-200 bg-white p-4 sm:p-5";
+const card = "rounded-2xl border border-white/10 bg-[#0f172a] p-4 sm:p-5";
 const input =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none";
+  "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 const ghost =
-  "inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-900 hover:bg-slate-100 disabled:opacity-60";
+  "inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/10 disabled:opacity-60";
 
 const CONTRACT_LABEL: Record<string, string> = {
   draft: "Rascunho", sent: "Enviado", signed: "Aceito pelo cliente", completed: "Concluído", cancelled: "Cancelado",
@@ -141,36 +141,36 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
 
   if (loading)
     return (
-      <p className="flex items-center gap-2 text-slate-500">
+      <p className="flex items-center gap-2 text-slate-400">
         <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
       </p>
     );
 
   const tiles = [
-    { label: "Já recebido", value: formatBRL(sum.received), icon: BadgeCheck, cls: "text-emerald-700" },
-    { label: "Falta receber", value: formatBRL(sum.open), icon: Wallet, cls: "text-slate-900" },
-    { label: "Atrasado", value: formatBRL(sum.overdue), icon: AlertTriangle, cls: sum.overdue ? "text-red-600" : "text-slate-500", sub: sum.overdueCount ? `${sum.overdueCount} parcela(s)` : "" },
-    { label: "Vence em 7 dias", value: formatBRL(sum.dueSoon), icon: CalendarClock, cls: "text-amber-700" },
-    { label: "Na entrega", value: formatBRL(sum.onCompletion), icon: Banknote, cls: "text-violet-700" },
+    { label: "Já recebido", value: formatBRL(sum.received), icon: BadgeCheck, cls: "text-emerald-300" },
+    { label: "Falta receber", value: formatBRL(sum.open), icon: Wallet, cls: "text-white" },
+    { label: "Atrasado", value: formatBRL(sum.overdue), icon: AlertTriangle, cls: sum.overdue ? "text-red-300" : "text-slate-400", sub: sum.overdueCount ? `${sum.overdueCount} parcela(s)` : "" },
+    { label: "Vence em 7 dias", value: formatBRL(sum.dueSoon), icon: CalendarClock, cls: "text-amber-300" },
+    { label: "Na entrega", value: formatBRL(sum.onCompletion), icon: Banknote, cls: "text-violet-300" },
   ];
 
   return (
     <div className="space-y-5">
-      {toast && <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900">{toast}</div>}
+      {toast && <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-3 text-sm font-bold text-emerald-200">{toast}</div>}
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">
-            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <div key={t.label} className="rounded-2xl border border-white/10 bg-[#0a0e17] p-3.5">
+            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
               {t.label} <t.icon className="h-4 w-4" />
             </div>
             <div className={`mt-1.5 text-xl font-extrabold ${t.cls}`}>{t.value}</div>
-            {t.sub && <div className="text-xs text-slate-500">{t.sub}</div>}
+            {t.sub && <div className="text-xs text-slate-400">{t.sub}</div>}
           </div>
         ))}
       </section>
       {sum.informed > 0 && (
-        <p className="rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+        <p className="rounded-xl border border-sky-500/30 bg-sky-500/15 px-4 py-3 text-sm text-sky-200">
           Clientes avisaram que pagaram {formatBRL(sum.informed)}. Confira no seu banco e confirme abaixo.
         </p>
       )}
@@ -189,7 +189,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
           }}
         />
       ) : (
-        <button onClick={() => setCreating(true)} className="bg-blue-600 text-white hover:bg-blue-700 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold">
+        <button onClick={() => setCreating(true)} className="btn-shine text-white hover:brightness-110 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold">
           <FilePlus2 className="h-5 w-5" /> Novo contrato
         </button>
       )}
@@ -198,7 +198,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
         <h2 className="text-lg font-extrabold">Contratos e pagamentos</h2>
         <div className="flex gap-1.5">
           {([["open", "Em aberto"], ["all", "Todos"]] as const).map(([k, l]) => (
-            <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#3b82f6]" : "border border-slate-200 text-slate-600 hover:bg-white/10"}`}>
+            <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#3b82f6]" : "border border-white/10 text-slate-300 hover:bg-white/10"}`}>
               {l}
             </button>
           ))}
@@ -206,7 +206,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
       </div>
 
       {shown.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
+        <p className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-slate-400">
           {contracts.length === 0 ? "Nenhum contrato ainda. Crie o primeiro e acompanhe o que já foi pago e o que falta." : "Nada em aberto. Tudo certo por aqui."}
         </p>
       )}
@@ -219,19 +219,19 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate font-extrabold">{c.customer_name}</p>
-                <p className="truncate text-sm text-slate-500">{c.title}</p>
+                <p className="truncate text-sm text-slate-400">{c.title}</p>
               </div>
               <div className="text-right">
                 <p className="font-extrabold">{formatBRL(c.total_cents)}</p>
-                <p className="text-xs text-slate-500">{CONTRACT_LABEL[c.status]}{c.viewed_at && c.status === "sent" ? " · visto" : ""}</p>
+                <p className="text-xs text-slate-400">{CONTRACT_LABEL[c.status]}{c.viewed_at && c.status === "sent" ? " · visto" : ""}</p>
               </div>
             </div>
 
             <div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${prog.pct}%` }} />
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-400">
                 {formatBRL(prog.paid)} de {formatBRL(prog.total)} recebidos ({prog.pct}%)
               </p>
             </div>
@@ -249,10 +249,10 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
               ))}
             </ul>
 
-            <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-3">
+            <div className="flex flex-wrap gap-2 border-t border-white/10 pt-3">
               {!cancelled && (
                 <button onClick={() => sendContract(c)} className={ghost}>
-                  <Send className="h-3.5 w-3.5 text-emerald-600" /> {c.status === "draft" ? "Enviar contrato" : "Reenviar contrato"}
+                  <Send className="h-3.5 w-3.5 text-emerald-400" /> {c.status === "draft" ? "Enviar contrato" : "Reenviar contrato"}
                 </button>
               )}
               <button onClick={() => copyLink(c)} className={ghost}><Link2 className="h-3.5 w-3.5" /> Copiar link</button>
@@ -268,11 +268,11 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
                 <button onClick={() => contractStatus(c, "completed")} className={ghost}><Check className="h-3.5 w-3.5" /> Serviço concluído</button>
               )}
               {!cancelled && c.status !== "completed" && (
-                <button onClick={() => confirm("Cancelar este contrato? As parcelas em aberto serão canceladas.") && contractStatus(c, "cancelled")} className={`${ghost} !text-red-600`}>
+                <button onClick={() => confirm("Cancelar este contrato? As parcelas em aberto serão canceladas.") && contractStatus(c, "cancelled")} className={`${ghost} !text-red-300`}>
                   Cancelar
                 </button>
               )}
-              <button onClick={() => remove(c)} aria-label="Excluir contrato" className={`${ghost} ml-auto !text-slate-500`}>
+              <button onClick={() => remove(c)} aria-label="Excluir contrato" className={`${ghost} ml-auto !text-slate-400`}>
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -305,11 +305,11 @@ function PaymentLine({
   };
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <li className="rounded-xl border border-white/10 bg-[#0a0e17] p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-bold">{p.label}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             {p.status === "paid"
               ? `Recebido em ${formatDateBR((p.paid_at || "").slice(0, 10))}${p.paid_method ? ` · ${p.paid_method}` : ""}`
               : dueText(p) || "a combinar"}
@@ -326,9 +326,9 @@ function PaymentLine({
           {p.status !== "paid" ? (
             <>
               <button onClick={onCharge} className={ghost}>
-                <MessageCircle className="h-3.5 w-3.5 text-emerald-600" /> {view === "overdue" ? "Cobrar" : "Enviar Pix"}
+                <MessageCircle className="h-3.5 w-3.5 text-emerald-400" /> {view === "overdue" ? "Cobrar" : "Enviar Pix"}
               </button>
-              <button onClick={() => setOpen((v) => !v)} className={`${ghost} !border-emerald-300 !text-emerald-700`}>
+              <button onClick={() => setOpen((v) => !v)} className={`${ghost} !border-emerald-500/30 !text-emerald-300`}>
                 <Check className="h-3.5 w-3.5" /> Marcar como pago
               </button>
             </>
@@ -338,20 +338,20 @@ function PaymentLine({
             </button>
           )}
           {p.last_reminder_at && p.status !== "paid" && (
-            <span className="self-center text-[11px] text-slate-500">cobrado em {formatDateBR(p.last_reminder_at.slice(0, 10))}</span>
+            <span className="self-center text-[11px] text-slate-400">cobrado em {formatDateBR(p.last_reminder_at.slice(0, 10))}</span>
           )}
         </div>
       )}
 
       {open && (
-        <div className="mt-2 flex flex-col gap-2 border-t border-slate-200 pt-2 sm:flex-row sm:items-end">
-          <label className="block flex-1 text-[11px] font-bold text-slate-500">
+        <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2 sm:flex-row sm:items-end">
+          <label className="block flex-1 text-[11px] font-bold text-slate-400">
             Forma
             <select value={method} onChange={(e) => setMethod(e.target.value)} className={`${input} !py-2 text-sm`}>
               {METHODS.map((m) => <option key={m}>{m}</option>)}
             </select>
           </label>
-          <label className="block flex-1 text-[11px] font-bold text-slate-500">
+          <label className="block flex-1 text-[11px] font-bold text-slate-400">
             Recebido em
             <input type="date" value={paidOn} max={today} onChange={(e) => setPaidOn(e.target.value)} className={`${input} !py-2 text-sm`} />
           </label>
@@ -402,14 +402,14 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
         )}
       </div>
       {!editing && pix.pix_key ? (
-        <p className="text-sm text-slate-600">
-          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-bold uppercase">{PIX_TYPES.find((t) => t.id === pix.pix_key_type)?.label}</span>{" "}
-          <strong className="text-slate-900">{prettyPixKey(pix.pix_key_type, pix.pix_key)}</strong>
-          {pix.owner_doc && <span className="block text-xs text-slate-500">Documento no contrato: {pix.owner_doc}</span>}
+        <p className="text-sm text-slate-300">
+          <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-xs font-bold uppercase">{PIX_TYPES.find((t) => t.id === pix.pix_key_type)?.label}</span>{" "}
+          <strong className="text-white">{prettyPixKey(pix.pix_key_type, pix.pix_key)}</strong>
+          {pix.owner_doc && <span className="block text-xs text-slate-400">Documento no contrato: {pix.owner_doc}</span>}
         </p>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-300">
             Com a chave cadastrada, cada parcela ganha um QR Code e um Pix copia e cola com o valor certo. O dinheiro cai direto na sua conta.
           </p>
           <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
@@ -418,19 +418,19 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
             </select>
             <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={PIX_TYPES.find((t) => t.id === type)?.placeholder} className={input} />
           </div>
-          <label className="block space-y-1 text-xs font-bold text-slate-600">
+          <label className="block space-y-1 text-xs font-bold text-slate-300">
             Seu CPF ou CNPJ, para constar no contrato (opcional)
             <input value={doc} onChange={(e) => setDoc(e.target.value)} className={input} maxLength={30} />
           </label>
-          {error && <p className="text-sm font-bold text-red-600">{error}</p>}
+          {error && <p className="text-sm font-bold text-red-300">{error}</p>}
           <div className="flex gap-2">
-            <button onClick={() => save()} disabled={busy} className="bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold disabled:opacity-60">
+            <button onClick={() => save()} disabled={busy} className="btn-shine text-white hover:brightness-110 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold disabled:opacity-60">
               {busy && <Loader2 className="h-4 w-4 animate-spin" />} Salvar Pix
             </button>
             {pix.pix_key && (
               <>
                 <button onClick={() => setEditing(false)} className={ghost}>Cancelar</button>
-                <button onClick={() => save(true)} disabled={busy} className={`${ghost} !text-red-600`}>Remover</button>
+                <button onClick={() => save(true)} disabled={busy} className={`${ghost} !text-red-300`}>Remover</button>
               </>
             )}
           </div>

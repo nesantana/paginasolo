@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#0a0e17",
   width: "device-width",
   initialScale: 1,
 };
@@ -46,7 +46,7 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${jakarta.variable} ${jetbrainsMono.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white">
+      <body className="min-h-full bg-[#0a0e17] text-white selection:bg-[#3b82f6] selection:text-white">
         {children}
       </body>
     </html>

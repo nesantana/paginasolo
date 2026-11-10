@@ -8,8 +8,8 @@ import { buildPlan, type InstallmentDraft } from "@/lib/contractUi";
 import { addDaysISO, centsToInput, formatBRL, inputToCents, todayISO } from "@/lib/quoteUi";
 
 const input =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none";
-const label = "block space-y-1 text-xs font-bold text-slate-600";
+  "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
+const label = "block space-y-1 text-xs font-bold text-slate-300";
 
 const PRESETS: { id: string; name: string; hint: string; pct: number; balance: "completion" | "installments"; n: number }[] = [
   { id: "inicio", name: "Tudo no início", hint: "100% antes de começar", pct: 100, balance: "completion", n: 1 },
@@ -126,10 +126,10 @@ export function ContractForm({
   }
 
   return (
-    <div className="space-y-5 rounded-3xl border border-blue-200 bg-white p-5 sm:p-6">
+    <div className="space-y-5 rounded-3xl border border-[#3b82f6]/40 bg-[#0f172a] p-5 sm:p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-extrabold">Novo contrato</h2>
-        <button onClick={onCancel} aria-label="Fechar" className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900">
+        <button onClick={onCancel} aria-label="Fechar" className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -196,10 +196,10 @@ export function ContractForm({
               key={p.id}
               type="button"
               onClick={() => pickPreset(p.id)}
-              className={`rounded-xl border p-3 text-left transition ${preset === p.id ? "border-[#67e8f9] bg-[#67e8f9]/10" : "border-white/15 bg-slate-50 hover:border-white/40"}`}
+              className={`rounded-xl border p-3 text-left transition ${preset === p.id ? "border-[#67e8f9] bg-[#67e8f9]/10" : "border-white/15 bg-[#0a0e17] hover:border-white/40"}`}
             >
               <span className="block text-sm font-extrabold">{p.name}</span>
-              <span className="block text-[11px] text-slate-500">{p.hint}</span>
+              <span className="block text-[11px] text-slate-400">{p.hint}</span>
             </button>
           ))}
         </div>
@@ -234,7 +234,7 @@ export function ContractForm({
         )}
 
         {totalCents > 0 ? (
-          <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className="space-y-2 rounded-2xl border border-white/10 bg-[#0a0e17] p-3">
             {plan.map((r, i) => (
               <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-2 sm:grid-cols-[1.2fr_1fr_1fr_auto]">
                 <input value={r.label} onChange={(e) => editRow(i, { label: e.target.value })} className={`${input} !py-2 text-sm`} maxLength={60} />
@@ -246,7 +246,7 @@ export function ContractForm({
                   aria-label="Valor da parcela"
                 />
                 {r.due_kind === "on_completion" ? (
-                  <span className="text-xs text-violet-700">Na entrega do serviço</span>
+                  <span className="text-xs text-violet-300">Na entrega do serviço</span>
                 ) : (
                   <input
                     type="date"
@@ -259,7 +259,7 @@ export function ContractForm({
                   type="button"
                   onClick={() => setRows((cur) => (cur ?? generated).filter((_, idx) => idx !== i))}
                   aria-label="Remover parcela"
-                  className="justify-self-end rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-red-600"
+                  className="justify-self-end rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-red-300"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -268,7 +268,7 @@ export function ContractForm({
             <button
               type="button"
               onClick={() => setRows((cur) => [...(cur ?? generated), { label: "Parcela", amount_cents: Math.max(diff, 0) || 100, due_kind: "date", due_date: addDaysISO(30) }])}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#67e8f9]"
             >
               <Plus className="h-3.5 w-3.5" /> Adicionar parcela
             </button>
@@ -281,7 +281,7 @@ export function ContractForm({
             </p>
           </div>
         ) : (
-          <p className="text-xs text-slate-500">Informe o valor total para ver as parcelas.</p>
+          <p className="text-xs text-slate-400">Informe o valor total para ver as parcelas.</p>
         )}
       </div>
 
@@ -290,19 +290,19 @@ export function ContractForm({
         <textarea value={extra} onChange={(e) => setExtra(e.target.value)} rows={2} maxLength={1000} className={input} placeholder="Ex.: garantia de 90 dias; material por conta do cliente." />
       </label>
 
-      <p className="rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
+      <p className="rounded-xl bg-[#0a0e17] p-3 text-xs leading-relaxed text-slate-400">
         O contrato usa um modelo padrão de prestação de serviço e o aceite é eletrônico simples (nome, data e horário). Para serviços de alto valor ou riscos maiores, vale conferir o texto com um advogado.
       </p>
 
-      {error && <p className="text-sm font-bold text-red-600">{error}</p>}
+      {error && <p className="text-sm font-bold text-red-300">{error}</p>}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <button onClick={onCancel} className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold hover:bg-slate-100">
+        <button onClick={onCancel} className="rounded-xl border border-white/10 px-5 py-3 text-sm font-bold hover:bg-white/10">
           Cancelar
         </button>
         <button
           onClick={save}
           disabled={busy || totalCents <= 0 || diff !== 0}
-          className="bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-extrabold disabled:opacity-50"
+          className="btn-shine text-white hover:brightness-110 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-extrabold disabled:opacity-50"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} Criar contrato
         </button>

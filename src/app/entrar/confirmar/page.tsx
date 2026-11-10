@@ -42,20 +42,20 @@ export default function ConfirmarEntradaPage() {
   }, []);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-5 text-center text-slate-900">
+    <div className="flex min-h-dvh items-center justify-center bg-[#0a0e17] px-5 text-center text-white">
       {error ? (
         <div className="max-w-sm space-y-4">
           <p className="text-lg font-bold">{error}</p>
           <Link
             href="/entrar"
-            className="bg-blue-600 text-white hover:bg-blue-700 inline-block rounded-2xl px-6 py-3 font-extrabold"
+            className="btn-shine text-white hover:brightness-110 inline-block rounded-2xl px-6 py-3 font-extrabold"
           >
             Pedir novo link
           </Link>
         </div>
       ) : (
         <p className="flex items-center gap-3 text-lg font-bold">
-          <Loader2 className="h-5 w-5 animate-spin text-blue-700" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#67e8f9]" />
           Abrindo o seu painel...
         </p>
       )}

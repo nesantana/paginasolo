@@ -6,7 +6,7 @@ import type { TenantLink, TenantRow } from "@/types/database.types";
 import { OwnerShell, PaidOnly, useOwnerTenant } from "@/components/OwnerShell";
 
 const field =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none";
+  "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-4 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 
 function LinksEditor({ tenant }: { tenant: TenantRow }) {
   const [links, setLinks] = useState<TenantLink[]>(
@@ -46,9 +46,9 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
-        <p className="text-sm font-bold text-slate-600">Seu link para o Instagram, TikTok e WhatsApp</p>
-        <p className="mt-2 break-all rounded-xl bg-slate-50 px-4 py-3 font-mono text-sm text-blue-700">
+      <section className="rounded-3xl border border-white/10 bg-[#0f172a] p-5 sm:p-6">
+        <p className="text-sm font-bold text-slate-300">Seu link para o Instagram, TikTok e WhatsApp</p>
+        <p className="mt-2 break-all rounded-xl bg-[#0a0e17] px-4 py-3 font-mono text-sm text-[#67e8f9]">
           {url}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -63,7 +63,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
                 window.prompt("Copie o link:", url);
               }
             }}
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-zinc-900"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0f172a] px-4 py-2.5 text-sm font-extrabold text-zinc-900"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copiado!" : "Copiar link"}
@@ -72,21 +72,21 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
             href={`/${tenant.slug}/links`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold"
           >
             <ExternalLink className="h-4 w-4" /> Ver como o cliente vê
           </a>
         </div>
-        <p className="mt-4 text-xs leading-relaxed text-slate-500">
+        <p className="mt-4 text-xs leading-relaxed text-slate-400">
           Já aparecem sozinhos: pedir orçamento no WhatsApp, seu site, ligar, como chegar e avaliação
           no Google (quando preenchidos). Abaixo você adiciona o que quiser.
         </p>
       </section>
 
-      <section className="space-y-3 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+      <section className="space-y-3 rounded-3xl border border-white/10 bg-[#0f172a] p-5 sm:p-6">
         <h2 className="text-lg font-extrabold">Seus links extras</h2>
         {links.map((l, i) => (
-          <div key={i} className="grid gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-[1fr_1.4fr_auto]">
+          <div key={i} className="grid gap-2 rounded-xl bg-[#0a0e17] p-3 sm:grid-cols-[1fr_1.4fr_auto]">
             <input
               className={field}
               placeholder="Nome (ex.: Instagram)"
@@ -108,7 +108,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
               type="button"
               onClick={() => setLinks((x) => x.filter((_, k) => k !== i))}
               aria-label="Remover link"
-              className="rounded-xl px-3 py-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+              className="rounded-xl px-3 py-2 text-slate-400 hover:bg-red-500/10 hover:text-red-300"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -118,7 +118,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
           <button
             type="button"
             onClick={() => setLinks((l) => [...l, { label: "", url: "" }])}
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 hover:text-blue-700"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#67e8f9] hover:text-[#67e8f9]"
           >
             <Plus className="h-4 w-4" /> Adicionar link
           </button>
@@ -128,7 +128,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
           <p
             role="status"
             className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-              msg.ok ? "bg-emerald-50 text-emerald-900" : "bg-red-50 text-red-800"
+              msg.ok ? "bg-emerald-500/15 text-emerald-200" : "bg-red-500/15 text-red-200"
             }`}
           >
             {msg.text}
@@ -139,12 +139,12 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
           type="button"
           onClick={save}
           disabled={busy}
-          className="bg-blue-600 text-white hover:bg-blue-700 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold disabled:opacity-60"
+          className="btn-shine text-white hover:brightness-110 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold disabled:opacity-60"
         >
           {busy && <Loader2 className="h-5 w-5 animate-spin" />}
           {busy ? "Salvando..." : "Salvar links"}
         </button>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Só links seguros (https). Endereços sem https:// recebem automaticamente.
         </p>
       </section>
@@ -162,7 +162,7 @@ export default function LinksPage() {
       subtitle="Um único link na bio do Instagram com tudo o que o cliente precisa."
     >
       {!tenant ? (
-        <p className="flex items-center gap-2 text-slate-500">
+        <p className="flex items-center gap-2 text-slate-400">
           <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
         </p>
       ) : paid ? (
