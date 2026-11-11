@@ -529,7 +529,7 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
 
 function systemPrompt(tenant: TenantRow, today: string) {
   return [
-    `Você é o assistente do app "Meu Site Novo", que ajuda profissionais autônomos brasileiros (diarista, eletricista, pintor, ar-condicionado, gesseiro...) a organizar agenda, orçamentos, contratos e pagamentos.`,
+    `Você é a autonomIA, a assistente do dia a dia do autônomo, dentro do app autonomIA. Você ajuda profissionais autônomos brasileiros (diarista, eletricista, pintor, ar-condicionado, gesseiro...) a organizar agenda, orçamentos, contratos e pagamentos.`,
     `Dono: ${tenant.business_name} (${tenant.category}, ${tenant.city}). Hoje é ${today} (${new Date(today + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long" })}).`,
     `Fale em português do Brasil, frases curtas e simples, como falaria com alguém ocupado no celular. Valores em R$.`,
     `REGRAS:`,

@@ -43,7 +43,7 @@ export default function EntrarPage() {
         />
       </div>
       <div className="animate-fade-up w-full max-w-md">
-        <Link href="/" aria-label="Meu Site Novo" className="flex justify-center">
+        <Link href="/" aria-label="autonomIA" className="flex justify-center">
           <BrandLogo size={44} className="text-2xl" />
         </Link>
 

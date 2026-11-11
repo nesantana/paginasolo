@@ -28,7 +28,7 @@ async function viaGmail(m: Mail): Promise<MailResult> {
       auth: { user, pass: gmailPass() },
     });
     await transport.sendMail({
-      from: process.env.MAIL_FROM || `Meu Site Novo <${user}>`,
+      from: process.env.MAIL_FROM || `autonomIA <${user}>`,
       to: m.to,
       subject: m.subject,
       html: m.html,
@@ -48,7 +48,7 @@ async function viaResend(m: Mail): Promise<MailResult> {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: process.env.MAIL_FROM || "Meu Site Novo <onboarding@resend.dev>",
+        from: process.env.MAIL_FROM || "autonomIA <onboarding@resend.dev>",
         to: [m.to],
         subject: m.subject,
         html: m.html,

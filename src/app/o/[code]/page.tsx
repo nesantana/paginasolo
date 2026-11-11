@@ -127,7 +127,7 @@ export default async function QuotePage({ params }: Props) {
           color={color}
         />
 
-        <p className="pt-2 text-center text-xs text-slate-400">Orçamento gerado com Meu Site Novo</p>
+        <p className="pt-2 text-center text-xs text-slate-400">Orçamento gerado com autonomIA</p>
       </div>
     </main>
   );

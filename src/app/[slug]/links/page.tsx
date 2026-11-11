@@ -171,7 +171,7 @@ export default async function LinksPage({ params }: Props) {
         <p className="mt-10 text-center text-xs text-slate-500">
           Feito com{" "}
           <a href="/" className="font-bold text-slate-400 underline underline-offset-2">
-            Meu Site Novo
+            autonomIA
           </a>
         </p>
       </main>

@@ -80,7 +80,7 @@ export function AssistantCard({ paid }: { paid: boolean }) {
             <Sparkles className="h-6 w-6" />
           </span>
           <div>
-            <h2 className="text-xl font-extrabold sm:text-2xl">Peça para o assistente</h2>
+            <h2 className="text-xl font-extrabold sm:text-2xl">Peça para a autonomIA</h2>
             <p className="text-sm text-slate-300 sm:text-base">
               Escreva como no WhatsApp. Ele faz o orçamento, o contrato e a agenda; você só confirma.
             </p>
@@ -245,18 +245,18 @@ export function AssistantChat({ paid }: { paid: boolean }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Abrir o assistente"
+        aria-label="Abrir a assistente autonomIA"
         className="animate-pulse-ring fixed bottom-4 right-4 z-40 inline-flex items-center gap-2.5 rounded-full btn-shine px-6 py-4 text-base font-extrabold text-white shadow-2xl shadow-[#8b5cf6]/40 hover:brightness-110 sm:bottom-6 sm:right-6"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
-        <Sparkles className="h-6 w-6" /> Pedir ao assistente
+        <Sparkles className="h-6 w-6" /> Pedir à autonomIA
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[#0a0e17] sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[640px] sm:max-h-[85vh] sm:w-[400px] sm:rounded-3xl sm:border sm:border-white/15 sm:shadow-2xl">
           <header className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#0f172a] px-4 py-3 sm:rounded-t-3xl">
             <div className="flex items-center gap-2 font-extrabold">
-              <Sparkles className="h-5 w-5 text-[#67e8f9]" /> Assistente
+              <Sparkles className="h-5 w-5 text-[#67e8f9]" /> autonomIA
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Fechar" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
               <X className="h-5 w-5" />
@@ -268,7 +268,7 @@ export function AssistantChat({ paid }: { paid: boolean }) {
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#3b82f6]/20">
                 <Lock className="h-7 w-7 text-[#67e8f9]" />
               </span>
-              <h2 className="text-xl font-extrabold">Seu assistente de trabalho</h2>
+              <h2 className="text-xl font-extrabold">Sua assistente de trabalho</h2>
               <p className="text-sm text-slate-300">
                 Peça por mensagem: &ldquo;faz um orçamento para a Ana&rdquo;, &ldquo;o que tenho na quinta?&rdquo;, &ldquo;quanto recebi esse mês?&rdquo;.
                 Ele cria, você confirma.

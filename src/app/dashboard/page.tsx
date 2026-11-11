@@ -158,7 +158,7 @@ export default function ClientDashboardPage() {
       <header className="border-b border-white/10 bg-[#0f172a] sticky top-0 z-30">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link href="/" aria-label="Meu Site Novo">
+            <Link href="/" aria-label="autonomIA">
               <BrandLogo size={32} className="text-lg" />
             </Link>
 

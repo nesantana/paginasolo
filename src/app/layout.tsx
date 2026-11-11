@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: `${brand.name} — ${brand.tagline}`,
   description:
-    "Plataforma SaaS multitenant para geração instantânea de páginas de alta conversão com SEO local para prestadores de serviço e comércios. Crie seu site com um assistente e publique por menos de uma pizza por mês.",
+    "A autonomIA é a assistente do dia a dia do autônomo: anota a visita técnica, monta orçamento, gera contrato, marca a agenda e cobra por Pix, tudo por mensagem no celular. Inclui um site profissional para o seu negócio.",
 };
 
 export default function RootLayout({

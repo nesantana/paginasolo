@@ -15,7 +15,7 @@ export const appUrl = () =>
 const publicUrl = () => {
   const url = appUrl();
   if (url.startsWith("https://")) return url;
-  return (process.env.MP_PUBLIC_URL || "https://paginasolo.vercel.app").replace(/\/$/, "");
+  return (process.env.MP_PUBLIC_URL || "https://appautonomia.ia.br").replace(/\/$/, "");
 };
 
 export const isMercadoPagoConfigured = () =>
@@ -58,7 +58,7 @@ export async function createSubscription(input: {
   return mp<Preapproval>("/preapproval", {
     method: "POST",
     body: JSON.stringify({
-      reason: `PáginaSolo — site de ${input.businessName}`.slice(0, 120),
+      reason: `autonomIA — assinatura de ${input.businessName}`.slice(0, 120),
       external_reference: input.tenantId,
       payer_email: input.payerEmail,
       back_url: `${publicUrl()}/pagamento/retorno?s=${encodeURIComponent(input.slug)}`,

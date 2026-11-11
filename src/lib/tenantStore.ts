@@ -16,7 +16,7 @@ import { defaultFaq } from "@/lib/faqDefaults";
 import { suggestTheme, type ThemeId } from "@/lib/themes";
 
 /**
- * Camada de dados do PáginaSolo.
+ * Camada de dados do autonomIA.
  *  - Com Supabase configurado (URL + SERVICE_ROLE_KEY): tudo no Postgres.
  *  - Sem Supabase: arquivo JSON local (só para desenvolvimento; NÃO persiste na Vercel).
  *

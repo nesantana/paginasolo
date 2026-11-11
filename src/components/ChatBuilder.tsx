@@ -345,7 +345,7 @@ export function ChatBuilder() {
           >
             {m.from === "bot" && (
               <span className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center">
-                <img src="/brand/logo-meusitenovo.svg" alt="" className="h-8 w-8" />
+                <img src="/brand/logo-autonomia.svg" alt="" className="h-8 w-8" />
               </span>
             )}
             <div
@@ -368,7 +368,7 @@ export function ChatBuilder() {
         {typing && (
           <div className="animate-pop-in flex items-end gap-2" aria-label="Digitando">
             <span className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center">
-              <img src="/brand/logo-meusitenovo.svg" alt="" className="h-8 w-8" />
+              <img src="/brand/logo-autonomia.svg" alt="" className="h-8 w-8" />
             </span>
             <div className="bg-[#0f172a] border border-white/10 flex items-center gap-1.5 rounded-2xl rounded-bl-md px-4 py-4">
               {[0, 1, 2].map((d) => (

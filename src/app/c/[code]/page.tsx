@@ -140,7 +140,7 @@ export default async function ContractPage({ params }: Props) {
           hasPix={Boolean(tenant.pix_key)}
         />
 
-        <p className="pt-2 text-center text-xs text-slate-400">Contrato gerado com Meu Site Novo</p>
+        <p className="pt-2 text-center text-xs text-slate-400">Contrato gerado com autonomIA</p>
       </div>
     </main>
   );

@@ -5,7 +5,7 @@ import { AuthNav } from "@/components/AuthNav";
 import { BrandLogo } from "@/components/BrandLogo";
 
 export const metadata: Metadata = {
-  title: "Crie seu site em minutos — Meu Site Novo",
+  title: "Comece grátis — autonomIA",
   description:
     "Responda algumas perguntas e veja seu site pronto. Seu site no ar de graça. As ferramentas custam menos de uma pizza por mês.",
   robots: { index: false },
@@ -24,7 +24,7 @@ export default function CriarPage() {
       </div>
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0a0e17]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4">
-          <Link href="/" aria-label="Meu Site Novo">
+          <Link href="/" aria-label="autonomIA">
             <BrandLogo size={34} className="text-xl" />
           </Link>
           <AuthNav

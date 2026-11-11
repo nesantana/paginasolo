@@ -18,6 +18,7 @@ import {
   MessageCircle,
   MessageSquare,
   Paintbrush,
+  ClipboardList,
   QrCode,
   Rocket,
   Scissors,
@@ -45,12 +46,12 @@ const STEPS = [
   {
     icon: MessageSquare,
     t: "Conte o que você faz",
-    d: "Uma conversa rápida: nome, serviços, cidade e WhatsApp. Seu site profissional já fica pronto.",
+    d: "Uma conversa rápida: nome, serviços, cidade e WhatsApp. Seu site profissional já fica pronto, de graça.",
   },
   {
     icon: Sparkles,
-    t: "Peça para a IA",
-    d: "Escreva como no WhatsApp: \"orçamento para o Carlos, instalação de ar, R$ 450, 50/50\". Ela monta o orçamento, o contrato e marca o dia. Você só confirma.",
+    t: "Peça para a autonomIA",
+    d: "Escreva como no WhatsApp: \"estou na casa do Carlos, anota: trocar o disjuntor\". No fim, ela vira orçamento, contrato e agenda. Você só confirma.",
   },
   {
     icon: Wallet,
@@ -62,9 +63,15 @@ const STEPS = [
 const FERRAMENTAS = [
   {
     icon: Sparkles,
-    t: "Assistente com IA",
-    d: "Peça por mensagem: orçamento, contrato, agenda. Pergunte \"o que tenho amanhã?\" ou \"quanto ganhei este mês?\" e ele responde.",
+    t: "autonomIA, a assistente",
+    d: "Peça por mensagem: orçamento, contrato, agenda. Pergunte \"o que tenho amanhã?\" ou \"quanto ganhei este mês?\" e ela responde.",
     glow: "bg-[#8b5cf6]/40",
+  },
+  {
+    icon: ClipboardList,
+    t: "Visita técnica com anotações",
+    d: "Está no cliente? Vá falando o que precisa ser feito. A autonomIA anota e transforma em orçamento, com um ou vários itens.",
+    glow: "bg-[#25D366]/25",
   },
   {
     icon: CalendarDays,
@@ -137,7 +144,7 @@ export default async function Home() {
         </div>
 
         <header className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
-          <Link href="/" aria-label="Meu Site Novo">
+          <Link href="/" aria-label="autonomIA">
             <BrandLogo size={40} className="text-2xl" />
           </Link>
           <div className="flex items-center gap-2">
@@ -158,22 +165,23 @@ export default async function Home() {
               style={{ animationDelay: "0ms" }}
             >
               <Zap className="h-3.5 w-3.5" />
-              Eletricista, diarista, pedreiro, pintor e autônomos
+              A assistente do dia a dia do autônomo
             </span>
 
             <h1
               className="animate-fade-up mt-6 text-[2.6rem] font-extrabold leading-[1.04] tracking-tight sm:text-6xl lg:text-[4.2rem]"
               style={{ animationDelay: "120ms" }}
             >
-              Autônomo? <span className="text-gradient">Resolvo o seu problema em 10 minutos.</span>
+              Sua assistente <span className="text-gradient">do dia a dia de autônomo.</span>
             </h1>
 
             <p
               className="animate-fade-up mx-auto mt-6 max-w-xl text-lg text-slate-300 lg:mx-0"
               style={{ animationDelay: "240ms" }}
             >
-              Fale com a IA como falaria com um colega e ela faz a papelada: monta o orçamento, gera o contrato,
-              marca o dia na agenda e cobra por Pix. Você só confirma e vai trabalhar.
+              Eletricista, diarista, pintor, mestre de obras: fale com a autonomIA como falaria com um colega. Ela
+              anota a visita, monta o orçamento, gera o contrato, marca o dia na agenda e cobra por Pix. Você só
+              confirma e vai trabalhar.
             </p>
 
             <div
@@ -199,7 +207,7 @@ export default async function Home() {
               className="animate-fade-up mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-400 lg:justify-start"
               style={{ animationDelay: "480ms" }}
             >
-              {["Pronto em 10 minutos", "R$ 37/mês", "Sem fidelidade"].map((t) => (
+              {["Comece em 10 minutos", "Site grátis", "R$ 37/mês com a assistente"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-emerald-400" />
                   {t}
@@ -486,7 +494,8 @@ export default async function Home() {
               <div>
                 <ul className="space-y-3">
                   {[
-                    "Assistente com IA: orçamento, contrato e agenda por mensagem",
+                    "autonomIA, a assistente: orçamento, contrato e agenda por mensagem",
+                    "Visita técnica: anote no cliente e vire orçamento",
                     "Agenda com aviso por e-mail",
                     "Contratos aceitos pelo celular",
                     "Pix com QR Code e controle de pagamentos",
@@ -554,7 +563,7 @@ export default async function Home() {
         <Reveal>
           <h2 className="mx-auto max-w-2xl px-5 text-3xl font-extrabold tracking-tight sm:text-5xl">
             Chega de papelada, caderno e cobrança no zap.{" "}
-            <span className="text-gradient">Deixe a IA cuidar disso.</span>
+            <span className="text-gradient">Deixe a autonomIA cuidar disso.</span>
           </h2>
           <Link
             href="/criar"
@@ -567,9 +576,9 @@ export default async function Home() {
       </section>
 
       <footer className="border-t border-white/10 py-6 text-center text-sm text-slate-500">
-        Meu Site Novo ·{" "}
+        autonomIA · appautonomia.ia.br ·{" "}
         <a
-          href="https://wa.me/5567981513750?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Meu%20Site%20Novo."
+          href="https://wa.me/5567981513750?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20a%20autonomIA."
           target="_blank"
           rel="noopener noreferrer"
           className="underline underline-offset-4 hover:text-white"
