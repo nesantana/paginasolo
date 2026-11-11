@@ -12,9 +12,13 @@ import { parseContractInput } from "@/lib/contractValidate";
 import { parseIsoDate, parseQuoteInput } from "@/lib/validate";
 import { formatBRL, formatDateBR, quoteMessage, quoteUrl, whatsappLink } from "@/lib/quoteUi";
 import { chatCompletion, type ChatMsg, type ToolDef } from "@/lib/openai";
+import {
+  createVisit, getVisit, listFollowups, listVisits, parseItems, parseVisit, patchVisit, visitToQuote, visitTotal,
+} from "@/lib/visitStore";
+import type { VisitRow } from "@/types/finance";
 
 export type Proposal = {
-  kind: "quote" | "contract" | "appointment";
+  kind: "quote" | "contract" | "appointment" | "visit" | "visit_quote";
   /** Dados já limpos; é o que será salvo se o dono confirmar. */
   args: Record<string, unknown>;
   title: string;
@@ -71,6 +75,73 @@ export const TOOLS: ToolDef[] = [
     ["customer_name", "what"]
   ),
   fn(
+    "get_visits",
+    "Lista as visitas técnicas (id, cliente, dia, anotações, itens, retorno, se já virou orçamento). Passe customer_name para ver só as de um cliente.",
+    { customer_name: { type: "string", description: "Nome (ou parte), opcional" } }
+  ),
+  fn(
+    "get_followups",
+    "Lista os retornos pendentes (clientes que o dono precisa chamar de volta), de orçamentos e de visitas, com a data.",
+    { from: date, to: date }
+  ),
+  fn(
+    "add_visit_note",
+    "ANOTA algo na visita técnica de um cliente (salva na hora). Use quando o dono disser que está no cliente, ou 'anota', 'anota pra mim'. Se o cliente não tiver visita aberta, cria uma para hoje.",
+    {
+      customer_name: { type: "string" },
+      note: { type: "string", description: "O que anotar, nas palavras do dono, curto" },
+      address: { type: "string", description: "Endereço, só se o dono disser" },
+      customer_phone: { type: "string", description: "Telefone, só se o dono disser" },
+    },
+    ["customer_name", "note"]
+  ),
+  fn(
+    "set_visit_followup",
+    "Marca o dia para o dono chamar o cliente de volta depois da visita (salva na hora; aparece no calendário).",
+    {
+      customer_name: { type: "string" },
+      date,
+      note: { type: "string", description: "Motivo do retorno, opcional" },
+    },
+    ["customer_name", "date"]
+  ),
+  fn(
+    "propose_visit",
+    "Prepara o AGENDAMENTO de uma visita técnica (dia futuro) para o dono CONFIRMAR. Para anotar numa visita que está acontecendo, use add_visit_note.",
+    {
+      customer_name: { type: "string" },
+      customer_phone: { type: "string" },
+      date,
+      time: { type: "string", description: "HH:MM, opcional" },
+      address: { type: "string" },
+      followup_date: { type: "string", description: "Dia para chamar o cliente de volta, opcional (AAAA-MM-DD)" },
+    },
+    ["customer_name", "date"]
+  ),
+  fn(
+    "propose_quote_from_visit",
+    "Transforma a visita técnica de um cliente em orçamento, com UM OU MAIS ITENS, para o dono CONFIRMAR. Use get_visits antes, para ler as anotações, e monte os itens a partir delas. Todo item precisa de preço dito pelo dono: se faltar, pergunte, nunca invente.",
+    {
+      customer_name: { type: "string" },
+      items: {
+        type: "array",
+        description: "Itens do orçamento",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            qty: { type: "number" },
+            price_reais: { type: "number", description: "Preço de UMA unidade, em reais" },
+          },
+          required: ["title", "price_reais"],
+        },
+      },
+      customer_phone: { type: "string", description: "Só se a visita não tiver telefone" },
+      notes: { type: "string" },
+    },
+    ["customer_name", "items"]
+  ),
+  fn(
     "propose_quote",
     "Prepara um orçamento para o dono CONFIRMAR. Não salva nada sozinho. Exige nome e telefone do cliente.",
     {
@@ -125,25 +196,38 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
       const from = isoOr(a.from) || ctx.today;
       const to = isoOr(a.to) || from;
       const list = (await appointmentsBetween(tid, from, to)).filter((x) => x.status !== "cancelled").slice(0, 60);
-      return list.map((x) => ({
-        data: x.starts_on, horario: x.start_time?.slice(0, 5) || "a combinar", duracao_min: x.duration_min,
-        cliente: x.customer_name, servico: x.title, endereco: x.address, situacao: x.status === "done" ? "feito" : "marcado",
-      }));
+      const visitas = (await listVisits(tid, from)).filter((v) => v.starts_on <= to && v.status !== "cancelled");
+      const retornos = (await listFollowups(tid)).filter((f) => f.date >= from && f.date <= to);
+      return {
+        servicos: list.map((x) => ({
+          data: x.starts_on, horario: x.start_time?.slice(0, 5) || "a combinar", duracao_min: x.duration_min,
+          cliente: x.customer_name, servico: x.title, endereco: x.address, situacao: x.status === "done" ? "feito" : "marcado",
+        })),
+        visitas_tecnicas: visitas.map((v) => ({
+          data: v.starts_on, horario: v.start_time?.slice(0, 5) || "a combinar", cliente: v.customer_name, endereco: v.address,
+          situacao: v.quote_id ? "ja virou orcamento" : v.status === "done" ? "feita" : "marcada",
+        })),
+        retornos_para_fazer: retornos.map((f) => ({ data: f.date, cliente: f.customer_name, sobre: f.about, motivo: f.note })),
+      };
     }
     case "get_finance_summary": {
       const contracts = await listContracts(tid);
       const s = summarize(contracts, ctx.today);
       const devedores: Record<string, number> = {};
+      const emAberto: Record<string, number> = {};
       for (const c of contracts) {
         if (c.status === "cancelled") continue;
-        for (const p of c.payments)
+        for (const p of c.payments) {
+          if (p.status === "pending" || p.status === "informed") emAberto[c.customer_name] = (emAberto[c.customer_name] || 0) + p.amount_cents;
           if (p.status === "pending" && p.due_date && p.due_date < ctx.today)
             devedores[c.customer_name] = (devedores[c.customer_name] || 0) + p.amount_cents;
+        }
       }
       return {
         recebido: formatBRL(s.received), falta_receber: formatBRL(s.open), atrasado: formatBRL(s.overdue),
         a_vencer_em_7_dias: formatBRL(s.dueSoon), a_receber_na_entrega: formatBRL(s.onCompletion),
         clientes_em_atraso: Object.entries(devedores).map(([cliente, v]) => ({ cliente, valor: formatBRL(v) })),
+        saldo_em_aberto_por_cliente: Object.entries(emAberto).map(([cliente, v]) => ({ cliente, valor: formatBRL(v) })),
       };
     }
     case "get_revenue": {
@@ -202,6 +286,107 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
     case "get_contracts": {
       const list = (await listContracts(tid)).filter((c) => c.status !== "cancelled").slice(0, 25);
       return list.map((c) => ({ id: c.id, cliente: c.customer_name, servico: c.title, valor: formatBRL(c.total_cents), situacao: c.status }));
+    }
+    case "get_visits": {
+      const who = norm(String(a.customer_name || "")).trim();
+      const list = (await listVisits(tid)).filter((v) => v.status !== "cancelled" && (!who || norm(v.customer_name).includes(who))).slice(0, 15);
+      return list.map((v) => ({
+        id: v.id, cliente: v.customer_name, telefone: v.customer_phone, endereco: v.address, dia: v.starts_on,
+        situacao: v.quote_id ? "ja virou orcamento" : v.status === "done" ? "feita" : "marcada",
+        anotacoes: v.notes.map((n) => n.text),
+        itens: v.items.map((i) => ({ item: i.title, qtd: i.qty, preco: formatBRL(i.price_cents) })),
+        retorno: v.followup_at && !v.followup_done_at ? v.followup_at : null,
+      }));
+    }
+    case "get_followups": {
+      const from = isoOr(a.from) || ctx.today;
+      const to = isoOr(a.to) || addDays(from, 30);
+      const list = (await listFollowups(tid)).filter((f) => f.date <= to && (f.date >= from || f.date < ctx.today));
+      return list.slice(0, 40).map((f) => ({
+        dia: f.date, atrasado: f.date < ctx.today, cliente: f.customer_name, sobre: f.about, motivo: f.note,
+      }));
+    }
+    case "add_visit_note":
+    case "set_visit_followup": {
+      const who = norm(String(a.customer_name || "")).trim();
+      if (!who) return { erro: "Qual cliente?" };
+      const all = (await listVisits(tid)).filter((v) => v.status !== "cancelled" && norm(v.customer_name).includes(who));
+      const names = [...new Set(all.map((v) => v.customer_name))];
+      if (names.length > 1) return { erro: "Mais de um cliente com esse nome. Pergunte qual deles.", clientes: names };
+      // visita aberta (ainda sem orçamento) mais recente
+      let visit: VisitRow | undefined = all.find((v) => !v.quote_id) || undefined;
+
+      if (name === "set_visit_followup") {
+        const day = isoOr(a.date);
+        if (!day) return { erro: "Data inválida." };
+        if (!visit) return { erro: "Esse cliente não tem visita aberta. Anote algo primeiro ou use propose_visit." };
+        const v = await patchVisit(tid, visit.id, { followup_at: day, followup_note: typeof a.note === "string" ? a.note : null });
+        return { ok: true, cliente: v?.customer_name, retorno: day, aviso: "Salvo. Aparece no calendário nesse dia." };
+      }
+
+      const note = String(a.note || "").trim();
+      if (!note) return { erro: "O que anotar?" };
+      let criada = false;
+      if (!visit) {
+        const input = parseVisit({
+          customer_name: String(a.customer_name).trim(), starts_on: ctx.today,
+          customer_phone: a.customer_phone || "", address: a.address || "",
+        });
+        if ("error" in input) return { erro: input.error };
+        visit = await createVisit(tid, input);
+        criada = true;
+      }
+      const extra: { address?: string; customer_phone?: string } = {};
+      if (!criada && typeof a.address === "string" && a.address.trim() && !visit.address) extra.address = a.address;
+      if (!criada && typeof a.customer_phone === "string" && a.customer_phone.trim() && !visit.customer_phone) extra.customer_phone = a.customer_phone;
+      const v = await patchVisit(tid, visit.id, { add_note: note, ...extra });
+      return { ok: true, cliente: v?.customer_name, total_de_anotacoes: v?.notes.length, visita_criada_agora: criada, aviso: "Anotado e salvo. Responda curto, ex.: 'Anotado.'" };
+    }
+    case "propose_visit": {
+      const input = parseVisit({
+        customer_name: a.customer_name, customer_phone: a.customer_phone, starts_on: a.date, start_time: a.time || null,
+        address: a.address, followup_at: a.followup_date,
+      });
+      if ("error" in input) return { erro: input.error };
+      ctx.proposals.push({
+        kind: "visit", args: input as unknown as Record<string, unknown>, title: "Marcar visita técnica",
+        lines: [
+          `Cliente: ${input.customer_name}`,
+          `Quando: ${formatDateBR(input.starts_on)}${input.start_time ? ` às ${input.start_time.slice(0, 5)}` : ""}`,
+          ...(input.address ? [`Endereço: ${input.address}`] : []),
+          ...(input.followup_at ? [`Chamar de volta em: ${formatDateBR(input.followup_at)}`] : []),
+        ],
+        warnings: [],
+      });
+      return { ok: true, aviso: "Cartão de confirmação mostrado ao dono. Ainda NÃO foi salvo." };
+    }
+    case "propose_quote_from_visit": {
+      const who = norm(String(a.customer_name || "")).trim();
+      const all = (await listVisits(tid)).filter((v) => v.status !== "cancelled" && !v.quote_id && norm(v.customer_name).includes(who));
+      const names = [...new Set(all.map((v) => v.customer_name))];
+      if (names.length === 0) return { erro: "Não achei visita aberta desse cliente." };
+      if (names.length > 1) return { erro: "Mais de um cliente com esse nome. Pergunte qual deles.", clientes: names };
+      const visit = all[0];
+      const rawItems = Array.isArray(a.items) ? (a.items as Record<string, unknown>[]) : [];
+      const items = parseItems(rawItems.map((i) => ({ title: i.title, qty: i.qty, price_cents: cents(i.price_reais) })));
+      if (items.length === 0) return { erro: "Sem itens. Monte os itens a partir das anotações." };
+      const semPreco = items.filter((i) => i.price_cents <= 0).map((i) => i.title);
+      if (semPreco.length) return { erro: "Falta o preço destes itens. Pergunte ao dono, não invente.", itens_sem_preco: semPreco };
+      const phone = String(a.customer_phone || "") || visit.customer_phone || "";
+      const check = parseQuoteInput({ customer_name: visit.customer_name, customer_phone: phone, items, notes: a.notes });
+      if ("error" in check) return { erro: check.error.startsWith("Telefone") ? "Falta o telefone do cliente. Pergunte ao dono." : check.error };
+      ctx.proposals.push({
+        kind: "visit_quote",
+        args: { visit_id: visit.id, items, phone, notes: typeof a.notes === "string" ? a.notes : null },
+        title: "Criar orçamento da visita",
+        lines: [
+          `Cliente: ${visit.customer_name}`,
+          ...items.map((i) => `${i.qty > 1 ? `${i.qty}x ` : ""}${i.title}: ${formatBRL(i.qty * i.price_cents)}`),
+          `Total: ${formatBRL(visitTotal(items))}`,
+        ],
+        warnings: [],
+      });
+      return { ok: true, aviso: "Cartão de confirmação mostrado ao dono. Ainda NÃO foi salvo." };
     }
     case "prepare_send": {
       const who = norm(String(a.customer_name || "")).trim();
@@ -355,6 +540,7 @@ function systemPrompt(tenant: TenantRow, today: string) {
     `- Nunca diga que criou, agendou ou salvou: diga que PREPAROU e peça para conferir o cartão.`,
     `- Quando o dono pedir para ENVIAR, mandar, cobrar, passar o link ou o Pix de um cliente (ex.: "envia o pix da entrada para o Felipe", "manda o contrato da Ana"), chame prepare_send. O app mostra um botão que abre o WhatsApp com a mensagem e o link já prontos. NUNCA diga que não consegue enviar ou que não tem acesso: você prepara o botão e o dono toca nele. Responda só uma frase, ex.: "Pronto, toque no botão para enviar a cobrança da entrada."`,
     `- O sistema não movimenta dinheiro. O Pix é a cobrança (QR Code e copia e cola) que o cliente paga; você não paga nem transfere nada.`,
+    `- VISITA TÉCNICA: quando o dono disser que está na casa/no cliente ou pedir "anota", use add_visit_note (salva na hora; responda só "Anotado."). Cada pedido de anotação é uma chamada. Para "o que anotei do cliente X", use get_visits e liste as anotações em tópicos curtos. Para virar orçamento: get_visits, transforme as anotações em UM OU MAIS itens claros (ex.: "Instalar tomada", "Trocar disjuntor"), mostre os itens e, se faltar preço de algum, pergunte só os preços. Com tudo pronto, chame propose_quote_from_visit. Se faltar o telefone do cliente, pergunte. Para "me lembra de chamar o X dia tal", use set_visit_followup. get_followups mostra quem o dono precisa chamar de volta.`,
     `- "50/50" significa upfront_percent 50. "Metade antes" = 50. "Tudo no fim" = 0.`,
     `- Para "contrato sobre o orçamento de fulano", use get_quotes para achar o id e propose_contract com quote_id.`,
     `- Para sugerir como aumentar o rendimento, use os dados (get_revenue, get_time_spent, get_quotes, get_finance_summary) e dê 2 ou 3 ações práticas e específicas, por exemplo orçamentos parados para chamar de volta, serviços que rendem mais por hora, clientes em atraso. Não prometa resultado.`,
@@ -446,6 +632,36 @@ export async function applyProposal(
           contractMessage({ customer: c.customer_name, business: tenant.business_name, url: contractUrl(origin, c.code), total_cents: c.total_cents })
         ),
         mark: { path: `/api/contratos/${c.id}`, body: { status: "sent" } },
+      },
+    };
+  }
+  if (kind === "visit") {
+    const input = parseVisit(args);
+    if ("error" in input) return { ok: false, error: input.error };
+    const v = await createVisit(tenant.id, input);
+    return { ok: true, message: `Visita marcada: ${v.customer_name}, ${formatDateBR(v.starts_on)}${v.start_time ? ` às ${v.start_time.slice(0, 5)}` : ""}.`, href: "/dashboard/visitas" };
+  }
+  if (kind === "visit_quote") {
+    const b = (args ?? {}) as Record<string, unknown>;
+    const visit = typeof b.visit_id === "string" ? await getVisit(tenant.id, b.visit_id) : null;
+    if (!visit) return { ok: false, error: "Visita não encontrada." };
+    if (visit.quote_id) return { ok: false, error: "Essa visita já virou orçamento." };
+    const r = await visitToQuote(tenant.id, visit, {
+      items: parseItems(b.items), phone: typeof b.phone === "string" ? b.phone : null, notes: typeof b.notes === "string" ? b.notes : null,
+    });
+    if ("error" in r) return { ok: false, error: r.error };
+    const q = r.quote;
+    return {
+      ok: true,
+      message: `Orçamento de ${q.customer_name} criado a partir da visita.`,
+      href: "/dashboard/orcamentos",
+      send: {
+        label: "Enviar orçamento no WhatsApp",
+        whatsappUrl: whatsappLink(
+          q.customer_phone,
+          quoteMessage({ customer: q.customer_name, business: tenant.business_name, total_cents: q.total_cents, url: quoteUrl(origin, q.code) })
+        ),
+        mark: { path: `/api/orcamentos/${q.id}`, body: { mark_sent: true } },
       },
     };
   }

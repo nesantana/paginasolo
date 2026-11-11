@@ -7,6 +7,7 @@ import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import { addDays, tenantTimeZone, todayIn } from "@/lib/digest";
 import { mailConfigured } from "@/lib/mailer";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { listFollowups, listVisits } from "@/lib/visitStore";
 
 /** Agenda do dono: serviços de uma semana atrás em diante + contratos para preencher rápido. */
 export async function GET(request: Request) {
@@ -15,9 +16,11 @@ export async function GET(request: Request) {
   try {
     const today = todayIn(tenantTimeZone(auth.tenant.city));
     const asked = parseIsoDate(new URL(request.url).searchParams.get("from"));
-    const [appointments, contracts] = await Promise.all([
+    const [appointments, contracts, visits, followups] = await Promise.all([
       listAppointments(auth.tenant.id, asked || addDays(today, -7)),
       listContracts(auth.tenant.id),
+      listVisits(auth.tenant.id, asked || addDays(today, -7)),
+      listFollowups(auth.tenant.id),
     ]);
     return NextResponse.json(
       {
@@ -26,6 +29,8 @@ export async function GET(request: Request) {
         email: auth.tenant.payer_email,
         emailReady: mailConfigured(),
         appointments,
+        visits,
+        followups,
         contracts: contracts
           .filter((c) => c.status !== "cancelled")
           .map((c) => ({

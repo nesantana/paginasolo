@@ -6,7 +6,7 @@ import { AlertTriangle, Check, Loader2, Lock, MessageCircle, Send, Sparkles, X }
 import { PublishButton } from "@/components/PublishButton";
 
 type Proposal = {
-  kind: "quote" | "contract" | "appointment";
+  kind: "quote" | "contract" | "appointment" | "visit" | "visit_quote";
   args: Record<string, unknown>;
   title: string;
   lines: string[];
@@ -33,6 +33,15 @@ export const EXAMPLE_GROUPS: { title: string; items: Example[] }[] = [
       { label: "Fazer um orçamento", text: "Faça um orçamento para o cliente NOME, telefone (67) 99999-9999, de SERVIÇO por R$ 0", mode: "fill" },
       { label: "Fazer um contrato", text: "Quero um contrato simples para NOME sobre o orçamento dele, pagamento 50/50", mode: "fill" },
       { label: "Marcar na agenda", text: "Marque NOME amanhã às 9h para SERVIÇO", mode: "fill" },
+    ],
+  },
+  {
+    title: "Na visita ao cliente",
+    items: [
+      { label: "Anotar na visita", text: "Estou na casa do cliente NOME. Anota: ", mode: "fill" },
+      { label: "Ver minhas anotações", text: "Mostra as anotações da visita do cliente NOME", mode: "fill" },
+      { label: "Virar orçamento", text: "Transforma as anotações da visita do cliente NOME em orçamento", mode: "fill" },
+      { label: "Quem devo chamar de volta?", text: "Quais retornos eu tenho para fazer?", mode: "ask" },
     ],
   },
   {

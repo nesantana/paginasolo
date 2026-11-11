@@ -23,7 +23,7 @@ function provider() {
     : {
         url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         key: process.env.GEMINI_API_KEY,
-        model: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite",
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
         openai: false,
       };
 }
@@ -41,7 +41,7 @@ export async function chatCompletion(opts: {
     model: p.model,
     messages: opts.messages,
     ...(opts.tools?.length ? { tools: opts.tools } : {}),
-    ...(p.openai ? { max_completion_tokens: opts.maxTokens ?? 1500 } : { max_tokens: opts.maxTokens ?? 1500 }),
+    ...(p.openai ? { max_completion_tokens: opts.maxTokens ?? 1500 } : { max_tokens: opts.maxTokens ?? 1500, reasoning_effort: "low" }),
   });
 
   // Sobrecarga momentânea (503/429/500) é comum: tenta até 3 vezes.

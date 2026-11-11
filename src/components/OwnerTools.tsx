@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, FileText, Link2, Lock, MessageCircle, Wallet } from "lucide-react";
+import { ArrowRight, CalendarClock, ClipboardList, FileText, Link2, Lock, MessageCircle, Wallet } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import { PublishButton } from "@/components/PublishButton";
 import { QuoteCard } from "@/components/QuoteCard";
@@ -140,7 +140,8 @@ export function OwnerTools({ tenant }: { tenant: TenantRow }) {
       <FollowupSection tenant={tenant} paid={paid} />
       <section className="space-y-3">
         <h2 className="text-lg font-extrabold">Atalhos</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Tile href="/dashboard/visitas" icon={ClipboardList} title="Visitas técnicas" text="Anote e vire orçamento" locked={!paid} />
           <Tile href="/dashboard/financeiro" icon={Wallet} title="Contratos e Pix" text="Contrato e o que falta receber" locked={!paid} />
           <Tile href="/dashboard/orcamentos" icon={FileText} title="Orçamentos" text="Envie por link" locked={!paid} />
           <Tile href="/dashboard/links" icon={Link2} title="Página de links" text="Um link para o Instagram" locked={!paid} />

@@ -3,17 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  AlertTriangle, ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, FileText, Loader2,
-  Lock, MapPin, MessageCircle, Phone, Plus, Wallet,
+  AlertTriangle, ArrowRight, BellRing, CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, Clock, FileText,
+  Loader2, Lock, MapPin, MessageCircle, Phone, Plus, Wallet,
 } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
-import type { AppointmentRow, ContractWithPayments } from "@/types/finance";
+import type { AppointmentRow, ContractWithPayments, Followup, VisitRow } from "@/types/finance";
 import type { QuoteRow } from "@/types/database.types";
 import { PublishButton } from "@/components/PublishButton";
 import { DayQuickAdd } from "@/components/DayQuickAdd";
 import { conflictIds, endTime, hhmm } from "@/lib/agendaConflicts";
 import { summarize } from "@/lib/contractUi";
-import { formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
+import { followupMessage, formatBRL, formatDateBR, quoteUrl, todayISO, whatsappLink } from "@/lib/quoteUi";
 
 const first = (n: string) => n.trim().split(/\s+/)[0] || n;
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -58,6 +58,8 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
   const [items, setItems] = useState<AppointmentRow[]>([]);
   const [contracts, setContracts] = useState<ContractWithPayments[]>([]);
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
+  const [visits, setVisits] = useState<VisitRow[]>([]);
+  const [followups, setFollowups] = useState<Followup[]>([]);
   const [loading, setLoading] = useState(paid);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -79,6 +81,8 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
       setSelected(a.today);
       setCursor({ y: Number(a.today.slice(0, 4)), m: Number(a.today.slice(5, 7)) - 1 });
       setItems(a.appointments);
+      setVisits(a.visits || []);
+      setFollowups(a.followups || []);
     }
     if (f?.ok) {
       setContracts(f.contracts);
@@ -100,6 +104,20 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
     return map;
   }, [data]);
 
+  const visitsByDay = useMemo(() => {
+    const map = new Map<string, VisitRow[]>();
+    if (!paid) return map;
+    for (const v of visits) if (v.status !== "cancelled") map.set(v.starts_on, [...(map.get(v.starts_on) || []), v]);
+    return map;
+  }, [paid, visits]);
+  const followByDay = useMemo(() => {
+    const map = new Map<string, Followup[]>();
+    if (!paid) return map;
+    for (const f of followups) map.set(f.date, [...(map.get(f.date) || []), f]);
+    return map;
+  }, [paid, followups]);
+  const lateFollow = useMemo(() => followups.filter((f) => f.date < today), [followups, today]);
+
   const money = useMemo(() => summarize(contracts, today), [contracts, today]);
   const late = useMemo(() => data.filter((a) => a.status === "scheduled" && a.starts_on < today), [data, today]);
 
@@ -118,6 +136,32 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
     }
     return out.slice(0, 4);
   }, [paid, quotes, contracts, items]);
+
+  async function doneVisit(id: string) {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/visitas/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "done" }) });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok) setVisits((cur) => cur.map((v) => (v.id === id ? d.visit : v)));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /** "Já chamei": some do calendário (orçamento ou visita). */
+  async function doneFollowup(f: Followup) {
+    setBusyId(f.key);
+    try {
+      const res = await fetch(f.kind === "quote" ? `/api/orcamentos/${f.id}` : `/api/visitas/${f.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ followup_done: true }),
+      });
+      if (res.ok) setFollowups((cur) => cur.filter((x) => x.key !== f.key));
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function done(id: string) {
     setBusyId(id);
@@ -150,8 +194,91 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
       return { y: d.getFullYear(), m: d.getMonth() };
     });
 
+  const dayVisits = (visitsByDay.get(selected) || []).slice().sort((a, b) => (a.start_time || "99").localeCompare(b.start_time || "99"));
+  const dayFollow = followByDay.get(selected) || [];
   const dayList = (byDay.get(selected) || []).slice().sort((a, b) => (a.start_time || "99").localeCompare(b.start_time || "99"));
-  const openCount = dayList.filter((a) => a.status === "scheduled").length;
+  const openCount = dayList.filter((a) => a.status === "scheduled").length + dayVisits.filter((v) => v.status === "scheduled").length;
+
+  const visitRow = (v: VisitRow) => (
+    <li key={v.id} className={`rounded-2xl border border-violet-400/40 bg-[#0a0e17] p-4 ${v.status === "done" ? "opacity-60" : ""}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-extrabold">
+            <ClipboardList className="mr-1.5 inline h-4 w-4 text-violet-300" />
+            {v.customer_name} <span className="font-normal text-slate-400">· visita técnica</span>
+          </p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="h-4 w-4 text-slate-500" /> {v.start_time ? hhmm(v.start_time) : "horário a combinar"}
+            </span>
+            {v.address && (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.address)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#67e8f9] hover:underline">
+                <MapPin className="h-4 w-4" /> {v.address}
+              </a>
+            )}
+          </p>
+          <p className="mt-1.5 text-xs text-slate-400">
+            {v.notes.length > 0 ? `${v.notes.length} anotaç${v.notes.length > 1 ? "ões" : "ão"}` : "sem anotações"}
+            {v.quote_id ? " · já virou orçamento" : ""}
+          </p>
+        </div>
+        {v.status === "scheduled" ? (
+          <button onClick={() => doneVisit(v.id)} disabled={busyId === v.id || !paid} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-extrabold text-zinc-950 hover:bg-emerald-400 disabled:opacity-60">
+            {busyId === v.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Feita
+          </button>
+        ) : (
+          <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-bold text-emerald-300">Feita</span>
+        )}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link href={`/dashboard/visitas?visita=${v.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-violet-500/20 px-4 py-2.5 text-sm font-extrabold text-violet-200 hover:bg-violet-500/30">
+          {v.quote_id ? "Ver visita" : "Anotar e virar orçamento"} <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+        {v.customer_phone && (
+          <a href={`tel:+${v.customer_phone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-white/10">
+            <Phone className="h-3.5 w-3.5" /> Ligar
+          </a>
+        )}
+      </div>
+    </li>
+  );
+
+  const followRow = (f: Followup, showDate = false) => {
+    const msg =
+      f.kind === "quote" && f.code && typeof window !== "undefined"
+        ? followupMessage({ customer: f.customer_name, business: tenant.business_name, url: quoteUrl(window.location.origin, f.code) })
+        : `Olá, ${first(f.customer_name)}, tudo bem? Aqui é da ${tenant.business_name}. Passando para saber se posso te ajudar com o serviço que conversamos.`;
+    return (
+      <li key={f.key} className="rounded-2xl border border-amber-400/40 bg-[#0a0e17] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-extrabold">
+              <BellRing className="mr-1.5 inline h-4 w-4 text-amber-300" />
+              Chamar {f.customer_name}
+            </p>
+            <p className="mt-1 text-sm text-slate-300">
+              {showDate ? `${formatDateBR(f.date)} · ` : ""}
+              {f.about}
+              {f.note ? ` · ${f.note}` : ""}
+            </p>
+          </div>
+          <button onClick={() => doneFollowup(f)} disabled={busyId === f.key || !paid} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/20 px-4 py-2.5 text-sm font-extrabold text-slate-100 hover:bg-white/10 disabled:opacity-60">
+            {busyId === f.key ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 text-emerald-400" />} Já chamei
+          </button>
+        </div>
+        {f.customer_phone && (
+          <div className="mt-3 flex gap-2">
+            <a href={whatsappLink(f.customer_phone, msg)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-4 py-2.5 text-sm font-extrabold text-zinc-950 hover:brightness-110">
+              <MessageCircle className="h-4 w-4" /> Chamar no WhatsApp
+            </a>
+            <a href={`tel:+${f.customer_phone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-slate-200 hover:bg-white/10">
+              <Phone className="h-3.5 w-3.5" /> Ligar
+            </a>
+          </div>
+        )}
+      </li>
+    );
+  };
 
   const row = (a: AppointmentRow, showDate = false) => (
     <li key={a.id} className={`rounded-2xl border bg-[#0a0e17] p-4 ${conflicts.has(a.id) ? "border-red-400/50" : "border-white/10"} ${a.status === "done" ? "opacity-60" : ""}`}>
@@ -260,18 +387,31 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
           {cells.map((day, i) => {
             if (!day) return <span key={`b${i}`} />;
             const list = byDay.get(day) || [];
+            const vList = visitsByDay.get(day) || [];
+            const fList = followByDay.get(day) || [];
+            const total = list.length + vList.length + fList.length;
             const hasConflict = list.some((a) => conflicts.has(a.id));
             const isToday = day === today;
             const isSel = day === selected;
             const open = list.filter((a) => a.status === "scheduled").length;
             const allDone = list.length > 0 && open === 0;
+            const openVisits = vList.filter((v) => v.status === "scheduled").length;
             const tone = hasConflict
               ? "border-red-400/70 bg-red-500/20"
               : open > 0
                 ? "border-[#3b82f6]/70 bg-[#3b82f6]/25"
-                : allDone
-                  ? "border-emerald-400/50 bg-emerald-500/15"
-                  : "border-white/5 bg-white/[0.03] hover:bg-white/10";
+                : openVisits > 0
+                  ? "border-violet-400/70 bg-violet-500/20"
+                  : fList.length > 0
+                    ? "border-amber-400/60 bg-amber-400/15"
+                    : allDone || vList.length > 0
+                      ? "border-emerald-400/50 bg-emerald-500/15"
+                      : "border-white/5 bg-white/[0.03] hover:bg-white/10";
+            const marks = [
+              ...list.map((a) => ({ k: a.id, c: conflicts.has(a.id) ? "bg-red-400" : a.status === "done" ? "bg-emerald-400" : "bg-[#67e8f9]" })),
+              ...vList.map((v) => ({ k: v.id, c: v.status === "done" ? "bg-emerald-400" : "bg-violet-400" })),
+              ...fList.map((f) => ({ k: f.key, c: "bg-amber-400" })),
+            ];
             return (
               <button
                 key={day}
@@ -280,23 +420,20 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
                   setSelected(day);
                   setAdding(false);
                 }}
-                aria-label={`${Number(day.slice(8, 10))}: ${list.length ? `${list.length} serviço(s)` : "nada marcado"}`}
+                aria-label={`${Number(day.slice(8, 10))}: ${total ? `${list.length} serviço(s), ${vList.length} visita(s), ${fList.length} retorno(s)` : "nada marcado"}`}
                 className={`relative flex h-14 flex-col items-center justify-start gap-1 rounded-xl border p-1.5 text-sm font-bold transition sm:h-16 ${tone} ${
                   isSel ? "ring-2 ring-[#67e8f9]" : isToday ? "ring-1 ring-white/50" : ""
-                } ${list.length ? "text-white" : "text-slate-300"}`}
+                } ${total ? "text-white" : "text-slate-300"}`}
               >
                 <span>{Number(day.slice(8, 10))}</span>
-                {list.length > 0 && (
+                {marks.length > 0 && (
                   <span className="flex flex-wrap items-center justify-center gap-0.5">
-                    {list.slice(0, 3).map((a) => (
-                      <span
-                        key={a.id}
-                        className={`h-2 w-2 rounded-full ${conflicts.has(a.id) ? "bg-red-400" : a.status === "done" ? "bg-emerald-400" : "bg-[#67e8f9]"}`}
-                      />
+                    {marks.slice(0, 3).map((m) => (
+                      <span key={m.k} className={`h-2 w-2 rounded-full ${m.c}`} />
                     ))}
                   </span>
                 )}
-                {list.length > 3 && <span className="text-[10px] text-slate-300">+{list.length - 3}</span>}
+                {marks.length > 3 && <span className="text-[10px] text-slate-300">+{marks.length - 3}</span>}
                 {hasConflict && <span className="sr-only">conflito</span>}
               </button>
             );
@@ -304,6 +441,8 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
         </div>
         <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
           <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#67e8f9]" /> tem serviço</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-violet-400" /> visita técnica</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" /> chamar de volta</span>
           <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> feito</span>
           <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-400" /> conflito</span>
         </p>
@@ -316,10 +455,12 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
             {openCount > 0 ? `${openCount} serviço${openCount > 1 ? "s" : ""}` : "nada marcado"}
           </span>
         </h3>
+        {dayFollow.length > 0 && <ul className="space-y-2">{dayFollow.map((f) => followRow(f))}</ul>}
+        {dayVisits.length > 0 && <ul className="space-y-2">{dayVisits.map((v) => visitRow(v))}</ul>}
         {dayList.length > 0 ? (
           <ul className="space-y-2">{dayList.map((a) => row(a))}</ul>
         ) : (
-          !adding && (
+          !adding && dayVisits.length === 0 && dayFollow.length === 0 && (
             <p className="rounded-2xl border border-dashed border-white/15 p-4 text-sm text-slate-400">
               Nada marcado nesse dia. Combinou algo com um cliente? Marque aqui e você recebe o aviso por e-mail no dia.
             </p>
@@ -350,7 +491,22 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
             <Plus className="h-4 w-4" /> Marcar serviço neste dia
           </button>
         )}
+        {!adding && (
+          <Link
+            href={`/dashboard/visitas?novo=1&dia=${selected}`}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/50 px-4 py-3 text-sm font-extrabold text-violet-200 hover:bg-violet-500/10"
+          >
+            <ClipboardList className="h-4 w-4" /> Marcar visita técnica neste dia
+          </Link>
+        )}
       </div>
+
+      {lateFollow.length > 0 && selected === today && (
+        <div className="space-y-2">
+          <p className="text-xs font-extrabold uppercase tracking-wider text-amber-300">Retornos atrasados ({lateFollow.length})</p>
+          <ul className="space-y-2">{lateFollow.slice(0, 5).map((f) => followRow(f, true))}</ul>
+        </div>
+      )}
 
       {late.length > 0 && selected === today && (
         <div className="space-y-2">

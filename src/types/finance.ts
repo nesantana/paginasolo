@@ -67,3 +67,42 @@ export type AppointmentRow = {
   created_at: string;
   updated_at: string;
 };
+
+export type VisitNote = { id: string; text: string; at: string };
+export type VisitItem = { title: string; qty: number; price_cents: number };
+export type VisitRow = {
+  id: string;
+  tenant_id: string;
+  quote_id: string | null;
+  customer_name: string;
+  customer_phone: string | null;
+  title: string;
+  address: string | null;
+  starts_on: string;
+  start_time: string | null;
+  duration_min: number;
+  status: AppointmentStatus;
+  notes: VisitNote[];
+  items: VisitItem[];
+  followup_at: string | null;
+  followup_done_at: string | null;
+  followup_note: string | null;
+  done_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Retorno a fazer (aparece no calendário): vem de um orçamento parado ou de uma visita. */
+export type Followup = {
+  key: string;
+  kind: "quote" | "visit";
+  id: string;
+  customer_name: string;
+  customer_phone: string | null;
+  date: string;
+  note: string | null;
+  /** ex.: "Orçamento de R$ 800,00" ou "Visita técnica" */
+  about: string;
+  /** código público do orçamento (para montar o link na mensagem) */
+  code?: string;
+};
