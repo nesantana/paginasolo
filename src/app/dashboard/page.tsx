@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SiteExtras } from "@/components/SiteExtras";
 import { OwnerTools } from "@/components/OwnerTools";
 import { TodayAgenda } from "@/components/TodayAgenda";
+import { AssistantCard, AssistantChat } from "@/components/AssistantChat";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -213,6 +214,9 @@ export default function ClientDashboardPage() {
         {/* VISÃO GERAL */}
         {mode === "overview" && (
           <div className="space-y-6">
+            {/* 0. Assistente: o destaque, com exemplos para quem não sabe o que pedir */}
+            <AssistantCard paid={paid} />
+
             {/* 1. AGENDA: a primeira coisa do dia */}
             <TodayAgenda key={`agenda-${tenant.id}`} tenant={tenant} />
 
@@ -529,6 +533,7 @@ export default function ClientDashboardPage() {
           </div>
         )}
       </main>
+      {mode === "overview" && <AssistantChat key={tenant.id} paid={paid} />}
     </div>
   );
 }

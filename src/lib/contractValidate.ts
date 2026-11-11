@@ -1,5 +1,5 @@
 import { normalizeCustomerPhone, parseIsoDate } from "@/lib/validate";
-import { normalizePixKey, isValidCnpj, isValidCpf, type PixKeyType, PIX_TYPES } from "@/lib/pix";
+import { normalizePixKey, detectPixKeyType, isValidCnpj, isValidCpf, type PixKeyType, PIX_TYPES } from "@/lib/pix";
 import type { DueKind } from "@/types/finance";
 
 const str = (v: unknown, max: number): string =>
@@ -104,21 +104,35 @@ export function parsePixSettings(raw: unknown): PixSettings | { error: string } 
   const type = PIX_TYPES.some((t) => t.id === b.pix_key_type) ? (b.pix_key_type as PixKeyType) : null;
 
   let key: string | null = null;
+  let finalType = type;
   if (keyRaw) {
-    if (!type) return { error: "Escolha o tipo da chave Pix." };
-    key = normalizePixKey(type, keyRaw);
-    if (!key) return { error: "Chave Pix inválida para o tipo escolhido. Confira os números." };
+    // Vale o tipo escolhido; se a chave não bate com ele (ex.: CNPJ digitado com "CPF" marcado), reconhece sozinho.
+    key = type ? normalizePixKey(type, keyRaw) : null;
+    if (!key) {
+      const detected = detectPixKeyType(keyRaw);
+      if (detected) {
+        finalType = detected;
+        key = normalizePixKey(detected, keyRaw);
+      }
+    }
+    if (!key) return { error: "Não reconheci essa chave Pix. Confira o CPF, CNPJ, celular, e-mail ou chave aleatória." };
   }
 
   const docRaw = str(b.owner_doc, 30);
   let doc: string | null = null;
   if (docRaw) {
-    if (!isValidCpf(docRaw) && !isValidCnpj(docRaw)) return { error: "CPF ou CNPJ inválido." };
+    if (!isValidCpf(docRaw) && !isValidCnpj(docRaw)) {
+      return {
+        error: /[A-Za-zÀ-ÿ]/.test(docRaw)
+          ? "Esse campo é só para o número do CPF ou CNPJ. O nome da empresa fica em \"Editar textos e serviços\" no painel."
+          : "CPF ou CNPJ inválido. Confira os números.",
+      };
+    }
     doc = docRaw.replace(/\D/g, "");
     doc =
       doc.length === 11
         ? doc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
         : doc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
   }
-  return { pix_key: key, pix_key_type: key ? type : null, owner_doc: doc };
+  return { pix_key: key, pix_key_type: key ? finalType : null, owner_doc: doc };
 }

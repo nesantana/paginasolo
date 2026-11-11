@@ -12,7 +12,7 @@ import {
   METHODS, VIEW_CLASS, VIEW_LABEL, chargeMessage, contractMessage, contractProgress, contractUrl,
   paymentView, summarize, dueText, buildPlan,
 } from "@/lib/contractUi";
-import { PIX_TYPES, buildPixPayload, prettyPixKey, type PixKeyType } from "@/lib/pix";
+import { PIX_TYPES, buildPixPayload, detectPixKeyType, prettyPixKey, type PixKeyType } from "@/lib/pix";
 import { addDaysISO, formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
 
 type Pix = { pix_key: string | null; pix_key_type: PixKeyType | null; owner_doc: string | null };
@@ -457,11 +457,26 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
             <select value={type} onChange={(e) => setType(e.target.value as PixKeyType)} className={input}>
               {PIX_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
-            <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={PIX_TYPES.find((t) => t.id === type)?.placeholder} className={input} />
+            <input value={key} onChange={(e) => { setKey(e.target.value); const t = detectPixKeyType(e.target.value); if (t) setType(t); }} placeholder={PIX_TYPES.find((t) => t.id === type)?.placeholder} className={input} />
           </div>
-          <label className="block space-y-1 text-xs font-bold text-slate-300">
-            Seu CPF ou CNPJ, para constar no contrato (opcional)
-            <input value={doc} onChange={(e) => setDoc(e.target.value)} className={input} maxLength={30} />
+          <label className="block space-y-1 text-sm font-bold text-slate-300">
+            Número do CNPJ ou CPF que aparece no contrato (opcional)
+            <input
+              value={doc}
+              onChange={(e) => setDoc(e.target.value)}
+              inputMode="numeric"
+              placeholder="00.000.000/0000-00"
+              className={input}
+              maxLength={30}
+            />
+            <span className="block text-xs font-normal text-slate-400">
+              Só os números. O nome que vai no contrato é o nome do seu site (para mudar: Editar textos e serviços).
+            </span>
+            {!doc && (type === "cnpj" || type === "cpf") && key && (
+              <button type="button" onClick={() => setDoc(key)} className="text-xs font-bold text-[#67e8f9] underline">
+                Usar o mesmo número da chave Pix
+              </button>
+            )}
           </label>
           {error && <p className="text-sm font-bold text-red-300">{error}</p>}
           <div className="flex gap-2">

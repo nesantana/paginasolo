@@ -6,7 +6,6 @@ import { BrandLogo } from "@/components/BrandLogo";
 import {
   ArrowRight,
   Bell,
-  CalendarCheck,
   CalendarClock,
   CalendarDays,
   Check,
@@ -35,6 +34,7 @@ const NICHES = [
   { icon: Zap, label: "Eletricistas" },
   { icon: Paintbrush, label: "Pintores" },
   { icon: Wrench, label: "Ar-condicionado" },
+  { icon: Hammer, label: "Mestres de obras" },
   { icon: Hammer, label: "Gesseiros e pedreiros" },
   { icon: Wrench, label: "Encanadores" },
   { icon: Hammer, label: "Marceneiros" },
@@ -48,9 +48,9 @@ const STEPS = [
     d: "Uma conversa rápida: nome, serviços, cidade e WhatsApp. Seu site profissional já fica pronto.",
   },
   {
-    icon: CalendarDays,
-    t: "Combine e marque",
-    d: "Mande o orçamento, gere o contrato e marque o dia na agenda. Você recebe o aviso no dia.",
+    icon: Sparkles,
+    t: "Peça para a IA",
+    d: "Escreva como no WhatsApp: \"orçamento para o Carlos, instalação de ar, R$ 450, 50/50\". Ela monta o orçamento, o contrato e marca o dia. Você só confirma.",
   },
   {
     icon: Wallet,
@@ -60,6 +60,12 @@ const STEPS = [
 ];
 
 const FERRAMENTAS = [
+  {
+    icon: Sparkles,
+    t: "Assistente com IA",
+    d: "Peça por mensagem: orçamento, contrato, agenda. Pergunte \"o que tenho amanhã?\" ou \"quanto ganhei este mês?\" e ele responde.",
+    glow: "bg-[#8b5cf6]/40",
+  },
   {
     icon: CalendarDays,
     t: "Agenda com aviso por e-mail",
@@ -108,12 +114,6 @@ const FERRAMENTAS = [
     d: "Imprima e cole na vitrine, no carro ou no uniforme. O cliente aponta o celular e te chama.",
     glow: "bg-yellow-400/25",
   },
-  {
-    icon: CalendarCheck,
-    t: "Resumo semanal",
-    d: "Visitas, cliques no WhatsApp e ligações da semana, num toque.",
-    glow: "bg-[#25D366]/25",
-  },
 ];
 
 export default async function Home() {
@@ -158,22 +158,22 @@ export default async function Home() {
               style={{ animationDelay: "0ms" }}
             >
               <Zap className="h-3.5 w-3.5" />
-              Para quem trabalha por conta própria
+              Eletricista, diarista, pedreiro, pintor e autônomos
             </span>
 
             <h1
               className="animate-fade-up mt-6 text-[2.6rem] font-extrabold leading-[1.04] tracking-tight sm:text-6xl lg:text-[4.2rem]"
               style={{ animationDelay: "120ms" }}
             >
-              Seu trabalho organizado: <span className="text-gradient">agenda, contrato e Pix</span> num lugar só.
+              Autônomo? <span className="text-gradient">Resolvo o seu problema em 10 minutos.</span>
             </h1>
 
             <p
               className="animate-fade-up mx-auto mt-6 max-w-xl text-lg text-slate-300 lg:mx-0"
               style={{ animationDelay: "240ms" }}
             >
-              Diarista, eletricista, pintor, ar-condicionado, gesseiro... Marque o serviço, mande o contrato,
-              cobre por Pix e saiba quem já pagou. Seu site profissional já vem junto.
+              Fale com a IA como falaria com um colega e ela faz a papelada: monta o orçamento, gera o contrato,
+              marca o dia na agenda e cobra por Pix. Você só confirma e vai trabalhar.
             </p>
 
             <div
@@ -320,12 +320,12 @@ export default async function Home() {
               style={{ animationDelay: "1700ms" }}
             >
               <div className="animate-float-slow flex items-center gap-3 rounded-2xl border border-white/15 bg-[#0f172a] px-4 py-3 shadow-2xl shadow-black/50">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500/20">
-                  <Clock className="h-4 w-4 text-sky-400" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8b5cf6]/25">
+                  <Sparkles className="h-4 w-4 text-[#c4b5fd]" />
                 </span>
                 <div className="text-xs">
-                  <p className="font-bold">Quem ainda não pagou</p>
-                  <p className="text-slate-400">tudo no seu painel</p>
+                  <p className="font-bold">Orçamento feito pela IA</p>
+                  <p className="text-slate-400">você só confirma</p>
                 </div>
               </div>
             </div>
@@ -443,10 +443,10 @@ export default async function Home() {
             Tudo em um lugar
           </span>
           <h2 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl">
-            O hub de quem trabalha por <span className="text-gradient">conta própria</span>
+            Menos papelada, mais <span className="text-gradient">tempo de trabalho</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-300">
-            Tudo incluso nos R$ 37/mês: da agenda ao Pix, do orçamento ao site. Você mexe sozinho, direto do celular.
+            Tudo incluso nos R$ 37/mês. Funciona direto do celular, sem curso e sem complicação.
           </p>
         </Reveal>
 
@@ -481,11 +481,12 @@ export default async function Home() {
                   R$ 37
                   <span className="text-2xl font-semibold text-slate-400">/mês</span>
                 </p>
-                <p className="mt-3 text-slate-300">Menos que uma pizza. Se paga no primeiro serviço fechado.</p>
+                <p className="mt-3 text-slate-300">Menos que uma pizza. Se paga no primeiro serviço que você não esquecer de cobrar.</p>
               </div>
               <div>
                 <ul className="space-y-3">
                   {[
+                    "Assistente com IA: orçamento, contrato e agenda por mensagem",
                     "Agenda com aviso por e-mail",
                     "Contratos aceitos pelo celular",
                     "Pix com QR Code e controle de pagamentos",
@@ -510,7 +511,7 @@ export default async function Home() {
                   <Rocket className="h-5 w-5" />
                 </Link>
                 <p className="mt-3 text-center text-xs text-slate-400">
-                  Comece sem cartão: seu site já fica no ar enquanto você decide.
+                  Travou em algum passo? Chame a gente no WhatsApp.
                 </p>
               </div>
             </div>
@@ -552,8 +553,8 @@ export default async function Home() {
         <div className="animate-blob absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3b82f6]/30 blur-[100px]" />
         <Reveal>
           <h2 className="mx-auto max-w-2xl px-5 text-3xl font-extrabold tracking-tight sm:text-5xl">
-            Chega de agenda no caderno e cobrança no zap.{" "}
-            <span className="text-gradient">Organize seu trabalho.</span>
+            Chega de papelada, caderno e cobrança no zap.{" "}
+            <span className="text-gradient">Deixe a IA cuidar disso.</span>
           </h2>
           <Link
             href="/criar"

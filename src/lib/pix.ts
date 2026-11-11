@@ -43,6 +43,16 @@ export function isValidCnpj(v: string): boolean {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Descobre o tipo pelo que foi digitado (CNPJ, CPF, e-mail, chave aleatória ou celular). null = não reconhecida. */
+export function detectPixKeyType(raw: string): PixKeyType | null {
+  const v = raw.trim();
+  if (!v) return null;
+  for (const t of ["cnpj", "cpf", "email", "random", "phone"] as PixKeyType[]) {
+    if (normalizePixKey(t, v)) return t;
+  }
+  return null;
+}
+
 /** Chave no formato que vai no Pix (celular com +55, e-mail minúsculo...). null = inválida. */
 export function normalizePixKey(type: PixKeyType, raw: string): string | null {
   const v = raw.trim();
@@ -91,6 +101,30 @@ function ascii(v: string, max: number): string {
     .slice(0, max);
 }
 
+const LEGAL_SUFFIX = new Set(["LTDA", "ME", "EPP", "EIRELI", "MEI", "SA", "S", "A"]);
+const STOPWORDS = new Set(["DE", "DA", "DO", "DAS", "DOS", "E"]);
+
+/**
+ * O Pix aceita no máximo 25 letras no nome do recebedor (regra do Banco Central, não do app).
+ * Nomes longos são encurtados sem cortar no meio: tira "Ltda" e "de/da/do" e abrevia as palavras,
+ * sempre mantendo a última inteira. O banco do cliente mostra o nome real do dono da chave ao pagar.
+ */
+export function pixReceiverName(name: string, max = 25): string {
+  let words = ascii(name, 200).split(" ").filter(Boolean);
+  if (words.join(" ").length <= max) return words.join(" ");
+  while (words.length > 1 && LEGAL_SUFFIX.has(words[words.length - 1])) words = words.slice(0, -1);
+  words = words.filter((w, i) => i === 0 || !STOPWORDS.has(w));
+  let guard = 0;
+  while (words.join(" ").length > max && guard++ < 200) {
+    // encurta a palavra mais longa (menos a última) em uma letra, até caber
+    let idx = -1;
+    for (let i = 0; i < words.length - 1; i++) if (words[i].length > 3 && (idx < 0 || words[i].length > words[idx].length)) idx = i;
+    if (idx < 0) break;
+    words[idx] = words[idx].slice(0, -1);
+  }
+  return words.join(" ").slice(0, max).trim();
+}
+
 const tlv = (id: string, value: string) => `${id}${String(value.length).padStart(2, "0")}${value}`;
 
 function crc16(payload: string): string {
@@ -127,7 +161,7 @@ export function buildPixPayload(opts: {
     tlv("53", "986") +
     amount +
     tlv("58", "BR") +
-    tlv("59", ascii(opts.name, 25) || "RECEBEDOR") +
+    tlv("59", pixReceiverName(opts.name) || "RECEBEDOR") +
     tlv("60", city) +
     tlv("62", tlv("05", "***")) +
     "6304";
