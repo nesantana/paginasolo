@@ -4,6 +4,7 @@ import { getLatestTenantByEmail } from "@/lib/tenantStore";
 import { isAdminConfigured } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/adminAuth";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { normalizeBaseUrl } from "@/lib/siteUrl";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -25,7 +26,7 @@ function requestOrigin(request: Request): string {
     const proto = request.headers.get("x-forwarded-proto") || (isLocal ? "http" : "https");
     return `${proto.split(",")[0].trim()}://${host}`;
   }
-  return (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "");
+  return normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL, new URL(request.url).origin);
 }
 
 /** Pede o link de acesso por e-mail (Supabase envia; só dispara se o e-mail tem site). */

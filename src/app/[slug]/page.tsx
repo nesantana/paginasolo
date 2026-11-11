@@ -22,11 +22,12 @@ import {
 import { defaultFaq } from "@/lib/faqDefaults";
 import { Reveal } from "@/components/Reveal";
 import { getTheme, readableOn } from "@/lib/themes";
+import { SITE_URL } from "@/lib/siteUrl";
 
 // Renderização Estática Revalidada sob Demanda (ISR)
 export const revalidate = 3600;
 
-const BASE = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replace(/\/+$/, "");
+const BASE = SITE_URL;
 
 /** "Campo Grande - MS" -> "MS" (null se a cidade não trouxer UF). */
 function regionFromCity(city: string): string | null {

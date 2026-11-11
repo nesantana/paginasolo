@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { listPublishedTenants } from "@/lib/tenantStore";
+import { SITE_URL } from "@/lib/siteUrl";
 
-const BASE = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replace(/\/$/, "");
+const BASE = SITE_URL;
 
 export const revalidate = 3600;
 

@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { getTenantBySlug } from "@/lib/tenantStore";
 import { PrintButton } from "@/components/PrintButton";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "Cartaz com QR Code",
   robots: { index: false, follow: false },
 };
 
-const BASE = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replace(/\/+$/, "");
+const BASE = SITE_URL;
 
 type Props = {
   params: Promise<{ slug: string }>;

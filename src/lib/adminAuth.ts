@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { normalizeBaseUrl } from "@/lib/siteUrl";
 
 /**
  * Sessão do admin: cookie assinado (HMAC) com e-mail + validade.
@@ -77,5 +78,5 @@ export function requestOrigin(request: Request): string {
     const proto = request.headers.get("x-forwarded-proto") || (isLocal ? "http" : "https");
     return `${proto.split(",")[0].trim()}://${host}`;
   }
-  return (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/+$/, "");
+  return normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL, new URL(request.url).origin);
 }

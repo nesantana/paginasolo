@@ -1,11 +1,12 @@
 import "server-only";
+import { normalizeBaseUrl } from "@/lib/siteUrl";
 
 const MP_API = "https://api.mercadopago.com";
 
 export const PLAN_PRICE_BRL = Number(process.env.PLAN_PRICE_BRL || 37);
 
 export const appUrl = () =>
-  (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004").replace(/\/$/, "");
+  normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL, "http://localhost:3004");
 
 /**
  * O Mercado Pago só aceita back_url/notification_url públicas e https.
