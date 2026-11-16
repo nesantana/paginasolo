@@ -23,6 +23,8 @@ type Props = {
   onCreated: (q: QuoteRow) => void;
   onMarkSent: (id: string) => Promise<void>;
   onClose: () => void;
+  /** Chamado quando a pessoa marca "o cliente já aprovou": o orçamento já nasce aceito. */
+  onApproved?: (q: QuoteRow) => void;
 };
 
 const FOLLOWUPS = [
@@ -48,7 +50,8 @@ const chip = (on: boolean) =>
     on ? "btn-shine text-white" : "bg-white/10 text-slate-300 hover:bg-white/10"
   }`;
 
-export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose }: Props) {
+export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose, onApproved }: Props) {
+  const [approved, setApproved] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
@@ -95,8 +98,21 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         setError(data.error || "Não foi possível criar o orçamento.");
         return;
       }
-      setCreated(data.quote as QuoteRow);
-      onCreated(data.quote as QuoteRow);
+      let quote = data.quote as QuoteRow;
+      if (approved && onApproved) {
+        const r2 = await fetch(`/api/orcamentos/${quote.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "accepted" }),
+        });
+        const d2 = await r2.json().catch(() => ({}));
+        if (r2.ok && d2.ok) quote = d2.quote as QuoteRow;
+        onCreated(quote);
+        onApproved(quote);
+        return;
+      }
+      setCreated(quote);
+      onCreated(quote);
     } catch {
       setError("Sem conexão. Tente de novo.");
     } finally {
@@ -303,6 +319,21 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         </div>
       </div>
 
+      {onApproved && (
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <input
+            type="checkbox"
+            checked={approved}
+            onChange={(e) => setApproved(e.target.checked)}
+            className="mt-1 h-5 w-5 shrink-0 accent-emerald-500"
+          />
+          <span>
+            <b className="block">O cliente já aprovou</b>
+            <span className="text-sm text-slate-300">Marque se ele já topou. Você vai direto para o contrato.</span>
+          </span>
+        </label>
+      )}
+
       {error && (
         <p role="alert" className="rounded-xl bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-200">
           {error}
@@ -315,7 +346,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         className="btn-shine text-white hover:brightness-110 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold disabled:opacity-60"
       >
         {busy && <Loader2 className="h-5 w-5 animate-spin" />}
-        {busy ? "Criando..." : "Criar orçamento"}
+        {busy ? "Criando..." : approved ? "Criar e fazer o contrato" : "Criar orçamento"}
       </button>
     </form>
   );

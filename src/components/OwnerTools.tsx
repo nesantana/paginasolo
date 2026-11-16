@@ -137,8 +137,9 @@ export function OwnerShortcuts({ paid }: { paid: boolean }) {
   return (
     <section className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Tile href="/dashboard/orcamentos" icon={FileText} title="Orçamentos" text="Crie e envie por link" locked={!paid} />
-        <Tile href="/dashboard/financeiro" icon={Wallet} title="Contratos e Pix" text="Quanto falta receber" locked={!paid} />
+        <div className="sm:col-span-2">
+          <Tile href="/dashboard/clientes" icon={FileText} title="Meus clientes" text="Orçamento, contrato e Pix num lugar só" locked={!paid} />
+        </div>
         <Tile href="/dashboard/visitas" icon={ClipboardList} title="Visitas" text="Anote e vire orçamento" locked={!paid} />
         <Tile href="/dashboard/links" icon={Link2} title="Link para o Instagram" text="Seus contatos num link só" locked={!paid} />
       </div>

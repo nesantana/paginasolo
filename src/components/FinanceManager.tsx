@@ -8,12 +8,13 @@ import {
 import type { QuoteRow, TenantRow } from "@/types/database.types";
 import type { ContractWithPayments, PaymentRow } from "@/types/finance";
 import { ContractForm } from "@/components/ContractForm";
+import { QuoteForm } from "@/components/QuoteForm";
 import {
   METHODS, VIEW_CLASS, VIEW_LABEL, chargeMessage, contractMessage, contractProgress, contractUrl,
   paymentView, summarize, dueText, buildPlan,
 } from "@/lib/contractUi";
 import { PIX_TYPES, buildPixPayload, detectPixKeyType, prettyPixKey, type PixKeyType } from "@/lib/pix";
-import { addDaysISO, formatBRL, formatDateBR, todayISO, whatsappLink } from "@/lib/quoteUi";
+import { addDaysISO, formatBRL, formatDateBR, isOpen, quoteMessage, quoteUrl, todayISO, whatsappLink } from "@/lib/quoteUi";
 
 type Pix = { pix_key: string | null; pix_key_type: PixKeyType | null; owner_doc: string | null };
 
@@ -30,9 +31,10 @@ const CONTRACT_LABEL: Record<string, string> = {
 export function FinanceManager({ tenant }: { tenant: TenantRow }) {
   const [pix, setPix] = useState<Pix>({ pix_key: null, pix_key_type: null, owner_doc: null });
   const [contracts, setContracts] = useState<ContractWithPayments[]>([]);
-  const [quotes, setQuotes] = useState<QuoteRow[]>([]);
+  const [allQuotes, setAllQuotes] = useState<QuoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [quoting, setQuoting] = useState(false);
   const [initialQuote, setInitialQuote] = useState("");
   const [filter, setFilter] = useState<"open" | "all">("open");
   const [toast, setToast] = useState("");
@@ -44,13 +46,17 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
   };
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/financeiro", { cache: "no-store" });
+    const [res, qres] = await Promise.all([
+      fetch("/api/financeiro", { cache: "no-store" }),
+      fetch("/api/orcamentos", { cache: "no-store" }),
+    ]);
     const data = await res.json().catch(() => ({}));
+    const qdata = await qres.json().catch(() => ({}));
     if (res.ok && data.ok) {
       setPix(data.pix);
       setContracts(data.contracts);
-      setQuotes(data.acceptedQuotes);
     }
+    if (qres.ok && qdata.ok) setAllQuotes(qdata.quotes as QuoteRow[]);
     setLoading(false);
   }, []);
 
@@ -64,9 +70,56 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
 
   const today = todayISO();
   const sum = useMemo(() => summarize(contracts, today), [contracts, today]);
-  const shown = contracts.filter((c) =>
-    filter === "all" ? true : c.status !== "cancelled" && !contractProgress(c.payments).settled
-  );
+  const quoted = useMemo(() => new Set(contracts.map((c) => c.quote_id).filter(Boolean)), [contracts]);
+  const acceptedQuotes = allQuotes.filter((q) => q.status === "accepted" && !quoted.has(q.id));
+
+  type Job = { key: string; at: string; c?: ContractWithPayments; q?: QuoteRow };
+  const jobs: Job[] = [
+    ...contracts
+      .filter((c) => filter === "all" || (c.status !== "cancelled" && !contractProgress(c.payments).settled))
+      .map((c) => ({ key: "c" + c.id, at: c.created_at, c })),
+    ...allQuotes
+      .filter((q) => !quoted.has(q.id) && (filter === "all" || isOpen(q) || q.status === "accepted"))
+      .map((q) => ({ key: "q" + q.id, at: q.created_at, q })),
+  ].sort((a, b) => b.at.localeCompare(a.at));
+
+  const startContractFor = (id: string) => {
+    setInitialQuote(id);
+    setQuoting(false);
+    setCreating(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  async function quoteAction(q: QuoteRow, body: Record<string, unknown>) {
+    const res = await fetch(`/api/orcamentos/${q.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      flash(data.error || "Não foi possível salvar.");
+      return null;
+    }
+    setAllQuotes((cur) => cur.map((x) => (x.id === q.id ? (data.quote as QuoteRow) : x)));
+    return data.quote as QuoteRow;
+  }
+
+  async function removeQuote(q: QuoteRow) {
+    if (!confirm(`Apagar o orçamento de ${q.customer_name}?`)) return;
+    const res = await fetch(`/api/orcamentos/${q.id}`, { method: "DELETE" });
+    if (res.ok) setAllQuotes((cur) => cur.filter((x) => x.id !== q.id));
+    else flash("Não foi possível apagar.");
+  }
+
+  function sendQuote(q: QuoteRow) {
+    window.open(
+      whatsappLink(q.customer_phone, quoteMessage({ customer: q.customer_name, business: tenant.business_name, total_cents: q.total_cents, url: quoteUrl(origin, q.code) })),
+      "_blank",
+      "noopener"
+    );
+    void quoteAction(q, { mark_sent: true });
+  }
 
   const pixCodeFor = (p: PaymentRow) =>
     pix.pix_key
@@ -196,9 +249,9 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
 
       <ol className="grid gap-2 text-sm sm:grid-cols-3">
         {[
-          ["1", "Envie o contrato", "pelo WhatsApp do cliente"],
-          ["2", "Cliente aceita", "pelo celular dele, com um toque"],
-          ["3", "Mande o Pix", "o app já monta a cobrança pra você"],
+          ["1", "Faça o orçamento", "e mande pelo WhatsApp"],
+          ["2", "Cliente aprovou?", "faça o contrato com um toque"],
+          ["3", "Receba por Pix", "o app monta a cobrança pra você"],
         ].map(([n, t, d]) => (
           <li key={n} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0a0e17] p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]/25 font-extrabold text-[#a5f3fc]">{n}</span>
@@ -207,30 +260,45 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
         ))}
       </ol>
 
-      <PixCard pix={pix} onSaved={(p) => { setPix(p); flash("Pix salvo."); }} />
+      {!pix.pix_key && <PixCard pix={pix} onSaved={(p) => { setPix(p); flash("Pix salvo."); }} />}
 
       {creating ? (
         <ContractForm
-          quotes={quotes}
+          quotes={acceptedQuotes}
           initialQuoteId={initialQuote}
-          onCancel={() => setCreating(false)}
+          onCancel={() => { setCreating(false); setInitialQuote(""); }}
           onCreated={(c) => {
             setContracts((cur) => [c, ...cur]);
-            setQuotes((cur) => cur.filter((q) => q.id !== c.quote_id));
             setCreating(false);
-            flash("Contrato criado. Envie para o cliente pelo WhatsApp.");
+            setInitialQuote("");
+            flash("Contrato pronto. Agora é só enviar para o cliente.");
           }}
         />
+      ) : quoting ? (
+        <QuoteForm
+          business={tenant.business_name}
+          origin={origin}
+          services={tenant.services || []}
+          onCreated={(q) => setAllQuotes((cur) => [q, ...cur.filter((x) => x.id !== q.id)])}
+          onMarkSent={async (id) => { const q = allQuotes.find((x) => x.id === id); if (q) await quoteAction(q, { mark_sent: true }); else void load(); }}
+          onApproved={(q) => startContractFor(q.id)}
+          onClose={() => setQuoting(false)}
+        />
       ) : (
-        <button onClick={() => setCreating(true)} className="btn-shine text-white hover:brightness-110 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold">
-          <FilePlus2 className="h-5 w-5" /> Novo contrato
-        </button>
+        <div className="space-y-2">
+          <button onClick={() => setQuoting(true)} className="btn-shine text-white hover:brightness-110 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold">
+            <FilePlus2 className="h-5 w-5" /> Novo cliente
+          </button>
+          <button onClick={() => setCreating(true)} className="w-full text-center text-sm font-bold text-slate-400 underline underline-offset-4 hover:text-white">
+            Já combinei tudo: fazer só o contrato
+          </button>
+        </div>
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold">Contratos e pagamentos</h2>
+        <h2 className="text-lg font-extrabold">Meus clientes</h2>
         <div className="flex gap-1.5">
-          {([["open", "Em aberto"], ["all", "Todos"]] as const).map(([k, l]) => (
+          {([["open", "Em andamento"], ["all", "Todos"]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${filter === k ? "bg-[#3b82f6]" : "border border-white/10 text-slate-300 hover:bg-white/10"}`}>
               {l}
             </button>
@@ -238,13 +306,28 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
         </div>
       </div>
 
-      {shown.length === 0 && (
+      {jobs.length === 0 && (
         <p className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-slate-400">
-          {contracts.length === 0 ? "Nenhum contrato ainda. Crie o primeiro e acompanhe o que já foi pago e o que falta." : "Nada em aberto. Tudo certo por aqui."}
+          {contracts.length + allQuotes.length === 0 ? "Ninguém por aqui ainda. Toque em “Novo cliente” e faça o primeiro orçamento." : "Nada em andamento. Tudo certo por aqui."}
         </p>
       )}
 
-      {shown.map((c) => {
+      {jobs.map((j) => {
+        if (j.q) {
+          return (
+            <QuoteJob
+              key={j.key}
+              q={j.q}
+              onSend={() => sendQuote(j.q!)}
+              onApprove={async () => { const r = await quoteAction(j.q!, { status: "accepted" }); if (r) startContractFor(r.id); }}
+              onLost={() => quoteAction(j.q!, { status: "declined" })}
+              onContract={() => startContractFor(j.q!.id)}
+              onCopy={async () => { try { await navigator.clipboard.writeText(quoteUrl(origin, j.q!.code)); flash("Link copiado."); } catch { flash("Não consegui copiar."); } }}
+              onDelete={() => removeQuote(j.q!)}
+            />
+          );
+        }
+        const c = j.c!;
         const prog = contractProgress(c.payments);
         const cancelled = c.status === "cancelled";
         return (
@@ -343,7 +426,91 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
           </article>
         );
       })}
+
+      {pix.pix_key && <PixCard pix={pix} onSaved={(p) => { setPix(p); flash("Pix salvo."); }} />}
     </div>
+  );
+}
+
+/** Cliente que ainda está na fase de orçamento. */
+function QuoteJob({
+  q, onSend, onApprove, onLost, onContract, onCopy, onDelete,
+}: {
+  q: QuoteRow;
+  onSend: () => void;
+  onApprove: () => void;
+  onLost: () => void;
+  onContract: () => void;
+  onCopy: () => void;
+  onDelete: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const run = async (fn: () => void | Promise<void>) => {
+    setBusy(true);
+    await fn();
+    setBusy(false);
+  };
+  const lost = q.status === "declined";
+  const accepted = q.status === "accepted";
+  const green = "inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-extrabold text-zinc-950 hover:bg-emerald-400 disabled:opacity-60";
+
+  let title = "Orçamento pronto, ainda não enviado";
+  let text = "Mande pelo WhatsApp. O cliente abre o link, vê o valor e pode aceitar na hora.";
+  if (accepted) {
+    title = "Aprovado! Falta fazer o contrato";
+    text = "O contrato já vem preenchido com o orçamento. Você só confere e envia.";
+  } else if (lost) {
+    title = "Não fechou";
+    text = "Esse orçamento foi marcado como perdido.";
+  } else if (q.sent_at) {
+    title = q.viewed_at ? "O cliente já abriu o orçamento" : "Orçamento enviado, esperando resposta";
+    text = "Quando ele aceitar, você recebe um aviso. Se ele combinar com você por fora, toque em “O cliente aprovou”.";
+  }
+
+  return (
+    <article className={`${card} space-y-4 ${lost ? "opacity-60" : ""}`}>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate font-extrabold">{q.customer_name}</p>
+          <p className="truncate text-sm text-slate-400">{q.items.map((i) => i.title).join(", ") || "Orçamento"}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-extrabold">{q.total_cents > 0 ? formatBRL(q.total_cents) : "A combinar"}</p>
+          <p className="text-xs text-slate-400">{accepted ? "Aprovado" : lost ? "Perdido" : "Orçamento"}</p>
+        </div>
+      </div>
+
+      <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${accepted ? "border-emerald-500/40 bg-emerald-500/10" : "border-[#3b82f6]/40 bg-[#3b82f6]/10"}`}>
+        <div className="min-w-0 flex-1 basis-60">
+          <p className="font-extrabold">{title}</p>
+          <p className="mt-0.5 text-sm text-slate-300">{text}</p>
+        </div>
+        {accepted ? (
+          <button onClick={onContract} className={green}>
+            <FilePlus2 className="h-4 w-4" /> Fazer o contrato
+          </button>
+        ) : !lost ? (
+          <button onClick={() => run(onSend)} disabled={busy} className={green}>
+            <Send className="h-4 w-4" /> {q.sent_at ? "Lembrar no WhatsApp" : "Enviar no WhatsApp"}
+          </button>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-t border-white/10 pt-3">
+        {!accepted && !lost && (
+          <>
+            <button onClick={() => run(onApprove)} disabled={busy} className={`${ghost} !border-emerald-500/30 !text-emerald-300`}>
+              <Check className="h-3.5 w-3.5" /> O cliente aprovou
+            </button>
+            <button onClick={() => run(onLost)} disabled={busy} className={ghost}>Não fechou</button>
+          </>
+        )}
+        <button onClick={onCopy} className={ghost}><Link2 className="h-3.5 w-3.5" /> Copiar link</button>
+        <button onClick={onDelete} aria-label="Apagar" className={`${ghost} ml-auto !text-slate-400`}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </article>
   );
 }
 
