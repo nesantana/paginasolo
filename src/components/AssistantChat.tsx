@@ -68,66 +68,38 @@ export function openAssistant(detail: { ask?: string; fill?: string } = {}) {
   window.dispatchEvent(new CustomEvent("assistant:open", { detail }));
 }
 
-/** Cartão grande no topo do painel: mostra o que dá para pedir e abre o chat com um toque. */
+/** Barra no topo do painel: escreva o que precisa, como no WhatsApp. */
 export function AssistantCard({ paid }: { paid: boolean }) {
   const [text, setText] = useState("");
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[#8b5cf6]/50 bg-gradient-to-br from-[#1e1b4b] via-[#0f172a] to-[#0c4a6e] p-5 shadow-xl shadow-[#8b5cf6]/10 sm:p-7">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[#8b5cf6]/30 blur-3xl" />
-      <div className="relative space-y-4">
-        <div className="flex items-start gap-3">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl btn-shine shadow-lg">
-            <Sparkles className="h-6 w-6" />
-          </span>
-          <div>
-            <h2 className="text-xl font-extrabold sm:text-2xl">Peça para a autonomIA</h2>
-            <p className="text-sm text-slate-300 sm:text-base">
-              Escreva como no WhatsApp. Ele faz o orçamento, o contrato e a agenda; você só confirma.
-            </p>
-          </div>
-        </div>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (text.trim()) openAssistant({ ask: text.trim() });
-            else openAssistant();
-            setText("");
-          }}
-          className="flex items-center gap-2"
+    <section className="rounded-3xl border border-[#8b5cf6]/50 bg-gradient-to-br from-[#1e1b4b] via-[#0f172a] to-[#0c4a6e] p-4 shadow-xl shadow-[#8b5cf6]/10 sm:p-5">
+      <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold">
+        <Sparkles className="h-5 w-5 text-[#67e8f9]" /> O que você precisa hoje?
+      </h2>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (text.trim()) openAssistant({ ask: text.trim() });
+          else openAssistant();
+          setText("");
+        }}
+        className="flex items-center gap-2"
+      >
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Ex.: orçamento para a Ana, instalação de ar, R$ 450"
+          maxLength={1000}
+          className="min-w-0 flex-1 rounded-xl border border-white/20 bg-[#0a0e17]/80 px-4 py-3.5 text-base text-white placeholder:text-slate-400"
+        />
+        <button
+          type="submit"
+          aria-label="Enviar"
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl btn-shine text-white hover:brightness-110"
         >
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Ex.: orçamento para a Ana, instalação de ar, R$ 450"
-            maxLength={1000}
-            className="min-w-0 flex-1 rounded-xl border border-white/20 bg-[#0a0e17]/80 px-4 py-3.5 text-base text-white placeholder:text-slate-400"
-          />
-          <button
-            type="submit"
-            aria-label="Enviar"
-            className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl btn-shine text-white hover:brightness-110"
-          >
-            {paid ? <Send className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-          </button>
-        </form>
-
-        <div className="flex flex-wrap gap-2">
-          {["Fazer um orçamento", "O que tenho hoje?", "Quem está me devendo?", "Como aumento meu rendimento?"].map((label) => {
-            const ex = EXAMPLE_GROUPS.flatMap((g) => g.items).find((i) => i.label === label)!;
-            return (
-              <button
-                key={label}
-                type="button"
-                onClick={() => (ex.mode === "ask" ? openAssistant({ ask: ex.text }) : openAssistant({ fill: ex.text }))}
-                className="rounded-full border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-bold text-slate-100 hover:border-[#67e8f9]/60 hover:bg-white/10"
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+          {paid ? <Send className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+        </button>
+      </form>
     </section>
   );
 }

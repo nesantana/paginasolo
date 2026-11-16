@@ -34,7 +34,7 @@ function Tile({
           {title}
           {locked && <Lock className="h-3.5 w-3.5 text-slate-400" />}
         </span>
-        <span className="block text-sm text-slate-400">{locked ? "Libere a partir de R$ 37/mês" : text}</span>
+        <span className="block text-sm text-slate-400">{text}</span>
       </span>
       <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#67e8f9]" />
     </Link>
@@ -132,21 +132,34 @@ function FollowupSection({ tenant, paid }: { tenant: TenantRow; paid: boolean })
   );
 }
 
-/** Follow-up + atalhos das ferramentas (a agenda fica no calendário, logo acima). */
-export function OwnerTools({ tenant }: { tenant: TenantRow }) {
-  const paid = tenant.is_active && tenant.subscription_status === "active";
+/** Menu principal: as quatro coisas que o autônomo mais usa. */
+export function OwnerShortcuts({ paid }: { paid: boolean }) {
   return (
-    <div className="space-y-5">
-      <FollowupSection tenant={tenant} paid={paid} />
-      <section className="space-y-3">
-        <h2 className="text-lg font-extrabold">Atalhos</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Tile href="/dashboard/visitas" icon={ClipboardList} title="Visitas técnicas" text="Anote e vire orçamento" locked={!paid} />
-          <Tile href="/dashboard/financeiro" icon={Wallet} title="Contratos e Pix" text="Contrato e o que falta receber" locked={!paid} />
-          <Tile href="/dashboard/orcamentos" icon={FileText} title="Orçamentos" text="Envie por link" locked={!paid} />
-          <Tile href="/dashboard/links" icon={Link2} title="Página de links" text="Um link para o Instagram" locked={!paid} />
+    <section className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Tile href="/dashboard/orcamentos" icon={FileText} title="Orçamentos" text="Crie e envie por link" locked={!paid} />
+        <Tile href="/dashboard/financeiro" icon={Wallet} title="Contratos e Pix" text="Quanto falta receber" locked={!paid} />
+        <Tile href="/dashboard/visitas" icon={ClipboardList} title="Visitas" text="Anote e vire orçamento" locked={!paid} />
+        <Tile href="/dashboard/links" icon={Link2} title="Link para o Instagram" text="Seus contatos num link só" locked={!paid} />
+      </div>
+      {!paid && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-4">
+          <p className="text-sm text-slate-200">
+            <Lock className="mr-1.5 inline h-4 w-4 text-[#67e8f9]" />
+            Seu site é grátis. As ferramentas acima liberam a partir de <b>R$ 37/mês</b>.
+          </p>
+          <PublishButton
+            label="Liberar ferramentas"
+            className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-5 py-2.5 text-sm font-extrabold text-white hover:brightness-110 disabled:opacity-60"
+          />
         </div>
-      </section>
-    </div>
+      )}
+    </section>
   );
+}
+
+/** Quem chamar de volta (só aparece para quem já liberou as ferramentas). */
+export function OwnerFollowup({ tenant, paid }: { tenant: TenantRow; paid: boolean }) {
+  if (!paid) return null;
+  return <FollowupSection tenant={tenant} paid={paid} />;
 }

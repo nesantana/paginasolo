@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { SiteExtras } from "@/components/SiteExtras";
-import { OwnerTools } from "@/components/OwnerTools";
+import { OwnerShortcuts, OwnerFollowup } from "@/components/OwnerTools";
 import { TodayAgenda } from "@/components/TodayAgenda";
 import { AssistantCard, AssistantChat } from "@/components/AssistantChat";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
@@ -189,7 +189,7 @@ export default function ClientDashboardPage() {
               target="_blank"
               className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-extrabold text-zinc-950 shadow-lg shadow-emerald-500/20 transition-all"
             >
-              <span>Ver Meu Site no Ar</span>
+              <span>Ver meu site</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
             <button
@@ -219,32 +219,15 @@ export default function ClientDashboardPage() {
         {/* VISÃO GERAL */}
         {mode === "overview" && (
           <div className="space-y-6">
-            {/* 0. Assistente: o destaque, com exemplos para quem não sabe o que pedir */}
+            {/* 1. Pedir ao assistente */}
             <AssistantCard paid={paid} />
 
-            {/* 1. AGENDA: a primeira coisa do dia */}
+            {/* 2. Menu principal */}
+            <OwnerShortcuts paid={paid} />
+
+            {/* 3. Agenda e quem chamar de volta */}
             <TodayAgenda key={`agenda-${tenant.id}`} tenant={tenant} />
-
-            {/* 2. Atalhos: contratos, orçamentos, links (+ quem chamar hoje) */}
-            <OwnerTools key={tenant.id} tenant={tenant} />
-
-            {/* Indique e ganhe */}
-            <Link
-              href="/dashboard/indicacoes"
-              className="group relative isolate flex items-center gap-4 overflow-hidden rounded-3xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-[#0f172a] to-[#0f172a] p-5 transition hover:border-emerald-400/50 sm:p-6"
-            >
-              <div className="absolute -left-8 -top-8 -z-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-3xl" />
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/20 text-emerald-300">
-                <Gift className="h-6 w-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-lg font-extrabold">Indique e ganhe {DEFAULT_RATE}%</span>
-                <span className="block text-sm text-slate-300">
-                  Cada colega que assinar pelo seu link rende comissão, paga por Pix.
-                </span>
-              </span>
-              <ArrowRight className="h-5 w-5 shrink-0 text-emerald-300 transition group-hover:translate-x-1" />
-            </Link>
+            <OwnerFollowup key={tenant.id} tenant={tenant} paid={paid} />
 
             {/* 3. Meu site, em um cartão curto */}
             <div className="rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
@@ -292,7 +275,7 @@ export default function ClientDashboardPage() {
                     className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#6366f1] hover:from-[#0891b2] hover:to-[#4f46e5] px-4 py-2.5 text-sm font-extrabold text-white cursor-pointer transition-all"
                   >
                     <Edit3 className="w-4 h-4" />
-                    <span>Editar textos e serviços</span>
+                    <span>Editar meu site</span>
                   </button>
                 </div>
               </div>
@@ -310,6 +293,15 @@ export default function ClientDashboardPage() {
               </div>
             </details>
 
+            <Link
+              href="/dashboard/indicacoes"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-5 py-4 text-sm font-bold text-slate-200 hover:border-emerald-400/40"
+            >
+              <span className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-emerald-300" /> Indique e ganhe {DEFAULT_RATE}% de cada colega que assinar
+              </span>
+              <ArrowRight className="h-4 w-4 text-emerald-300" />
+            </Link>
           </div>
         )}
 
