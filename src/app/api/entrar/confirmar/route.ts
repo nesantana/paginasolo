@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
-import { getLatestTenantByEmail, rotateEditToken } from "@/lib/tenantStore";
-import { EDIT_COOKIE, editCookieOptions, newEditToken } from "@/lib/editAuth";
+import { createSession, getLatestTenantByEmail } from "@/lib/tenantStore";
+import { EDIT_COOKIE, editCookieOptions } from "@/lib/editAuth";
 import { ADMIN_HINT_MAX_AGE, HINT_COOKIE, OWNER_HINT_MAX_AGE, hintCookieOptions } from "@/lib/sessionHint";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { ADMIN_COOKIE, adminCookieOptions, createAdminSession, isAdminEmail } from "@/lib/adminAuth";
@@ -54,8 +54,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Nenhum site encontrado." }, { status: 404 });
   }
 
-  const token = newEditToken();
-  await rotateEditToken(tenant.id, token);
+  const token = await createSession(tenant.id);
   (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
   // Admin que também tem site: "b" (os dois atalhos). Só dono: "o".
   (await cookies()).set(HINT_COOKIE, admin ? "b" : "o", hintCookieOptions(OWNER_HINT_MAX_AGE));

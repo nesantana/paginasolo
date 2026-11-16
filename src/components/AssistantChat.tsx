@@ -274,7 +274,7 @@ export function AssistantChat({ paid }: { paid: boolean }) {
                 Ele cria, você confirma.
               </p>
               <PublishButton
-                label="Liberar por R$ 37/mês"
+                label="Liberar ferramentas"
                 className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-6 py-3 text-sm font-extrabold text-white disabled:opacity-60"
               />
             </div>

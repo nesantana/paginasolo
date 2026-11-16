@@ -535,7 +535,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
               tem para fazer.
             </p>
             <PublishButton
-              label={tenant.subscription_status === "draft" ? "Liberar por R$ 37/mês" : "Reativar por R$ 37/mês"}
+              label={tenant.subscription_status === "draft" ? "Liberar ferramentas" : "Reativar plano"}
               className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-6 py-3 text-sm font-extrabold text-white hover:brightness-110 disabled:opacity-60"
             />
           </div>

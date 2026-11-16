@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Lock } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import { BrandLogo } from "@/components/BrandLogo";
+import { NotificationBell } from "@/components/NotificationBell";
 
 /** Carrega o site do dono logado (cookie). Sem acesso → manda para o login. */
 export function useOwnerTenant() {
@@ -47,7 +48,10 @@ export function OwnerShell({
           >
             <ArrowLeft className="h-4 w-4" /> Meu painel
           </Link>
-          <BrandLogo size={28} className="text-lg" />
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <BrandLogo size={28} className="text-lg" />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl space-y-5 px-4 pt-6">
@@ -70,13 +74,13 @@ export function PaidOnly({ feature }: { feature: string }) {
       </span>
       <h2 className="mt-4 text-xl font-bold text-white">{feature} faz parte das ferramentas</h2>
       <p className="mx-auto mt-2 max-w-sm text-slate-200">
-        Seu site é grátis. Por R$ 37/mês você libera agenda, contratos com Pix, orçamentos e página de links.
+        Seu site é grátis. A partir de R$ 37/mês você libera agenda, contratos com Pix, orçamentos e página de links.
       </p>
       <Link
         href="/dashboard"
         className="mt-5 inline-flex rounded-xl btn-shine px-6 py-3 font-bold text-white hover:brightness-110"
       >
-        Liberar por R$ 37/mês
+        Liberar ferramentas
       </Link>
     </div>
   );

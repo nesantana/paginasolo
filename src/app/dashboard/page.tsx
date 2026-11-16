@@ -9,6 +9,7 @@ import { AssistantCard, AssistantChat } from "@/components/AssistantChat";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
 import { BrandLogo } from "@/components/BrandLogo";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   ExternalLink,
   CheckCircle2,
@@ -19,7 +20,10 @@ import {
   Check,
   Palette,
   LogOut,
+  Gift,
+  ArrowRight,
 } from "lucide-react";
+import { DEFAULT_RATE } from "@/lib/affiliateRules";
 
 const COLOR_OPTIONS = [
   { label: "Azul", hex: "#2563eb" },
@@ -179,6 +183,7 @@ export default function ClientDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
+            <NotificationBell />
             <Link
               href={`/${tenant.slug}`}
               target="_blank"
@@ -222,6 +227,24 @@ export default function ClientDashboardPage() {
 
             {/* 2. Atalhos: contratos, orçamentos, links (+ quem chamar hoje) */}
             <OwnerTools key={tenant.id} tenant={tenant} />
+
+            {/* Indique e ganhe */}
+            <Link
+              href="/dashboard/indicacoes"
+              className="group relative isolate flex items-center gap-4 overflow-hidden rounded-3xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-[#0f172a] to-[#0f172a] p-5 transition hover:border-emerald-400/50 sm:p-6"
+            >
+              <div className="absolute -left-8 -top-8 -z-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-3xl" />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/20 text-emerald-300">
+                <Gift className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-lg font-extrabold">Indique e ganhe {DEFAULT_RATE}%</span>
+                <span className="block text-sm text-slate-300">
+                  Cada colega que assinar pelo seu link rende comissão, paga por Pix.
+                </span>
+              </span>
+              <ArrowRight className="h-5 w-5 shrink-0 text-emerald-300 transition group-hover:translate-x-1" />
+            </Link>
 
             {/* 3. Meu site, em um cartão curto */}
             <div className="rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
@@ -343,7 +366,7 @@ export default function ClientDashboardPage() {
                   <p className="text-[11px] text-slate-400">IDs inválidos são ignorados.</p>
                 </>
               ) : (
-                <p className="text-xs text-slate-400">Disponível com as ferramentas (R$ 37/mês).</p>
+                <p className="text-xs text-slate-400">Disponível com as ferramentas (a partir de R$ 37/mês).</p>
               )}
             </div>
 

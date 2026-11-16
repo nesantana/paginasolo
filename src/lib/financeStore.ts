@@ -245,13 +245,16 @@ export async function getContractByCode(code: string): Promise<ContractWithPayme
   return { ...c, payments: pays.get(c.id) || [] };
 }
 
-export async function markContractViewed(c: ContractRow): Promise<void> {
-  if (c.viewed_at) return;
-  await db()
+/** true só na primeira abertura (para avisar o dono uma única vez). */
+export async function markContractViewed(c: ContractRow): Promise<boolean> {
+  if (c.viewed_at) return false;
+  const { data } = await db()
     .from("contracts")
     .update({ viewed_at: new Date().toISOString() })
     .eq("id", c.id)
-    .is("viewed_at", null);
+    .is("viewed_at", null)
+    .select("id");
+  return (data?.length || 0) > 0;
 }
 
 const ipHash = (ip: string) => createHash("sha256").update(`ps-sign:${ip}`).digest("hex").slice(0, 24);

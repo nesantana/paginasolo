@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getContractByCode, informPayment } from "@/lib/financeStore";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { notifyAfter } from "@/lib/notify";
+import { formatBRL } from "@/lib/quoteUi";
 
 type Ctx = { params: Promise<{ code: string }> };
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,6 +27,14 @@ export async function POST(request: Request, { params }: Ctx) {
       return NextResponse.json({ ok: false, error: "Contrato não encontrado." }, { status: 404 });
     }
     const saved = await informPayment(c.id, pid);
+    if (saved) {
+      notifyAfter(c.tenant_id, {
+        kind: "payment_informed",
+        title: `${c.customer_name} avisou que pagou ${formatBRL(saved.amount_cents)}`,
+        body: "Confira no seu banco e confirme o recebimento.",
+        url: "/dashboard/financeiro",
+      });
+    }
     return NextResponse.json({ ok: Boolean(saved) }, { status: saved ? 200 : 409 });
   } catch (e) {
     console.error("contrato paguei:", e);

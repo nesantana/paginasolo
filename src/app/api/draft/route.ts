@@ -7,6 +7,7 @@ import { createDraftTenant } from "@/lib/tenantStore";
 import { EDIT_COOKIE, editCookieOptions, newEditToken } from "@/lib/editAuth";
 import { HINT_COOKIE, OWNER_HINT_MAX_AGE, hintCookieOptions, mergeHint } from "@/lib/sessionHint";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { claimReferral, REF_COOKIE } from "@/lib/affiliateStore";
 
 /** Recebe as respostas do chat, gera o texto, cria o rascunho (preview) e o acesso por token. */
 export async function POST(request: Request) {
@@ -57,8 +58,11 @@ export async function POST(request: Request) {
     token
   );
 
-  (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);
   const jar = await cookies();
+  jar.set(EDIT_COOKIE, token, editCookieOptions);
+  // veio por um link de indicação (?ref=): liga este site a quem indicou
+  const refCode = jar.get(REF_COOKIE)?.value;
+  if (refCode) await claimReferral(refCode, tenant.id, tenant.payer_email);
   jar.set(HINT_COOKIE, mergeHint(jar.get(HINT_COOKIE)?.value, "o"), hintCookieOptions(OWNER_HINT_MAX_AGE));
   try {
     revalidatePath(`/${tenant.slug}`);

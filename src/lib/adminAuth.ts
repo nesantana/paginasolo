@@ -9,7 +9,7 @@ import { normalizeBaseUrl } from "@/lib/siteUrl";
  * A chave de assinatura é derivada da SUPABASE_SERVICE_ROLE_KEY: sem ela o admin fica desligado.
  */
 export const ADMIN_COOKIE = "ps_admin";
-const SESSION_MS = 12 * 60 * 60 * 1000;
+const SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 
 export function adminEmails(): string[] {
   return (process.env.ADMIN_EMAILS || "")

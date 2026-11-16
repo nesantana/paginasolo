@@ -117,15 +117,18 @@ export async function getQuoteByCode(code: string): Promise<QuoteRow | null> {
 }
 
 /** Primeira abertura: marca como visto e, se ainda não decidido, vira "viewed". */
-export async function markQuoteViewed(q: QuoteRow): Promise<void> {
-  if (q.viewed_at) return;
+/** true só na primeira abertura (para avisar o dono uma única vez). */
+export async function markQuoteViewed(q: QuoteRow): Promise<boolean> {
+  if (q.viewed_at) return false;
   const status: QuoteStatus =
     q.status === "draft" || q.status === "sent" ? "viewed" : q.status;
-  await db()
+  const { data } = await db()
     .from("quotes")
     .update({ viewed_at: new Date().toISOString(), status })
     .eq("id", q.id)
-    .is("viewed_at", null);
+    .is("viewed_at", null)
+    .select("id");
+  return (data?.length || 0) > 0;
 }
 
 /** O cliente aceitou: encerra o follow-up desse orçamento. */

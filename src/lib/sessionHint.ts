@@ -22,4 +22,4 @@ export function mergeHint(current: string | undefined, adding: "o" | "a"): "o" |
   if ((current === "a" && adding === "o") || (current === "o" && adding === "a")) return "b";
   return adding;
 }
-export const ADMIN_HINT_MAX_AGE = 12 * 60 * 60;
+export const ADMIN_HINT_MAX_AGE = 30 * 24 * 60 * 60;

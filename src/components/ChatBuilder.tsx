@@ -417,11 +417,11 @@ export function ChatBuilder() {
 
             <div className="bg-[#0f172a] border border-white/10 rounded-2xl p-5 space-y-3">
               <p className="text-sm text-slate-200">
-                Seu site está pronto e já está no ar, de graça. Para mandar orçamento, fazer contrato com Pix e organizar a agenda, libere as ferramentas por{" "}
-                <strong className="text-white">R$ 37/mês</strong>, sem fidelidade.
+                Seu site está pronto e já está no ar, de graça. Para mandar orçamento, fazer contrato com Pix e organizar a agenda, libere as ferramentas a partir de{" "}
+                <strong className="text-white">R$ 37/mês</strong> no Pix, ou R$ 197/ano no cartão em até 12x.
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <PublishButton label="Liberar ferramentas — R$ 37/mês" />
+                <PublishButton label="Liberar ferramentas" />
                 <a
                   href={`/${result.slug}`}
                   target="_blank"

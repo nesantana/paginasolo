@@ -1,0 +1,16 @@
+import type { MetadataRoute } from "next";
+
+/** Permite instalar o painel na tela inicial (necessário para notificações no iPhone). */
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "autonomIA",
+    short_name: "autonomIA",
+    description: "Agenda, orçamentos, contratos e Pix para autônomos.",
+    start_url: "/dashboard",
+    scope: "/",
+    display: "standalone",
+    background_color: "#0a0e17",
+    theme_color: "#0a0e17",
+    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
+  };
+}

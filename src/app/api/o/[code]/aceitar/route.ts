@@ -3,6 +3,8 @@ import { acceptQuote, getQuoteByCode } from "@/lib/quoteStore";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { getTenantById } from "@/lib/tenantStore";
 import { contractFromAcceptedQuote } from "@/lib/flow";
+import { notifyAfter } from "@/lib/notify";
+import { formatBRL } from "@/lib/quoteUi";
 
 type Ctx = { params: Promise<{ code: string }> };
 
@@ -19,11 +21,22 @@ export async function POST(request: Request, { params }: Ctx) {
       return NextResponse.json({ ok: false, error: "Este orçamento foi encerrado." }, { status: 409 });
     }
     // Integração: orçamento aceito já vira um contrato (rascunho) para o dono revisar e enviar.
+    let contractReady = false;
     try {
       const tenant = await getTenantById(saved.tenant_id);
-      if (tenant) await contractFromAcceptedQuote(saved, tenant);
+      if (tenant) contractReady = Boolean(await contractFromAcceptedQuote(saved, tenant));
     } catch (e) {
       console.error("contrato a partir do orçamento:", e);
+    }
+    if (q.status !== "accepted") {
+      notifyAfter(saved.tenant_id, {
+        kind: "quote_accepted",
+        title: `${saved.customer_name} aceitou o orçamento${saved.total_cents > 0 ? ` de ${formatBRL(saved.total_cents)}` : ""}!`,
+        body: contractReady
+          ? "O contrato já está pronto. Revise e envie para ele assinar."
+          : "Fale com ele para combinar os próximos passos.",
+        url: contractReady ? "/dashboard/financeiro" : "/dashboard/orcamentos",
+      });
     }
     return NextResponse.json({ ok: true });
   } catch (e) {

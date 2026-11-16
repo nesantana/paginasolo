@@ -1,9 +1,9 @@
 import "server-only";
 import { normalizeBaseUrl } from "@/lib/siteUrl";
+import { ANNUAL_MAX_INSTALLMENTS, PLAN_PRICES } from "@/lib/plans";
 
 const MP_API = "https://api.mercadopago.com";
 
-export const PLAN_PRICE_BRL = Number(process.env.PLAN_PRICE_BRL || 37);
 
 export const appUrl = () =>
   normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL, "http://localhost:3004");
@@ -49,32 +49,59 @@ export type Preapproval = {
   init_point?: string;
 };
 
-/** Cria a assinatura mensal e devolve o link de checkout (init_point). */
-export async function createSubscription(input: {
+/**
+ * Plano anual: pagamento único no cartão, em até 12x (Checkout Pro).
+ * Pix/boleto ficam de fora: o Pix é do plano mensal (Asaas).
+ * external_reference = "<tenantId>|annual": o webhook usa para achar o dono.
+ */
+export async function createAnnualCheckout(input: {
   tenantId: string;
   slug: string;
   businessName: string;
   payerEmail: string;
-}): Promise<Preapproval> {
-  return mp<Preapproval>("/preapproval", {
+}): Promise<{ id: string; init_point: string }> {
+  return mp<{ id: string; init_point: string }>("/checkout/preferences", {
     method: "POST",
     body: JSON.stringify({
-      reason: `autonomIA — assinatura de ${input.businessName}`.slice(0, 120),
-      external_reference: input.tenantId,
-      payer_email: input.payerEmail,
-      back_url: `${publicUrl()}/pagamento/retorno?s=${encodeURIComponent(input.slug)}`,
+      items: [
+        {
+          id: "autonomia-anual",
+          title: "autonomIA — plano anual",
+          description: `Plano anual de ${input.businessName}`.slice(0, 200),
+          quantity: 1,
+          currency_id: "BRL",
+          unit_price: PLAN_PRICES.annual,
+        },
+      ],
+      payer: { email: input.payerEmail },
+      external_reference: `${input.tenantId}|annual`,
+      back_urls: {
+        success: `${publicUrl()}/pagamento/retorno?s=${encodeURIComponent(input.slug)}`,
+        pending: `${publicUrl()}/pagamento/retorno?s=${encodeURIComponent(input.slug)}`,
+        failure: `${publicUrl()}/dashboard`,
+      },
+      auto_return: "approved",
       notification_url: `${publicUrl()}/api/webhooks/mercadopago`,
-      status: "pending",
-      auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
-        transaction_amount: PLAN_PRICE_BRL,
-        currency_id: "BRL",
+      payment_methods: {
+        excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
+        installments: ANNUAL_MAX_INSTALLMENTS,
       },
     }),
   });
 }
 
-/** Fonte da verdade: nunca confiamos no corpo do webhook, só no id. */
+export type MpPayment = {
+  id: number;
+  status: string;
+  currency_id?: string;
+  transaction_amount: number;
+  external_reference?: string;
+};
+
+/** Fonte da verdade do pagamento: nunca confiamos no corpo do webhook, só no id. */
+export const getPayment = (id: string) =>
+  mp<MpPayment>(`/v1/payments/${encodeURIComponent(id)}`);
+
+/** Assinaturas antigas (preapproval, plano mensal anterior ao Asaas) continuam sendo honradas. */
 export const getSubscription = (id: string) =>
   mp<Preapproval>(`/preapproval/${encodeURIComponent(id)}`);

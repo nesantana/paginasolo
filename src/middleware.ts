@@ -9,7 +9,7 @@ const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "appautonomia.ia.br";
  * 2) `[slug].dominio.com` -> reescreve para `/[slug]`
  * 3) Domínio raiz (`dominio.com` ou `localhost:3004`) -> permite acesso direto a `/`, `/dashboard` e `/[slug]`
  */
-export async function middleware(request: NextRequest) {
+async function handle(request: NextRequest) {
   const url = request.nextUrl.clone();
   const { pathname } = url;
 
@@ -59,6 +59,22 @@ export async function middleware(request: NextRequest) {
 
   const defaultRes = NextResponse.next();
   return updateSupabaseSession(request, defaultRes);
+}
+
+/** Link de indicação (?ref=codigo): guarda o código por 30 dias para ligar o cadastro a quem indicou. */
+export async function middleware(request: NextRequest) {
+  const res = await handle(request);
+  const ref = request.nextUrl.searchParams.get("ref")?.trim().toLowerCase();
+  if (ref && /^[a-z0-9-]{3,30}$/.test(ref)) {
+    res.cookies.set("ps_ref", ref, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  }
+  return res;
 }
 
 export const config = {

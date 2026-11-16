@@ -34,7 +34,7 @@ function Tile({
           {title}
           {locked && <Lock className="h-3.5 w-3.5 text-slate-400" />}
         </span>
-        <span className="block text-sm text-slate-400">{locked ? "Libere por R$ 37/mês" : text}</span>
+        <span className="block text-sm text-slate-400">{locked ? "Libere a partir de R$ 37/mês" : text}</span>
       </span>
       <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#67e8f9]" />
     </Link>
@@ -81,7 +81,7 @@ function FollowupSection({ tenant, paid }: { tenant: TenantRow; paid: boolean })
             <p className="font-extrabold">Lembrete para chamar o cliente de volta</p>
             <p className="text-xs text-slate-300">No dia, o painel mostra quem chamar, com a mensagem pronta.</p>
             <PublishButton
-              label="Liberar por R$ 37/mês"
+              label="Liberar ferramentas"
               className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-5 py-2.5 text-xs font-extrabold text-white hover:brightness-110 disabled:opacity-60"
             />
           </div>

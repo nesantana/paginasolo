@@ -39,7 +39,7 @@ export function OwnerBar({ slug, paid }: { slug: string; paid: boolean }) {
       </Link>
       {!paid && (
         <PublishButton
-          label="Liberar ferramentas por R$ 37/mês"
+          label="Liberar ferramentas"
           className="rounded-full bg-slate-900 px-4 py-1 text-xs font-bold text-white disabled:opacity-60"
         />
       )}

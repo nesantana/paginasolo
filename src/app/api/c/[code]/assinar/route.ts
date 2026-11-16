@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getContractByCode, signContract } from "@/lib/financeStore";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { appointmentFromSignedContract } from "@/lib/flow";
+import { notifyAfter } from "@/lib/notify";
+import { formatBRL } from "@/lib/quoteUi";
 
 type Ctx = { params: Promise<{ code: string }> };
 
@@ -28,10 +30,24 @@ export async function POST(request: Request, { params }: Ctx) {
     const saved = await signContract(c, name, ip);
     if (!saved) return NextResponse.json({ ok: false, error: "Este contrato foi encerrado." }, { status: 409 });
     // Integração: contrato aceito com data de entrega já entra na agenda.
+    let scheduled = false;
     try {
-      await appointmentFromSignedContract(saved);
+      scheduled = Boolean(await appointmentFromSignedContract(saved));
     } catch (e) {
       console.error("agenda a partir do contrato:", e);
+    }
+    if (!c.signed_at) {
+      const open = c.payments.filter((p) => p.status === "pending");
+      const next = open[0];
+      notifyAfter(c.tenant_id, {
+        kind: "contract_signed",
+        title: `${saved.customer_name} assinou o contrato`,
+        body: [
+          scheduled ? "Entrou na sua agenda." : "",
+          next ? `Aguardando pagamento: ${next.label} de ${formatBRL(next.amount_cents)}.` : "",
+        ].filter(Boolean).join(" ") || "Tudo certo para começar.",
+        url: "/dashboard/financeiro",
+      });
     }
     return NextResponse.json({ ok: true });
   } catch (e) {

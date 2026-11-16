@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Crown, ExternalLink, Loader2, LogOut, Search, TrendingUp } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { AdminAffiliates } from "@/components/AdminAffiliates";
 
 type Row = {
   id: string;
@@ -19,9 +20,9 @@ type Row = {
 };
 type Summary = {
   total: number; paying: number; premium: number; drafts: number; inactive: number;
-  mrr: number; arr: number; conversion: number;
+  monthly: number; annual: number; mrr: number; arr: number; conversion: number;
 };
-type Data = { admin: string; hasSite: boolean; price: number; summary: Summary; tenants: Row[] };
+type Data = { admin: string; hasSite: boolean; summary: Summary; tenants: Row[] };
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const date = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
@@ -60,6 +61,7 @@ export default function AdminPage() {
   const [note, setNote] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const [tab, setTab] = useState<"sites" | "afiliados">("sites");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/tenants", { cache: "no-store" });
@@ -110,7 +112,7 @@ export default function AdminPage() {
 
   const s = data.summary;
   const cards = [
-    { label: "Faturamento mensal estimado", value: brl(s.mrr), sub: `${s.paying} × ${brl(data.price)} • ${brl(s.arr)}/ano`, hl: true },
+    { label: "Faturamento mensal estimado", value: brl(s.mrr), sub: `${s.monthly} mensais + ${s.annual} anuais • ${brl(s.arr)}/ano`, hl: true },
     { label: "Pagantes ativos", value: String(s.paying), sub: `conversão ${s.conversion}%` },
     { label: "Premium (cortesia)", value: String(s.premium), sub: "não entram no faturamento" },
     { label: "Sites grátis", value: String(s.drafts), sub: "oportunidade de upgrade" },
@@ -148,7 +150,21 @@ export default function AdminPage() {
       <main className="mx-auto max-w-6xl space-y-6 px-4 pt-6">
         {toast && <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-3 text-sm font-bold text-emerald-200">{toast}</div>}
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <nav className="flex gap-1.5" aria-label="Seções">
+          {([["sites", "Sites"], ["afiliados", "Afiliados"]] as const).map(([k, l]) => (
+            <button
+              key={k}
+              onClick={() => setTab(k)}
+              className={`rounded-full px-4 py-2 text-sm font-bold ${tab === k ? "bg-[#3b82f6] text-white" : "border border-white/10 text-slate-300 hover:bg-white/10"}`}
+            >
+              {l}
+            </button>
+          ))}
+        </nav>
+
+        {tab === "afiliados" && <AdminAffiliates onToast={(m) => { setToast(m); setTimeout(() => setToast(""), 3500); }} />}
+
+        <section className={`grid grid-cols-2 gap-3 lg:grid-cols-5 ${tab === "sites" ? "" : "hidden"}`}>
           {cards.map((c) => (
             <div
               key={c.label}
@@ -162,11 +178,11 @@ export default function AdminPage() {
             </div>
           ))}
         </section>
-        <p className="text-xs text-slate-400">
-          Faturamento bruto estimado (pagantes × preço do plano), antes das taxas do Mercado Pago. Cortesias não contam.
+        <p className={`text-xs text-slate-400 ${tab === "sites" ? "" : "hidden"}`}>
+          Faturamento bruto estimado (mensais + anuais ÷ 12), antes das taxas do Asaas e do Mercado Pago. Cortesias não contam.
         </p>
 
-        <section className="space-y-3">
+        <section className={`space-y-3 ${tab === "sites" ? "" : "hidden"}`}>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

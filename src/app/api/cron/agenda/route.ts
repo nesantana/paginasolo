@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { listTenantsForDigest } from "@/lib/tenantStore";
 import { sendDigestFor } from "@/lib/digest";
+import { notifyDailyFor } from "@/lib/notifyDaily";
 import { requestOrigin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,11 @@ export async function GET(request: Request) {
       key = "error";
     }
     counts[key] = (counts[key] || 0) + 1;
+    try {
+      counts.notificacoes = (counts.notificacoes || 0) + (await notifyDailyFor(t));
+    } catch (e) {
+      console.error("cron notificações:", t.id, e);
+    }
   }
   return NextResponse.json({ ok: true, tenants: tenants.length, ...counts });
 }

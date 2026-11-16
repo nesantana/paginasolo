@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getContractByCode, markContractViewed } from "@/lib/financeStore";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { notifyAfter } from "@/lib/notify";
 
 type Ctx = { params: Promise<{ code: string }> };
 
@@ -12,7 +13,14 @@ export async function POST(request: Request, { params }: Ctx) {
   }
   try {
     const c = await getContractByCode(code);
-    if (c) await markContractViewed(c);
+    if (c && c.status !== "draft" && (await markContractViewed(c))) {
+      notifyAfter(c.tenant_id, {
+        kind: "contract_viewed",
+        title: `${c.customer_name} abriu o contrato`,
+        body: "Ainda falta ele assinar.",
+        url: "/dashboard/financeiro",
+      });
+    }
   } catch (e) {
     console.error("contrato visto:", e);
   }

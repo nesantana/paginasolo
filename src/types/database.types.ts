@@ -87,6 +87,11 @@ export type Database = {
           edit_token_hash: string | null;
           payer_email: string | null;
           mp_preapproval_id: string | null;
+          plan: string | null;
+          plan_expires_at: string | null;
+          asaas_customer_id: string | null;
+          asaas_subscription_id: string | null;
+          last_payment_ref: string | null;
           meta_pixel_id: string | null;
           google_tag_id: string | null;
           published_at: string | null;
@@ -126,6 +131,11 @@ export type Database = {
           edit_token_hash?: string | null;
           payer_email?: string | null;
           mp_preapproval_id?: string | null;
+          plan?: string | null;
+          plan_expires_at?: string | null;
+          asaas_customer_id?: string | null;
+          asaas_subscription_id?: string | null;
+          last_payment_ref?: string | null;
           meta_pixel_id?: string | null;
           google_tag_id?: string | null;
           published_at?: string | null;
@@ -165,6 +175,11 @@ export type Database = {
           edit_token_hash?: string | null;
           payer_email?: string | null;
           mp_preapproval_id?: string | null;
+          plan?: string | null;
+          plan_expires_at?: string | null;
+          asaas_customer_id?: string | null;
+          asaas_subscription_id?: string | null;
+          last_payment_ref?: string | null;
           meta_pixel_id?: string | null;
           google_tag_id?: string | null;
           published_at?: string | null;

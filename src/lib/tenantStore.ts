@@ -9,11 +9,12 @@ import type {
   TenantLink,
 } from "@/types/database.types";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
-import { hashToken } from "@/lib/editAuth";
+import { hashToken, newEditToken } from "@/lib/editAuth";
 import { slugCandidates } from "@/lib/slug";
 import type { TenantInput, TenantExtras } from "@/lib/validate";
 import { defaultFaq } from "@/lib/faqDefaults";
 import { suggestTheme, type ThemeId } from "@/lib/themes";
+import { addMonths, MONTHLY_GRACE_DAYS, PLAN_MONTHS, type PlanId } from "@/lib/plans";
 
 /**
  * Camada de dados do autonomIA.
@@ -54,6 +55,9 @@ export function toPublicTenant(t: TenantRow): TenantRow {
     edit_token_hash: null,
     payer_email: null,
     mp_preapproval_id: null,
+    asaas_customer_id: null,
+    asaas_subscription_id: null,
+    last_payment_ref: null,
   };
 }
 
@@ -76,6 +80,7 @@ const nowIso = () => new Date().toISOString();
 const baseRow = (): Pick<
   TenantRow,
   | "owner_id" | "custom_domain" | "edit_token_hash" | "payer_email"
+  | "plan" | "plan_expires_at" | "asaas_customer_id" | "asaas_subscription_id" | "last_payment_ref"
   | "mp_preapproval_id" | "meta_pixel_id" | "google_tag_id" | "images"
   | "complimentary" | "comp_note"
   | "faq" | "testimonials" | "offer_text" | "google_reviews_url" | "links" | "theme" | "pix_key" | "pix_key_type" | "owner_doc"
@@ -87,6 +92,11 @@ const baseRow = (): Pick<
   edit_token_hash: null,
   payer_email: null,
   mp_preapproval_id: null,
+  plan: null,
+  plan_expires_at: null,
+  asaas_customer_id: null,
+  asaas_subscription_id: null,
+  last_payment_ref: null,
   meta_pixel_id: null,
   google_tag_id: null,
   images: [],
@@ -215,6 +225,23 @@ type Lookup =
   | { by: "token"; value: string }
   | { by: "preapproval"; value: string };
 
+/**
+ * Acesso vencido (anual de 12 meses, ou mensal sem pagamento novo) volta para a prévia grátis.
+ * Roda ao ler o site, então não depende de cron nem de o webhook avisar. Cortesia e
+ * assinaturas antigas do Mercado Pago (sem plan_expires_at) não expiram por aqui.
+ */
+async function expireIfNeeded(t: TenantRow): Promise<TenantRow> {
+  if (
+    t.subscription_status === "active" &&
+    !t.complimentary &&
+    t.plan_expires_at &&
+    new Date(t.plan_expires_at).getTime() < Date.now()
+  ) {
+    return (await patchTenant(t.id, { subscription_status: "past_due" })) || t;
+  }
+  return t;
+}
+
 async function findTenant(q: Lookup): Promise<TenantRow | null> {
   if (isAdminConfigured()) {
     const col = {
@@ -230,21 +257,75 @@ async function findTenant(q: Lookup): Promise<TenantRow | null> {
       .eq(col, value)
       .maybeSingle();
     if (error) throw new Error(`Supabase: ${error.message}`);
-    if (data) return data as unknown as TenantRow;
+    if (data) return expireIfNeeded(data as unknown as TenantRow);
+    if (q.by === "token") {
+      // aparelhos que entraram pelo link de e-mail têm sessão própria (tenant_sessions)
+      const tenantId = await sessionTenantId(hashToken(q.value));
+      if (tenantId) return findTenant({ by: "id", value: tenantId });
+    }
     if (q.by === "slug" && q.value === DEMO_SLUG) return DEMO_TENANT;
     return null;
   }
 
   const store = await readLocalStore();
-  return (
+  const found =
     store.tenants.find((t) => {
       if (q.by === "slug") return t.slug === q.value;
       if (q.by === "id") return t.id === q.value;
       if (q.by === "token")
         return t.edit_token_hash === hashToken(q.value);
       return t.mp_preapproval_id === q.value;
-    }) || null
-  );
+    }) || null;
+  return found ? expireIfNeeded(found) : null;
+}
+
+/** Sessão longa: um aparelho a mais não derruba os outros. */
+const SESSION_DAYS = 365;
+
+async function sessionTenantId(tokenHash: string): Promise<string | null> {
+  const { data } = await getAdminClient()
+    .from("tenant_sessions" as never)
+    .select("tenant_id, expires_at")
+    .eq("token_hash", tokenHash)
+    .maybeSingle();
+  const row = data as { tenant_id: string; expires_at: string } | null;
+  if (!row || new Date(row.expires_at).getTime() < Date.now()) return null;
+  return row.tenant_id;
+}
+
+/**
+ * Novo acesso para este aparelho (login por e-mail). Com banco, cria uma sessão sem tocar nas
+ * dos outros aparelhos; sem banco (dev local) mantém o token único antigo.
+ */
+export async function createSession(id: string): Promise<string> {
+  const token = newEditToken();
+  if (!isAdminConfigured()) {
+    await rotateEditToken(id, token);
+    return token;
+  }
+  const db = getAdminClient();
+  const { error } = await db.from("tenant_sessions" as never).insert({
+    tenant_id: id,
+    token_hash: hashToken(token),
+    expires_at: new Date(Date.now() + SESSION_DAYS * 86400000).toISOString(),
+  } as never);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  // limpeza oportunista de sessões vencidas deste site
+  await db
+    .from("tenant_sessions" as never)
+    .delete()
+    .eq("tenant_id", id)
+    .lt("expires_at", new Date().toISOString());
+  return token;
+}
+
+/** Sair neste aparelho: apaga só a sessão dele. */
+export async function deleteSession(token: string): Promise<void> {
+  if (!isAdminConfigured()) return;
+  await getAdminClient()
+    .from("tenant_sessions" as never)
+    .delete()
+    .eq("token_hash", hashToken(token));
 }
 
 async function slugExists(slug: string): Promise<boolean> {
@@ -505,6 +586,61 @@ export async function applySubscriptionStatus(
   return current; // "pending" etc.: nada muda
 }
 
+export async function setAsaasSubscription(
+  id: string,
+  customerId: string,
+  subscriptionId: string
+) {
+  return patchTenant(id, {
+    asaas_customer_id: customerId,
+    asaas_subscription_id: subscriptionId,
+  });
+}
+
+/**
+ * Pagamento confirmado (Asaas mensal ou Mercado Pago anual): libera o plano.
+ * paymentRef evita aplicar duas vezes a mesma notificação (os webhooks repetem).
+ * Anual renovado antes de vencer soma os 12 meses ao que restava.
+ */
+export async function activatePlan(
+  id: string,
+  plan: PlanId,
+  paymentRef: string
+): Promise<{ tenant: TenantRow; applied: boolean } | null> {
+  const current = await findTenant({ by: "id", value: id });
+  if (!current) return null;
+  if (current.last_payment_ref === paymentRef) return { tenant: current, applied: false };
+
+  const now = new Date();
+  const stillValid =
+    current.subscription_status === "active" &&
+    current.plan_expires_at &&
+    new Date(current.plan_expires_at) > now;
+  const base =
+    plan === "annual" && stillValid ? new Date(current.plan_expires_at as string) : now;
+  const expires = addMonths(base, PLAN_MONTHS[plan]);
+  if (plan === "monthly") expires.setDate(expires.getDate() + MONTHLY_GRACE_DAYS);
+
+  const tenant = await patchTenant(id, {
+    plan,
+    plan_expires_at: expires.toISOString(),
+    last_payment_ref: paymentRef,
+    subscription_status: "active",
+    published_at: current.published_at || now.toISOString(),
+  });
+  return tenant ? { tenant, applied: true } : null;
+}
+
+/** Estorno/chargeback: o acesso cai na hora (cortesia do admin não é afetada). */
+export async function revokePlan(id: string): Promise<TenantRow | null> {
+  const current = await findTenant({ by: "id", value: id });
+  if (!current || current.complimentary) return current;
+  return patchTenant(id, {
+    subscription_status: "past_due",
+    plan_expires_at: nowIso(),
+  });
+}
+
 export async function recordAnalyticsEvent(input: {
   tenantId: string;
   eventType: AnalyticsEventType;
@@ -604,7 +740,7 @@ export async function listAllTenantsForAdmin(): Promise<TenantRow[]> {
     const { data, error } = await getAdminClient()
       .from("tenants")
       .select(
-        "id, slug, business_name, category, city, payer_email, whatsapp_number, subscription_status, complimentary, comp_note, mp_preapproval_id, published_at, created_at, updated_at, is_active"
+        "id, slug, business_name, category, city, payer_email, whatsapp_number, subscription_status, complimentary, comp_note, mp_preapproval_id, plan, plan_expires_at, published_at, created_at, updated_at, is_active"
       )
       .order("created_at", { ascending: false })
       .limit(5000);

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { readAdmin } from "@/lib/adminAuth";
 import { getTenantByToken, listAllTenantsForAdmin } from "@/lib/tenantStore";
 import { readEditToken } from "@/lib/editAuth";
-import { PLAN_PRICE_BRL } from "@/lib/mercadopago";
+import { PLAN_PRICES, monthlyValue } from "@/lib/plans";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -19,21 +19,28 @@ export async function GET() {
   const drafts = tenants.filter((t) => t.subscription_status === "draft").length;
   const inactive = tenants.filter((t) => ["past_due", "cancelled"].includes(t.subscription_status)).length;
   const nonComp = paying + drafts + inactive;
+  const payingRows = tenants.filter((t) => t.subscription_status === "active" && !t.complimentary);
+  const annual = payingRows.filter((t) => t.plan === "annual").length;
+  // assinaturas antigas (sem plano gravado) eram mensais
+  const monthly = paying - annual;
+  const mrr = Math.round(payingRows.reduce((s, t) => s + monthlyValue(t.plan), 0) * 100) / 100;
 
   return NextResponse.json(
     {
       ok: true,
       admin,
       hasSite,
-      price: PLAN_PRICE_BRL,
+      prices: PLAN_PRICES,
       summary: {
         total: tenants.length,
         paying,
         premium,
         drafts,
         inactive,
-        mrr: paying * PLAN_PRICE_BRL,
-        arr: paying * PLAN_PRICE_BRL * 12,
+        monthly,
+        annual,
+        mrr,
+        arr: Math.round(mrr * 12 * 100) / 100,
         // Quantos dos sites criados (fora cortesias) chegaram a pagar.
         conversion: nonComp > 0 ? Math.round((paying / nonComp) * 1000) / 10 : 0,
       },

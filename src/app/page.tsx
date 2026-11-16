@@ -10,7 +10,9 @@ import {
   CalendarDays,
   Check,
   Clock,
+  CreditCard,
   FileText,
+  Gift,
   Globe,
   Hammer,
   Link2,
@@ -27,6 +29,16 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
+
+import { DEFAULT_RATE } from "@/lib/affiliateRules";
+import {
+  ANNUAL_MAX_INSTALLMENTS,
+  ANNUAL_PER_MONTH,
+  ANNUAL_SAVINGS_PERCENT,
+  PLAN_PRICES,
+  brl,
+  brlShort,
+} from "@/lib/plans";
 
 export const revalidate = 300;
 
@@ -207,7 +219,7 @@ export default async function Home() {
               className="animate-fade-up mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-400 lg:justify-start"
               style={{ animationDelay: "480ms" }}
             >
-              {["Comece em 10 minutos", "Site grátis", "R$ 37/mês com a assistente"].map((t) => (
+              {["Comece em 10 minutos", "Site grátis", `A partir de ${brlShort(PLAN_PRICES.monthly)}/mês`].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-emerald-400" />
                   {t}
@@ -454,7 +466,7 @@ export default async function Home() {
             Menos papelada, mais <span className="text-gradient">tempo de trabalho</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-300">
-            Tudo incluso nos R$ 37/mês. Funciona direto do celular, sem curso e sem complicação.
+            Tudo incluso em qualquer plano. Funciona direto do celular, sem curso e sem complicação.
           </p>
         </Reveal>
 
@@ -478,40 +490,81 @@ export default async function Home() {
       </section>
 
       {/* ===== PREÇO ===== */}
-      <section className="mx-auto max-w-5xl px-5 pb-24">
+      <section id="planos" className="mx-auto max-w-5xl px-5 pb-24">
+        <Reveal className="text-center">
+          <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Planos</p>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Escolha como <span className="text-gradient">pagar</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-slate-300">
+            As mesmas ferramentas nos dois planos. Seu site continua grátis, com ou sem plano.
+          </p>
+        </Reveal>
+
         <Reveal>
-          <div className="relative overflow-hidden rounded-[2rem] p-px">
-            <div className="animate-spin-slow absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_70%,#3b82f6_85%,#8b5cf6_100%)]" />
-            <div className="relative grid items-center gap-8 rounded-[calc(2rem-1px)] bg-[#0f172a] p-8 sm:p-12 md:grid-cols-2">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Plano único</p>
-                <p className="mt-3 text-7xl font-extrabold tracking-tight">
-                  R$ 37
-                  <span className="text-2xl font-semibold text-slate-400">/mês</span>
+          <ul className="mx-auto mt-10 grid max-w-3xl gap-x-8 gap-y-3 sm:grid-cols-2">
+            {[
+              "autonomIA, a assistente: orçamento, contrato e agenda por mensagem",
+              "Visita técnica: anote no cliente e vire orçamento",
+              "Agenda com aviso por e-mail",
+              "Contratos aceitos pelo celular",
+              "Pix com QR Code e controle de pagamentos",
+              "Orçamentos e lembrete para chamar de volta",
+              "Seu site profissional no Google",
+              "Página de links e cartaz com QR",
+            ].map((f) => (
+              <li key={f} className="flex items-center gap-3 text-sm text-slate-200 sm:text-base">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                </span>
+                {f}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
+        <div className="mx-auto mt-12 grid max-w-3xl items-stretch gap-5 md:grid-cols-2">
+          <Reveal>
+            <div className="glass flex h-full flex-col rounded-[2rem] p-8">
+              <p className="text-sm font-bold uppercase tracking-wider text-slate-400">Mensal</p>
+              <p className="mt-3 text-6xl font-extrabold tracking-tight">
+                {brlShort(PLAN_PRICES.monthly)}
+                <span className="text-xl font-semibold text-slate-400">/mês</span>
+              </p>
+              <p className="mt-3 flex items-center gap-2 text-slate-300">
+                <QrCode className="h-5 w-5 text-[#67e8f9]" /> Pix todo mês
+              </p>
+              <p className="mt-2 flex-1 text-sm text-slate-400">
+                Menos que uma pizza. Se paga no primeiro serviço que você não esquecer de cobrar.
+              </p>
+              <Link
+                href="/criar"
+                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-8 py-4 font-extrabold transition hover:bg-white/10"
+              >
+                Começar agora
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <div className="relative h-full overflow-hidden rounded-[2rem] p-px">
+              <div className="animate-spin-slow absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_70%,#3b82f6_85%,#8b5cf6_100%)]" />
+              <div className="relative flex h-full flex-col rounded-[calc(2rem-1px)] bg-[#0f172a] p-8">
+                <span className="btn-shine absolute right-5 top-5 rounded-full px-3 py-1 text-[11px] font-extrabold">
+                  Economize {ANNUAL_SAVINGS_PERCENT}%
+                </span>
+                <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Anual</p>
+                <p className="mt-3 text-6xl font-extrabold tracking-tight">
+                  {brlShort(PLAN_PRICES.annual)}
+                  <span className="text-xl font-semibold text-slate-400">/ano</span>
                 </p>
-                <p className="mt-3 text-slate-300">Menos que uma pizza. Se paga no primeiro serviço que você não esquecer de cobrar.</p>
-              </div>
-              <div>
-                <ul className="space-y-3">
-                  {[
-                    "autonomIA, a assistente: orçamento, contrato e agenda por mensagem",
-                    "Visita técnica: anote no cliente e vire orçamento",
-                    "Agenda com aviso por e-mail",
-                    "Contratos aceitos pelo celular",
-                    "Pix com QR Code e controle de pagamentos",
-                    "Orçamentos e lembrete para chamar de volta",
-                    "Seu site profissional no Google",
-                    "Página de links e cartaz com QR",
-                    "Cancele quando quiser",
-                  ].map((f) => (
-                    <li key={f} className="flex items-center gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
-                        <Check className="h-4 w-4 text-emerald-400" />
-                      </span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-3 flex items-center gap-2 text-slate-200">
+                  <CreditCard className="h-5 w-5 text-[#67e8f9]" /> Em até {ANNUAL_MAX_INSTALLMENTS}x no cartão
+                </p>
+                <p className="mt-2 flex-1 text-sm text-slate-300">
+                  Equivale a <strong className="text-white">{brl(ANNUAL_PER_MONTH)}/mês</strong>: o melhor preço para quem já
+                  sabe que vai usar.
+                </p>
                 <Link
                   href="/criar"
                   className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#3b82f6]/30 transition hover:scale-[1.02]"
@@ -519,9 +572,47 @@ export default async function Home() {
                   Começar agora
                   <Rocket className="h-5 w-5" />
                 </Link>
-                <p className="mt-3 text-center text-xs text-slate-400">
-                  Travou em algum passo? Chame a gente no WhatsApp.
+              </div>
+            </div>
+          </Reveal>
+        </div>
+        <p className="mt-6 text-center text-xs text-slate-400">
+          Travou em algum passo? Chame a gente no WhatsApp.
+        </p>
+      </section>
+
+      {/* ===== INDIQUE E GANHE ===== */}
+      <section className="mx-auto max-w-5xl px-5 pb-24">
+        <Reveal>
+          <div className="relative isolate overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-[#0f172a] to-[#3b82f6]/15 p-8 sm:p-12">
+            <div className="absolute -right-16 -top-16 -z-10 h-64 w-64 rounded-full bg-emerald-400/20 blur-[90px]" />
+            <div className="grid items-center gap-8 md:grid-cols-[1.3fr_1fr]">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-4 py-1.5 text-xs font-bold text-emerald-300">
+                  <Gift className="h-3.5 w-3.5" />
+                  Indique e ganhe
+                </span>
+                <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  Ganhe <span className="text-emerald-300">{DEFAULT_RATE}%</span> de cada colega que você indicar
+                </h2>
+                <p className="mt-3 text-slate-300">
+                  Todo site da autonomIA tem um link de indicação. Quando alguém assina por ele, você recebe {DEFAULT_RATE}% do
+                  primeiro pagamento, por Pix.
                 </p>
+              </div>
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-5 text-sm">
+                {[
+                  ["1", "Copie seu link no painel"],
+                  ["2", "Mande para um colega de profissão"],
+                  ["3", "Receba quando ele assinar"],
+                ].map(([n, t]) => (
+                  <div key={n} className="flex items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-xs font-extrabold text-zinc-950">
+                      {n}
+                    </span>
+                    <span className="font-semibold">{t}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
