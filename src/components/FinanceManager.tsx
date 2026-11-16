@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, BadgeCheck, Banknote, CalendarClock, Check, ExternalLink, FilePlus2, Link2,
-  Loader2, MessageCircle, Send, Trash2, Undo2, Wallet,
+  Loader2, MessageCircle, Pencil, Send, Trash2, Undo2, Wallet,
 } from "lucide-react";
 import type { QuoteRow, TenantRow } from "@/types/database.types";
 import type { ContractWithPayments, PaymentRow } from "@/types/finance";
@@ -35,6 +35,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [quoting, setQuoting] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<QuoteRow | null>(null);
   const [initialQuote, setInitialQuote] = useState("");
   const [filter, setFilter] = useState<"open" | "all">("open");
   const [toast, setToast] = useState("");
@@ -274,6 +275,17 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
             flash("Contrato pronto. Agora é só enviar para o cliente.");
           }}
         />
+      ) : editingQuote ? (
+        <QuoteForm
+          key={editingQuote.id}
+          editing={editingQuote}
+          business={tenant.business_name}
+          origin={origin}
+          services={tenant.services || []}
+          onCreated={(q) => { setAllQuotes((cur) => cur.map((x) => (x.id === q.id ? q : x))); flash("Orçamento corrigido. Avise o cliente pelo WhatsApp."); }}
+          onMarkSent={async () => {}}
+          onClose={() => setEditingQuote(null)}
+        />
       ) : quoting ? (
         <QuoteForm
           business={tenant.business_name}
@@ -323,6 +335,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
               onLost={() => quoteAction(j.q!, { status: "declined" })}
               onContract={() => startContractFor(j.q!.id)}
               onCopy={async () => { try { await navigator.clipboard.writeText(quoteUrl(origin, j.q!.code)); flash("Link copiado."); } catch { flash("Não consegui copiar."); } }}
+              onEdit={() => { setEditingQuote(j.q!); setQuoting(false); setCreating(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               onDelete={() => removeQuote(j.q!)}
             />
           );
@@ -434,7 +447,7 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
 
 /** Cliente que ainda está na fase de orçamento. */
 function QuoteJob({
-  q, onSend, onApprove, onLost, onContract, onCopy, onDelete,
+  q, onSend, onApprove, onLost, onContract, onCopy, onEdit, onDelete,
 }: {
   q: QuoteRow;
   onSend: () => void;
@@ -442,6 +455,7 @@ function QuoteJob({
   onLost: () => void;
   onContract: () => void;
   onCopy: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -504,6 +518,9 @@ function QuoteJob({
             </button>
             <button onClick={() => run(onLost)} disabled={busy} className={ghost}>Não fechou</button>
           </>
+        )}
+        {!accepted && !lost && (
+          <button onClick={onEdit} className={ghost}><Pencil className="h-3.5 w-3.5" /> Editar orçamento</button>
         )}
         <button onClick={onCopy} className={ghost}><Link2 className="h-3.5 w-3.5" /> Copiar link</button>
         <button onClick={onDelete} aria-label="Apagar" className={`${ghost} ml-auto !text-slate-400`}>

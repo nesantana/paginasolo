@@ -68,7 +68,8 @@ export async function createQuote(
 export type QuotePatch = Partial<
   Pick<
     QuoteRow,
-    "status" | "followup_at" | "followup_done_at" | "followup_note" | "sent_at"
+    | "status" | "followup_at" | "followup_done_at" | "followup_note" | "sent_at"
+    | "customer_name" | "customer_phone" | "items" | "notes" | "valid_until" | "total_cents"
   >
 >;
 

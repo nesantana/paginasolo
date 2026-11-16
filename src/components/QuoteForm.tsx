@@ -25,6 +25,8 @@ type Props = {
   onClose: () => void;
   /** Chamado quando a pessoa marca "o cliente já aprovou": o orçamento já nasce aceito. */
   onApproved?: (q: QuoteRow) => void;
+  /** Edição de um orçamento que já existe (mesmo link, novo conteúdo). */
+  editing?: QuoteRow;
 };
 
 const FOLLOWUPS = [
@@ -50,12 +52,14 @@ const chip = (on: boolean) =>
     on ? "btn-shine text-white" : "bg-white/10 text-slate-300 hover:bg-white/10"
   }`;
 
-export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose, onApproved }: Props) {
+export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose, onApproved, editing }: Props) {
   const [approved, setApproved] = useState(false);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [lines, setLines] = useState<Line[]>([]);
-  const [notes, setNotes] = useState("");
+  const [name, setName] = useState(editing?.customer_name || "");
+  const [phone, setPhone] = useState(editing ? editing.customer_phone.replace(/^55/, "") : "");
+  const [lines, setLines] = useState<Line[]>(
+    editing ? editing.items.map((i) => ({ title: i.title, qty: i.qty, price: centsToInput(i.price_cents) })) : []
+  );
+  const [notes, setNotes] = useState(editing?.notes || "");
   const [followDays, setFollowDays] = useState<number | null>(3);
   const [validDays, setValidDays] = useState<number | null>(15);
   const [busy, setBusy] = useState(false);
@@ -81,6 +85,29 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
     setBusy(true);
     setError("");
     try {
+      if (editing) {
+        const r = await fetch(`/api/orcamentos/${editing.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            edit: {
+              customer_name: name,
+              customer_phone: phone,
+              items,
+              notes,
+              valid_until: editing.valid_until,
+            },
+          }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok) {
+          setError(d.error || "Não foi possível salvar.");
+          return;
+        }
+        onCreated(d.quote as QuoteRow);
+        onClose();
+        return;
+      }
       const res = await fetch("/api/orcamentos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -185,7 +212,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
       className="space-y-5 rounded-3xl border border-white/10 bg-[#0f172a] p-5 sm:p-6"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold">Novo orçamento</h2>
+        <h2 className="text-lg font-extrabold">{editing ? "Editar orçamento" : "Novo orçamento"}</h2>
         <button
           type="button"
           onClick={onClose}
@@ -296,7 +323,13 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         onChange={(e) => setNotes(e.target.value)}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {editing && (
+        <p className="rounded-xl bg-[#3b82f6]/10 px-4 py-3 text-sm text-slate-200">
+          O link que você já mandou continua o mesmo e passa a mostrar o orçamento corrigido. Avise o cliente pelo WhatsApp.
+        </p>
+      )}
+
+      <div className={`grid gap-4 sm:grid-cols-2 ${editing ? "hidden" : ""}`}>
         <div>
           <p className="mb-2 text-sm font-bold text-slate-300">Validade do orçamento</p>
           <div className="flex flex-wrap gap-2">
@@ -346,7 +379,7 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         className="btn-shine text-white hover:brightness-110 flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-extrabold disabled:opacity-60"
       >
         {busy && <Loader2 className="h-5 w-5 animate-spin" />}
-        {busy ? "Criando..." : approved ? "Criar e fazer o contrato" : "Criar orçamento"}
+        {busy ? (editing ? "Salvando..." : "Criando...") : editing ? "Salvar alterações" : approved ? "Criar e fazer o contrato" : "Criar orçamento"}
       </button>
     </form>
   );

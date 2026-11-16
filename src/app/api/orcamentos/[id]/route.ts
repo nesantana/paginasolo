@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { deleteQuote, getQuoteForTenant, patchQuote, type QuotePatch } from "@/lib/quoteStore";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
-import { parseIsoDate } from "@/lib/validate";
+import { parseIsoDate, parseQuoteInput, sumItems } from "@/lib/validate";
 import type { QuoteStatus } from "@/types/database.types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -60,6 +60,25 @@ export async function PATCH(request: Request, { params }: Ctx) {
       patch.followup_at = d;
       patch.followup_done_at = null;
     }
+  }
+  if (b.edit && typeof b.edit === "object") {
+    // corrigir um orçamento já enviado: o mesmo link passa a mostrar o novo conteúdo
+    const current = await getQuoteForTenant(auth.tenant.id, id);
+    if (!current) return NextResponse.json({ ok: false, error: "Não encontrado." }, { status: 404 });
+    if (current.status === "accepted" || current.status === "declined") {
+      return NextResponse.json(
+        { ok: false, error: "Esse orçamento já foi decidido e não pode mais ser editado." },
+        { status: 409 }
+      );
+    }
+    const input = parseQuoteInput(b.edit);
+    if ("error" in input) return NextResponse.json({ ok: false, error: input.error }, { status: 400 });
+    patch.customer_name = input.customer_name;
+    patch.customer_phone = input.customer_phone;
+    patch.items = input.items;
+    patch.notes = input.notes;
+    patch.valid_until = input.valid_until;
+    patch.total_cents = sumItems(input.items);
   }
   if (b.followup_done === true) patch.followup_done_at = now;
   if (typeof b.followup_note === "string") {

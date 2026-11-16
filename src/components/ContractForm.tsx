@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import type { QuoteRow } from "@/types/database.types";
 import type { ContractWithPayments } from "@/types/finance";
-import { buildPlan, type InstallmentDraft } from "@/lib/contractUi";
-import { addDaysISO, itemsSummary, centsToInput, formatBRL, inputToCents, todayISO } from "@/lib/quoteUi";
+import { buildPlan, splitCents, type InstallmentDraft } from "@/lib/contractUi";
+import { addDaysISO, diffDays, itemsSummary, centsToInput, formatBRL, inputToCents, todayISO } from "@/lib/quoteUi";
 
 const input =
   "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
@@ -16,7 +16,37 @@ const PRESETS: { id: string; name: string; hint: string; pct: number; balance: "
   { id: "final", name: "Tudo no final", hint: "100% na entrega", pct: 0, balance: "completion", n: 1 },
   { id: "meio", name: "50% + 50%", hint: "Entrada e saldo na entrega", pct: 50, balance: "completion", n: 1 },
   { id: "parcelas", name: "Parcelado", hint: "Entrada + parcelas mensais", pct: 30, balance: "installments", n: 3 },
+  { id: "custom", name: "Você escolhe", hint: "Ex.: 3x: ao assinar, 15 e 30 dias", pct: 0, balance: "completion", n: 3 },
 ];
+
+/** Parcelas iguais: a 1ª ao assinar e as outras de 15 em 15 dias (a pessoa ajusta cada uma depois). */
+function customRows(total: number, n: number): InstallmentDraft[] {
+  if (total <= 0) return [];
+  return splitCents(total, n).map((amount, i) =>
+    i === 0
+      ? { label: "1ª parcela (ao assinar)", amount_cents: amount, due_kind: "upfront" as const, due_date: todayISO() }
+      : { label: `${i + 1}ª parcela`, amount_cents: amount, due_kind: "date" as const, due_date: addDaysISO(15 * i) }
+  );
+}
+
+const WHEN = [
+  { id: "sign", label: "Ao assinar" },
+  { id: "d7", label: "Em 7 dias", days: 7 },
+  { id: "d15", label: "Em 15 dias", days: 15 },
+  { id: "d30", label: "Em 30 dias", days: 30 },
+  { id: "d45", label: "Em 45 dias", days: 45 },
+  { id: "d60", label: "Em 60 dias", days: 60 },
+  { id: "d90", label: "Em 90 dias", days: 90 },
+  { id: "end", label: "Na entrega do serviço" },
+  { id: "date", label: "Escolher a data" },
+];
+
+function whenOf(r: InstallmentDraft): string {
+  if (r.due_kind === "upfront") return "sign";
+  if (r.due_kind === "on_completion") return "end";
+  const d = r.due_date ? diffDays(todayISO(), r.due_date) : -1;
+  return WHEN.find((w) => w.days === d)?.id || "date";
+}
 
 export function ContractForm({
   quotes,
@@ -54,8 +84,11 @@ export function ContractForm({
 
   // O plano é recalculado a cada mudança; se a pessoa editar uma parcela à mão, passa a valer a edição.
   const generated = useMemo(
-    () => buildPlan(totalCents, { upfrontPct: pct, balance, installments: n, today: todayISO(), firstDue: addDaysISO(30) }),
-    [totalCents, pct, balance, n]
+    () =>
+      preset === "custom"
+        ? customRows(totalCents, n)
+        : buildPlan(totalCents, { upfrontPct: pct, balance, installments: n, today: todayISO(), firstDue: addDaysISO(30) }),
+    [totalCents, pct, balance, n, preset]
   );
   const plan = rows ?? generated;
   const sum = plan.reduce((acc, p) => acc + p.amount_cents, 0);
@@ -198,7 +231,7 @@ export function ContractForm({
       {/* FORMA DE PAGAMENTO */}
       <div className="space-y-3">
         <p className="text-sm font-extrabold">Como o cliente vai pagar?</p>
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
           {PRESETS.map((p) => (
             <button
               key={p.id}
@@ -211,6 +244,25 @@ export function ContractForm({
             </button>
           ))}
         </div>
+
+        {preset === "custom" && (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className={label}>
+              Em quantas parcelas?
+              <input
+                type="number"
+                min={2}
+                max={12}
+                value={n}
+                onChange={(e) => { setN(Math.min(12, Math.max(2, Number(e.target.value) || 2))); setRows(null); }}
+                className={input}
+              />
+            </label>
+            <p className="self-end text-xs text-slate-400 sm:col-span-2">
+              Dividi em partes iguais. Em cada parcela você troca o valor e escolhe quando o cliente paga.
+            </p>
+          </div>
+        )}
 
         {(preset === "meio" || preset === "parcelas") && (
           <div className="grid gap-3 sm:grid-cols-3">
@@ -253,16 +305,31 @@ export function ContractForm({
                   className={`${input} !py-2 text-sm`}
                   aria-label="Valor da parcela"
                 />
-                {r.due_kind === "on_completion" ? (
-                  <span className="text-xs text-violet-300">Na entrega do serviço</span>
-                ) : (
-                  <input
-                    type="date"
-                    value={r.due_date || ""}
-                    onChange={(e) => editRow(i, { due_date: e.target.value || null })}
+                <div className="space-y-1.5">
+                  <select
+                    value={whenOf(r)}
+                    aria-label="Quando o cliente paga"
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      const w = WHEN.find((x) => x.id === id)!;
+                      if (id === "sign") editRow(i, { due_kind: "upfront", due_date: todayISO() });
+                      else if (id === "end") editRow(i, { due_kind: "on_completion", due_date: null });
+                      else if (id === "date") editRow(i, { due_kind: "date", due_date: r.due_date || addDaysISO(30) });
+                      else editRow(i, { due_kind: "date", due_date: addDaysISO(w.days!) });
+                    }}
                     className={`${input} !py-2 text-sm`}
-                  />
-                )}
+                  >
+                    {WHEN.map((w) => <option key={w.id} value={w.id}>{w.label}</option>)}
+                  </select>
+                  {whenOf(r) === "date" && (
+                    <input
+                      type="date"
+                      value={r.due_date || ""}
+                      onChange={(e) => editRow(i, { due_date: e.target.value || null })}
+                      className={`${input} !py-2 text-sm`}
+                    />
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => setRows((cur) => (cur ?? generated).filter((_, idx) => idx !== i))}
