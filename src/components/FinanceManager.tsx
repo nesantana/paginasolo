@@ -194,6 +194,19 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
         </p>
       )}
 
+      <ol className="grid gap-2 text-sm sm:grid-cols-3">
+        {[
+          ["1", "Envie o contrato", "pelo WhatsApp do cliente"],
+          ["2", "Cliente aceita", "pelo celular dele, com um toque"],
+          ["3", "Mande o Pix", "o app já monta a cobrança pra você"],
+        ].map(([n, t, d]) => (
+          <li key={n} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0a0e17] p-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]/25 font-extrabold text-[#a5f3fc]">{n}</span>
+            <span><b className="block">{t}</b><span className="text-xs text-slate-400">{d}</span></span>
+          </li>
+        ))}
+      </ol>
+
       <PixCard pix={pix} onSaved={(p) => { setPix(p); flash("Pix salvo."); }} />
 
       {creating ? (
@@ -261,6 +274,16 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
               </p>
             </div>
 
+            <NextStep
+              c={c}
+              today={today}
+              hasPix={Boolean(pix.pix_key)}
+              onSend={() => sendContract(c)}
+              onCharge={charge}
+              onConfirm={(p) => paymentAction(c, p, { type: "paid", method: "Pix", paid_on: today })}
+              onFinish={() => contractStatus(c, "completed")}
+            />
+
             {!cancelled && c.status !== "completed" && !c.payments.some((p) => p.status === "paid" || p.status === "informed") && (
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-400">Forma de pagamento:</span>
@@ -324,6 +347,102 @@ export function FinanceManager({ tenant }: { tenant: TenantRow }) {
   );
 }
 
+/** Diz em uma frase o que fazer agora neste contrato, com um botão só. */
+function NextStep({
+  c, today, hasPix, onSend, onCharge, onConfirm, onFinish,
+}: {
+  c: ContractWithPayments;
+  today: string;
+  hasPix: boolean;
+  onSend: () => void;
+  onCharge: (c: ContractWithPayments, p: PaymentRow) => void;
+  onConfirm: (p: PaymentRow) => void;
+  onFinish: () => void;
+}) {
+  if (c.status === "cancelled") return null;
+  const open = c.payments.filter((p) => p.status !== "paid" && p.status !== "cancelled");
+  const informed = open.find((p) => p.status === "informed");
+  const due = open.find((p) => p.status !== "informed" && paymentView(p, today) !== "on_completion");
+  const onDelivery = open.find((p) => paymentView(p, today) === "on_completion");
+
+  let tone = "border-[#3b82f6]/40 bg-[#3b82f6]/10";
+  let title = "";
+  let text = "";
+  let action: React.ReactNode = null;
+  const btn = "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-extrabold disabled:opacity-60";
+  const green = `${btn} bg-emerald-500 text-zinc-950 hover:bg-emerald-400`;
+
+  if (!open.length) {
+    tone = "border-emerald-500/40 bg-emerald-500/10";
+    title = "Tudo pago. Parabéns!";
+    text = "Esse contrato está quitado.";
+  } else if (c.status === "draft") {
+    title = "Passo 1: envie o contrato para o cliente";
+    text = "Vai abrir o WhatsApp dele com o link. É só apertar enviar. Ele lê e aceita pelo celular.";
+    action = (
+      <button onClick={onSend} className={green}>
+        <Send className="h-4 w-4" /> Enviar contrato no WhatsApp
+      </button>
+    );
+  } else if (c.status === "sent") {
+    title = c.viewed_at ? "O cliente já abriu o contrato" : "Esperando o cliente aceitar o contrato";
+    text = "Quando ele aceitar, você recebe um aviso aqui e no celular. Se demorar, mande um lembrete.";
+    action = (
+      <button onClick={onSend} className={`${btn} border border-white/20 text-white hover:bg-white/10`}>
+        <Send className="h-4 w-4" /> Lembrar no WhatsApp
+      </button>
+    );
+  } else if (informed) {
+    tone = "border-sky-500/40 bg-sky-500/10";
+    title = `O cliente disse que pagou ${formatBRL(informed.amount_cents)}`;
+    text = "Abra o aplicativo do seu banco e veja se o dinheiro entrou. Se entrou, confirme aqui.";
+    action = (
+      <button onClick={() => onConfirm(informed)} className={green}>
+        <Check className="h-4 w-4" /> Sim, o dinheiro entrou
+      </button>
+    );
+  } else if (!hasPix && due) {
+    tone = "border-amber-400/50 bg-amber-400/10";
+    title = "Falta só cadastrar sua chave Pix";
+    text = "Sem ela o cliente não tem para onde pagar. Leva 1 minuto.";
+    action = (
+      <button
+        onClick={() => document.getElementById("pix-card")?.scrollIntoView({ behavior: "smooth", block: "center" })}
+        className={`${btn} bg-amber-400 text-zinc-950 hover:bg-amber-300`}
+      >
+        Cadastrar chave Pix
+      </button>
+    );
+  } else if (due) {
+    tone = "border-emerald-500/40 bg-emerald-500/10";
+    title = `O cliente aceitou! Agora cobre ${formatBRL(due.amount_cents)}`;
+    text = "Vai abrir o WhatsApp dele já com o Pix pronto (copia e cola e QR Code). É só apertar enviar. Quando ele pagar, volte aqui.";
+    action = (
+      <button onClick={() => onCharge(c, due)} className={green}>
+        <MessageCircle className="h-4 w-4" /> Mandar Pix no WhatsApp
+      </button>
+    );
+  } else if (onDelivery) {
+    title = "O resto é pago quando o serviço terminar";
+    text = "Terminou o trabalho? Toque no botão e a cobrança do que falta fica liberada.";
+    action = (
+      <button onClick={onFinish} className={green}>
+        <Check className="h-4 w-4" /> Terminei o serviço
+      </button>
+    );
+  } else return null;
+
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${tone}`}>
+      <div className="min-w-0 flex-1 basis-60">
+        <p className="font-extrabold">{title}</p>
+        <p className="mt-0.5 text-sm text-slate-300">{text}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 function PaymentLine({
   p, today, locked, onCharge, onAction,
 }: {
@@ -367,10 +486,10 @@ function PaymentLine({
           {p.status !== "paid" ? (
             <>
               <button onClick={onCharge} className={ghost}>
-                <MessageCircle className="h-3.5 w-3.5 text-emerald-400" /> {view === "overdue" ? "Cobrar" : "Enviar Pix"}
+                <MessageCircle className="h-3.5 w-3.5 text-emerald-400" /> {view === "overdue" ? "Cobrar no WhatsApp" : "Mandar Pix no WhatsApp"}
               </button>
               <button onClick={() => setOpen((v) => !v)} className={`${ghost} !border-emerald-500/30 !text-emerald-300`}>
-                <Check className="h-3.5 w-3.5" /> Marcar como pago
+                <Check className="h-3.5 w-3.5" /> Já recebi
               </button>
             </>
           ) : (
@@ -435,9 +554,9 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
   }
 
   return (
-    <section className={`${card} space-y-3`}>
+    <section id="pix-card" className={`${card} space-y-3 ${!pix.pix_key ? "!border-amber-400/50" : ""}`}>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-extrabold">Seu Pix para receber</h2>
+        <h2 className="font-extrabold">{pix.pix_key ? "Sua chave Pix (onde o dinheiro cai)" : "Antes de cobrar: cadastre sua chave Pix"}</h2>
         {pix.pix_key && !editing && (
           <button onClick={() => setEditing(true)} className={ghost}>Alterar</button>
         )}
@@ -451,7 +570,7 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-slate-300">
-            Com a chave cadastrada, cada parcela ganha um QR Code e um Pix copia e cola com o valor certo. O dinheiro cai direto na sua conta.
+            É a chave que você já usa no seu banco (CPF, celular, e-mail...). Com ela, o app monta o Pix com o valor certo para o cliente pagar, e o dinheiro cai direto na sua conta.
           </p>
           <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
             <select value={type} onChange={(e) => setType(e.target.value as PixKeyType)} className={input}>

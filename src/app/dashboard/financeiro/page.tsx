@@ -11,7 +11,7 @@ export default function FinanceiroPage() {
   return (
     <OwnerShell
       title="Contratos e pagamentos"
-      subtitle="Gere o contrato, cobre por Pix e veja o que já foi pago e o que ainda falta."
+      subtitle="Envie o contrato, receba o aceite do cliente e mande o Pix pelo WhatsApp. Aqui você vê o que já entrou e o que falta."
     >
       {!tenant ? (
         <p className="flex items-center gap-2 text-slate-400">

@@ -63,6 +63,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
   const [loading, setLoading] = useState(paid);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [sheet, setSheet] = useState(false);
   const [selected, setSelected] = useState(() => todayISO());
   const [cursor, setCursor] = useState(() => {
     const t = todayISO();
@@ -356,99 +357,24 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
     );
   }
 
-  const calendar = (
-    <section className={`${shell} space-y-5`} aria-hidden={!paid}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => go(-1)} aria-label="Mês anterior" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
-            <ChevronLeft className="h-5 w-5" />
+  const closeSheet = () => {
+    setSheet(false);
+    setAdding(false);
+  };
+  const dayPanel = sheet ? (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={(e) => e.target === e.currentTarget && closeSheet()}
+    >
+      <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/15 bg-[#0f172a] p-5 shadow-2xl sm:rounded-3xl">
+        <div className="mb-3 flex justify-end">
+          <button type="button" onClick={closeSheet} className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-slate-200 hover:bg-white/10">
+            Fechar
           </button>
-          <h2 className="min-w-[10rem] text-center text-xl font-extrabold">{monthTitle(cursor.y, cursor.m)}</h2>
-          <button type="button" onClick={() => go(1)} aria-label="Próximo mês" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
-            <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setAdding(true)}
-          className="inline-flex items-center gap-2 rounded-xl btn-shine px-5 py-3 text-sm font-extrabold text-white hover:brightness-110"
-        >
-          <Plus className="h-4 w-4" /> Marcar um serviço
-        </button>
-      </div>
-
-      <div>
-        <div className="grid grid-cols-7 gap-1 pb-1 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
-            <span key={i}>{d}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {cells.map((day, i) => {
-            if (!day) return <span key={`b${i}`} />;
-            const list = byDay.get(day) || [];
-            const vList = visitsByDay.get(day) || [];
-            const fList = followByDay.get(day) || [];
-            const total = list.length + vList.length + fList.length;
-            const hasConflict = list.some((a) => conflicts.has(a.id));
-            const isToday = day === today;
-            const isSel = day === selected;
-            const open = list.filter((a) => a.status === "scheduled").length;
-            const allDone = list.length > 0 && open === 0;
-            const openVisits = vList.filter((v) => v.status === "scheduled").length;
-            const tone = hasConflict
-              ? "border-red-400/70 bg-red-500/20"
-              : open > 0
-                ? "border-[#3b82f6]/70 bg-[#3b82f6]/25"
-                : openVisits > 0
-                  ? "border-violet-400/70 bg-violet-500/20"
-                  : fList.length > 0
-                    ? "border-amber-400/60 bg-amber-400/15"
-                    : allDone || vList.length > 0
-                      ? "border-emerald-400/50 bg-emerald-500/15"
-                      : "border-white/5 bg-white/[0.03] hover:bg-white/10";
-            const marks = [
-              ...list.map((a) => ({ k: a.id, c: conflicts.has(a.id) ? "bg-red-400" : a.status === "done" ? "bg-emerald-400" : "bg-[#67e8f9]" })),
-              ...vList.map((v) => ({ k: v.id, c: v.status === "done" ? "bg-emerald-400" : "bg-violet-400" })),
-              ...fList.map((f) => ({ k: f.key, c: "bg-amber-400" })),
-            ];
-            return (
-              <button
-                key={day}
-                type="button"
-                onClick={() => {
-                  setSelected(day);
-                  setAdding(false);
-                }}
-                aria-label={`${Number(day.slice(8, 10))}: ${total ? `${list.length} serviço(s), ${vList.length} visita(s), ${fList.length} retorno(s)` : "nada marcado"}`}
-                className={`relative flex h-14 flex-col items-center justify-start gap-1 rounded-xl border p-1.5 text-sm font-bold transition sm:h-16 ${tone} ${
-                  isSel ? "ring-2 ring-[#67e8f9]" : isToday ? "ring-1 ring-white/50" : ""
-                } ${total ? "text-white" : "text-slate-300"}`}
-              >
-                <span>{Number(day.slice(8, 10))}</span>
-                {marks.length > 0 && (
-                  <span className="flex flex-wrap items-center justify-center gap-0.5">
-                    {marks.slice(0, 3).map((m) => (
-                      <span key={m.k} className={`h-2 w-2 rounded-full ${m.c}`} />
-                    ))}
-                  </span>
-                )}
-                {marks.length > 3 && <span className="text-[10px] text-slate-300">+{marks.length - 3}</span>}
-                {hasConflict && <span className="sr-only">conflito</span>}
-              </button>
-            );
-          })}
-        </div>
-        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#67e8f9]" /> tem serviço</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-violet-400" /> visita técnica</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" /> chamar de volta</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> feito</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-400" /> conflito</span>
-        </p>
-      </div>
-
-      <div className="space-y-3 border-t border-white/10 pt-4">
+      <div className="space-y-3">
         <h3 className="text-lg font-extrabold capitalize">
           {selected === today ? "Hoje" : selected === addDays(today, 1) ? "Amanhã" : `${weekday(selected)}, ${formatDateBR(selected).slice(0, 5)}`}
           <span className="ml-2 text-sm font-semibold text-slate-400">
@@ -501,6 +427,108 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
         )}
       </div>
 
+      </div>
+    </div>
+  ) : null;
+
+  const calendar = (
+    <section className={`${shell} space-y-5`} aria-hidden={!paid}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => go(-1)} aria-label="Mês anterior" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h2 className="min-w-[10rem] text-center text-xl font-extrabold">{monthTitle(cursor.y, cursor.m)}</h2>
+          <button type="button" onClick={() => go(1)} aria-label="Próximo mês" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setAdding(true);
+            setSheet(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl btn-shine px-5 py-3 text-sm font-extrabold text-white hover:brightness-110"
+        >
+          <Plus className="h-4 w-4" /> Marcar um serviço
+        </button>
+      </div>
+
+      <div>
+        <div className="grid grid-cols-7 gap-1 pb-1 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
+            <span key={i}>{d}</span>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((day, i) => {
+            if (!day) return <span key={`b${i}`} />;
+            const list = byDay.get(day) || [];
+            const vList = visitsByDay.get(day) || [];
+            const fList = followByDay.get(day) || [];
+            const total = list.length + vList.length + fList.length;
+            const hasConflict = list.some((a) => conflicts.has(a.id));
+            const isToday = day === today;
+            const isSel = day === selected;
+            const open = list.filter((a) => a.status === "scheduled").length;
+            const allDone = list.length > 0 && open === 0;
+            const openVisits = vList.filter((v) => v.status === "scheduled").length;
+            const tone = hasConflict
+              ? "border-red-400/70 bg-red-500/20"
+              : open > 0
+                ? "border-[#3b82f6]/70 bg-[#3b82f6]/25"
+                : openVisits > 0
+                  ? "border-violet-400/70 bg-violet-500/20"
+                  : fList.length > 0
+                    ? "border-amber-400/60 bg-amber-400/15"
+                    : allDone || vList.length > 0
+                      ? "border-emerald-400/50 bg-emerald-500/15"
+                      : "border-white/5 bg-white/[0.03] hover:bg-white/10";
+            const marks = [
+              ...list.map((a) => ({ k: a.id, c: conflicts.has(a.id) ? "bg-red-400" : a.status === "done" ? "bg-emerald-400" : "bg-[#67e8f9]" })),
+              ...vList.map((v) => ({ k: v.id, c: v.status === "done" ? "bg-emerald-400" : "bg-violet-400" })),
+              ...fList.map((f) => ({ k: f.key, c: "bg-amber-400" })),
+            ];
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  setSelected(day);
+                  setAdding(false);
+                  setSheet(true);
+                }}
+                aria-label={`${Number(day.slice(8, 10))}: ${total ? `${list.length} serviço(s), ${vList.length} visita(s), ${fList.length} retorno(s)` : "nada marcado"}`}
+                className={`relative flex h-14 flex-col items-center justify-start gap-1 rounded-xl border p-1.5 text-sm font-bold transition sm:h-16 ${tone} ${
+                  isSel ? "ring-2 ring-[#67e8f9]" : isToday ? "ring-1 ring-white/50" : ""
+                } ${total ? "text-white" : "text-slate-300"}`}
+              >
+                <span>{Number(day.slice(8, 10))}</span>
+                {marks.length > 0 && (
+                  <span className="flex flex-wrap items-center justify-center gap-0.5">
+                    {marks.slice(0, 3).map((m) => (
+                      <span key={m.k} className={`h-2 w-2 rounded-full ${m.c}`} />
+                    ))}
+                  </span>
+                )}
+                {marks.length > 3 && <span className="text-[10px] text-slate-300">+{marks.length - 3}</span>}
+                {hasConflict && <span className="sr-only">conflito</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#67e8f9]" /> tem serviço</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-violet-400" /> visita técnica</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" /> chamar de volta</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> feito</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-400" /> conflito</span>
+        </p>
+      </div>
+
+      <p className="text-center text-xs text-slate-400">Toque em um dia para ver o que tem nele ou marcar um serviço.</p>
+
       {lateFollow.length > 0 && selected === today && (
         <div className="space-y-2">
           <p className="text-xs font-extrabold uppercase tracking-wider text-amber-300">Retornos atrasados ({lateFollow.length})</p>
@@ -547,6 +575,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
   return (
     <div className="space-y-4">
       {calendar}
+      {dayPanel}
 
       {steps.length > 0 && (
         <section className="space-y-2 rounded-3xl border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-5">
