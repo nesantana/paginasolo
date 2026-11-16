@@ -105,3 +105,14 @@ export function acceptMessage(opts: { customer: string; business: string; total_
   const valor = opts.total_cents > 0 ? ` (${formatBRL(opts.total_cents)})` : "";
   return `Olá! Sou ${opts.customer} e aceito o orçamento${valor}. Podemos combinar os próximos passos?`;
 }
+
+/** Linha que guarda o valor único quando o dono deu UM preço para vários itens. */
+export const ALL_ITEMS_TITLE = "Valor combinado para todos os itens";
+
+/** Nomes dos serviços do orçamento, sem a linha do valor único. */
+export const itemsSummary = (items: { title: string }[] | null | undefined, max = 140) =>
+  (items || [])
+    .filter((i) => i.title !== ALL_ITEMS_TITLE)
+    .map((i) => i.title)
+    .join(", ")
+    .slice(0, max);

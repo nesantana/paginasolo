@@ -94,7 +94,7 @@ export default async function QuotePage({ params }: Props) {
                   )}
                 </div>
                 <p className="shrink-0 font-extrabold text-slate-900">
-                  {it.price_cents > 0 ? formatBRL(it.price_cents * it.qty) : "A combinar"}
+                  {it.price_cents > 0 ? formatBRL(it.price_cents * it.qty) : quote.total_cents > 0 ? "Incluso" : "A combinar"}
                 </p>
               </li>
             ))}

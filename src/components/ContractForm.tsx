@@ -5,7 +5,7 @@ import { Loader2, Plus, Trash2, X } from "lucide-react";
 import type { QuoteRow } from "@/types/database.types";
 import type { ContractWithPayments } from "@/types/finance";
 import { buildPlan, type InstallmentDraft } from "@/lib/contractUi";
-import { addDaysISO, centsToInput, formatBRL, inputToCents, todayISO } from "@/lib/quoteUi";
+import { addDaysISO, itemsSummary, centsToInput, formatBRL, inputToCents, todayISO } from "@/lib/quoteUi";
 
 const input =
   "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
@@ -76,7 +76,7 @@ export function ContractForm({
     if (!q) return;
     setCustomer(q.customer_name);
     setPhone(q.customer_phone.replace(/^55/, ""));
-    setTitle(q.items.map((i) => i.title).join(", ").slice(0, 140));
+    setTitle(itemsSummary(q.items));
     setScope(
       q.items
         .map((i) => `• ${i.qty > 1 ? `${i.qty}× ` : ""}${i.title}${i.price_cents > 0 ? ` — ${formatBRL(i.price_cents * i.qty)}` : ""}`)

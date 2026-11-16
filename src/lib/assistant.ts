@@ -10,7 +10,7 @@ import { buildPlan, chargeMessage, contractMessage, contractUrl, paymentView, su
 import { buildPixPayload } from "@/lib/pix";
 import { parseContractInput } from "@/lib/contractValidate";
 import { parseIsoDate, parseQuoteInput } from "@/lib/validate";
-import { formatBRL, formatDateBR, quoteMessage, quoteUrl, whatsappLink } from "@/lib/quoteUi";
+import { ALL_ITEMS_TITLE, itemsSummary, formatBRL, formatDateBR, quoteMessage, quoteUrl, whatsappLink } from "@/lib/quoteUi";
 import { chatCompletion, type ChatMsg, type ToolDef } from "@/lib/openai";
 import {
   createVisit, getVisit, listFollowups, listVisits, parseItems, parseVisit, patchVisit, visitToQuote, visitTotal,
@@ -147,15 +147,27 @@ export const TOOLS: ToolDef[] = [
   ),
   fn(
     "propose_quote",
-    "Prepara um orçamento para o dono CONFIRMAR. Não salva nada sozinho. Exige nome e telefone do cliente.",
+    "Prepara um orçamento para o dono CONFIRMAR. Não salva nada sozinho. Exige nome e telefone do cliente. SEPARE cada serviço em um item próprio: 'ponto de tomada, ligação X e ligação Y' são 3 itens, nunca uma linha só. Se o dono deu UM valor para tudo, passe esse valor em total_reais e deixe os itens sem preço. Se deu preço por item, use price_reais em cada item (preço de UMA unidade).",
     {
       customer_name: { type: "string" },
       customer_phone: { type: "string", description: "DDD + número" },
-      service: { type: "string", description: "O que será feito, ex.: Instalação de ar-condicionado" },
-      price_reais: { type: "number", description: "Valor total em reais" },
+      items: {
+        type: "array",
+        description: "Um item por serviço ou material, cada um com seu nome curto",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Nome do item, ex.: Ponto de tomada" },
+            qty: { type: "number", description: "Quantidade, padrão 1" },
+            price_reais: { type: "number", description: "Preço de UMA unidade; omita se o dono deu um valor único para tudo" },
+          },
+          required: ["title"],
+        },
+      },
+      total_reais: { type: "number", description: "Valor único que vale para TODOS os itens juntos (use só se não houver preço por item)" },
       notes: { type: "string" },
     },
-    ["customer_name", "customer_phone", "service", "price_reais"]
+    ["customer_name", "customer_phone", "items"]
   ),
   fn(
     "propose_contract",
@@ -287,7 +299,7 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
       return list.map((q) => ({
         id: q.id, cliente: q.customer_name, telefone: q.customer_phone, valor: formatBRL(q.total_cents), situacao: q.status,
         criado_em: q.created_at?.slice(0, 10), ja_tem_contrato: withContract.has(q.id),
-        servico: q.items?.[0]?.title, dias_desde_envio: q.sent_at ? Math.floor((Date.parse(ctx.today) - Date.parse(q.sent_at.slice(0, 10))) / 86400000) : null,
+        servico: itemsSummary(q.items), dias_desde_envio: q.sent_at ? Math.floor((Date.parse(ctx.today) - Date.parse(q.sent_at.slice(0, 10))) / 86400000) : null,
       }));
     }
     case "get_contracts": {
@@ -460,15 +472,30 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
       };
     }
     case "propose_quote": {
-      const input = parseQuoteInput({
-        customer_name: a.customer_name, customer_phone: a.customer_phone,
-        items: [{ title: a.service, qty: 1, price_cents: cents(a.price_reais) }], notes: a.notes,
-      });
+      const raw = (Array.isArray(a.items) ? (a.items as Record<string, unknown>[]) : [])
+        .filter((i) => String(i.title || "").trim())
+        .map((i) => ({ title: i.title, qty: i.qty, price_cents: cents(i.price_reais) }));
+      // se vier um item só com várias coisas separadas por vírgula/"e", o app separa também
+      if (raw.length === 1 && raw[0].price_cents <= 0) {
+        const parts = String(raw[0].title).split(/\s*(?:,|;|\n|\s+e\s+)\s*/i).map((x) => x.trim()).filter(Boolean);
+        if (parts.length > 1) raw.splice(0, 1, ...parts.map((t) => ({ title: t, qty: raw[0].qty, price_cents: 0 })));
+      }
+      const single = cents(a.total_reais);
+      const allZero = raw.length > 0 && raw.every((i) => !(i.price_cents > 0));
+      if (single > 0 && allZero) raw.push({ title: ALL_ITEMS_TITLE, qty: 1, price_cents: single });
+      const input = parseQuoteInput({ customer_name: a.customer_name, customer_phone: a.customer_phone, items: raw, notes: a.notes });
       if ("error" in input) return { erro: input.error };
       const total = input.items.reduce((n, i) => n + i.qty * i.price_cents, 0);
+      if (total <= 0) return { erro: "Falta o valor. Pergunte ao dono quanto cobrar (um valor para tudo ou o preço de cada item)." };
+      const shown = input.items.filter((i) => i.title !== ALL_ITEMS_TITLE);
       ctx.proposals.push({
         kind: "quote", args: input as unknown as Record<string, unknown>, title: "Criar orçamento",
-        lines: [`Cliente: ${input.customer_name}`, `Serviço: ${input.items[0].title}`, `Valor: ${formatBRL(total)}`], warnings: [],
+        lines: [
+          `Cliente: ${input.customer_name}`,
+          ...shown.map((i) => `• ${i.qty > 1 ? `${i.qty}x ` : ""}${i.title}${i.price_cents > 0 ? `: ${formatBRL(i.qty * i.price_cents)}` : ""}`),
+          `Total: ${formatBRL(total)}`,
+        ],
+        warnings: [],
       });
       return { ok: true, aviso: "Cartão de confirmação mostrado ao dono. Ainda NÃO foi salvo." };
     }
@@ -496,7 +523,7 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
             if (!cands.length) return { erro: `Não achei orçamento em aberto de "${a.customer_name}" sem contrato. Pergunte ao dono se é outro nome.` };
             return {
               erro: "Há mais de um orçamento possível. Pergunte ao dono qual (cite valor e serviço) e chame de novo com o quote_id escolhido.",
-              opcoes: cands.slice(0, 5).map((x) => ({ id: x.id, cliente: x.customer_name, valor: formatBRL(x.total_cents), servico: x.items?.[0]?.title, situacao: x.status, criado_em: x.created_at?.slice(0, 10) })),
+              opcoes: cands.slice(0, 5).map((x) => ({ id: x.id, cliente: x.customer_name, valor: formatBRL(x.total_cents), servico: itemsSummary(x.items), situacao: x.status, criado_em: x.created_at?.slice(0, 10) })),
             };
           }
           q = pick;
@@ -506,7 +533,7 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
         quoteId = q.id;
         name = q.customer_name;
         phone = q.customer_phone;
-        service = q.items?.[0]?.title || service || "Serviço";
+        service = itemsSummary(q.items) || service || "Serviço";
         total = q.total_cents;
       }
       const pct = Math.min(100, Math.max(0, Math.round(Number(a.upfront_percent))));
@@ -565,6 +592,7 @@ function systemPrompt(tenant: TenantRow, today: string) {
     `- Só afirme números, nomes, datas e valores que vieram das ferramentas. Se não tem a informação, diga que não encontrou. Nunca invente.`,
     `- Para consultas, chame as ferramentas get_*. Converta "hoje", "amanhã", "esse mês", "mês passado" em datas AAAA-MM-DD usando a data de hoje.`,
     `- Para criar orçamento, contrato ou serviço na agenda, use as ferramentas propose_*. Elas só mostram um cartão de confirmação; o dono toca em Confirmar. Depois de propor, diga em uma frase para conferir o cartão. Nunca diga que já foi criado.`,
+    `- ITENS DO ORÇAMENTO: cada serviço ou material que o dono citar é um item separado ("ponto de tomada, ligação X, ligação Y" = 3 itens). Nunca junte tudo numa linha. Se ele deu um valor só ("tudo por 450"), use total_reais e deixe os itens sem preço; se deu o preço de cada um, use price_reais por item. Se não ficou claro se o valor é de cada item ou de tudo, pergunte em uma frase.`,
     `- Dados obrigatórios: orçamento = nome, telefone e valor; contrato = nome, telefone, valor (ou orçamento); agenda = nome, serviço e dia (telefone e horário são OPCIONAIS, não peça). Se faltar algo obrigatório, pergunte só isso, de uma vez.`,
     `- Nunca diga que criou, agendou ou salvou: diga que PREPAROU e peça para conferir o cartão.`,
     `- Quando o dono pedir para ENVIAR, mandar, cobrar, passar o link ou o Pix de um cliente (ex.: "envia o pix da entrada para o Felipe", "manda o contrato da Ana"), chame prepare_send. O app mostra um botão que abre o WhatsApp com a mensagem e o link já prontos. NUNCA diga que não consegue enviar ou que não tem acesso: você prepara o botão e o dono toca nele. Responda só uma frase, ex.: "Pronto, toque no botão para enviar a cobrança da entrada."`,

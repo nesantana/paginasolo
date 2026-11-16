@@ -14,7 +14,7 @@ import {
   paymentView, summarize, dueText, buildPlan,
 } from "@/lib/contractUi";
 import { PIX_TYPES, buildPixPayload, detectPixKeyType, prettyPixKey, type PixKeyType } from "@/lib/pix";
-import { addDaysISO, formatBRL, formatDateBR, isOpen, quoteMessage, quoteUrl, todayISO, whatsappLink } from "@/lib/quoteUi";
+import { addDaysISO, itemsSummary, formatBRL, formatDateBR, isOpen, quoteMessage, quoteUrl, todayISO, whatsappLink } from "@/lib/quoteUi";
 
 type Pix = { pix_key: string | null; pix_key_type: PixKeyType | null; owner_doc: string | null };
 
@@ -472,7 +472,7 @@ function QuoteJob({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate font-extrabold">{q.customer_name}</p>
-          <p className="truncate text-sm text-slate-400">{q.items.map((i) => i.title).join(", ") || "Orçamento"}</p>
+          <p className="truncate text-sm text-slate-400">{itemsSummary(q.items) || "Orçamento"}</p>
         </div>
         <div className="text-right">
           <p className="font-extrabold">{q.total_cents > 0 ? formatBRL(q.total_cents) : "A combinar"}</p>
