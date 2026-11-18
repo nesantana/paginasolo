@@ -12,6 +12,7 @@ import type { AppointmentRow, ContractWithPayments, Followup, VisitRow } from "@
 import type { QuoteRow } from "@/types/database.types";
 import { PublishButton } from "@/components/PublishButton";
 import { DayQuickAdd } from "@/components/DayQuickAdd";
+import { NewVisitForm } from "@/components/NewVisitForm";
 import { conflictIds, endTime, hhmm } from "@/lib/agendaConflicts";
 import { summarize } from "@/lib/contractUi";
 import { followupMessage, formatBRL, formatDateBR, quoteUrl, todayISO, whatsappLink } from "@/lib/quoteUi";
@@ -65,6 +66,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [sheet, setSheet] = useState(false);
+  const [addingVisit, setAddingVisit] = useState(false);
   // No celular a home mostra o dia; no computador, o mês.
   const [view, setView] = useState<"dia" | "semana" | "mes">(() => (typeof window !== "undefined" && window.innerWidth < 1024 ? "dia" : "mes"));
   const [selected, setSelected] = useState(() => todayISO());
@@ -419,12 +421,13 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
           </button>
         )}
         {(
-          <Link
-            href={`/dashboard/visitas?novo=1&dia=${selected}`}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/50 px-4 py-3 text-sm font-extrabold text-violet-200 hover:bg-violet-500/10"
+          <button
+            type="button"
+            onClick={() => setAddingVisit(true)}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/50 px-4 py-3 text-sm font-extrabold text-violet-200 hover:bg-violet-500/10"
           >
             <ClipboardList className="h-4 w-4" /> Marcar visita técnica neste dia
-          </Link>
+          </button>
         )}
       </div>
   );
@@ -649,6 +652,20 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
     <div className="space-y-4">
       {calendar}
       {dayPanel}
+      {addingVisit && (
+        <Sheet onClose={() => setAddingVisit(false)}>
+          <NewVisitForm
+            day={selected}
+            onClose={() => setAddingVisit(false)}
+            onCreated={(v) => {
+              setVisits((cur) => [v, ...cur]);
+              setSelected(v.starts_on);
+              syncCursor(v.starts_on);
+              setAddingVisit(false);
+            }}
+          />
+        </Sheet>
+      )}
       {adding && (
         <Sheet onClose={() => setAdding(false)}>
           <DayQuickAdd

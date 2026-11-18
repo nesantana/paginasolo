@@ -296,7 +296,7 @@ export function ContractForm({
         {totalCents > 0 ? (
           <div className="space-y-2 rounded-2xl border border-white/10 bg-[#0a0e17] p-3">
             {plan.map((r, i) => (
-              <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-2 sm:grid-cols-[1.2fr_1fr_1fr_auto]">
+              <div key={i} className="grid grid-cols-1 items-center gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:border-0 sm:p-0">
                 <input value={r.label} onChange={(e) => editRow(i, { label: e.target.value })} className={`${input} !py-2.5`} maxLength={60} />
                 <input
                   value={centsToInput(r.amount_cents)}

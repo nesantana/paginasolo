@@ -294,9 +294,9 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
         )}
 
         {lines.map((l, i) => (
-          <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded-xl bg-[#0a0e17] p-3 sm:grid-cols-[1fr_5.5rem_8rem_auto]">
+          <div key={i} className="grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-xl bg-[#0a0e17] p-3 sm:grid-cols-[minmax(0,1fr)_5.5rem_8rem_auto]">
             <input
-              className={`${field} col-span-2 sm:col-span-1`}
+              className={`${field} col-span-3 sm:col-span-1`}
               value={l.title}
               onChange={(e) => update(i, { title: e.target.value })}
               placeholder="Descrição"

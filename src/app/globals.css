@@ -120,6 +120,20 @@
   html { scroll-behavior: auto; }
 }
 
+/* Campos de data e hora: no iPhone eles têm largura própria e passam por cima dos vizinhos. */
+input, select, textarea { max-width: 100%; min-width: 0; }
+input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; min-height: 1.5em; }
+label, .grid > * { min-width: 0; }
+
 /* Celular: campos com 16px (o iPhone dá zoom abaixo disso) e área de toque confortável. */
 @media (max-width: 640px) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
