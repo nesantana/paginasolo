@@ -32,14 +32,6 @@ import {
 } from "lucide-react";
 
 import { DEFAULT_RATE } from "@/lib/affiliateRules";
-import {
-  ANNUAL_MAX_INSTALLMENTS,
-  ANNUAL_PER_MONTH,
-  ANNUAL_SAVINGS_PERCENT,
-  PLAN_PRICES,
-  brl,
-  brlShort,
-} from "@/lib/plans";
 
 export const revalidate = 300;
 
@@ -217,7 +209,7 @@ export default async function Home() {
               className="animate-fade-up mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-400 lg:justify-start"
               style={{ animationDelay: "480ms" }}
             >
-              {["Comece em 10 minutos", "Grátis até 10 clientes", `Depois, a partir de ${brlShort(PLAN_PRICES.monthly)}/mês`].map((t) => (
+              {["Comece em 10 minutos", "Abre dia 25 de novembro"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-emerald-400" />
                   {t}
@@ -487,91 +479,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ===== PREÇO ===== */}
-      <section id="planos" className="mx-auto max-w-5xl px-5 pb-24">
-        <Reveal className="text-center">
-          <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Planos</p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
-            Escolha como <span className="text-gradient">pagar</span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-slate-300">
-            Comece grátis: todas as ferramentas liberadas para até 10 clientes. Depois, escolha como pagar. Seu site é grátis sempre.
-          </p>
-        </Reveal>
-
-        <Reveal>
-          <ul className="mx-auto mt-10 grid max-w-3xl gap-x-8 gap-y-3 sm:grid-cols-2">
-            {[
-              "autonomIA, a assistente: orçamento, contrato e agenda por mensagem",
-              "Visita técnica: anote no cliente e vire orçamento",
-              "Agenda com aviso por e-mail",
-              "Contratos aceitos pelo celular",
-              "Pix com QR Code e controle de pagamentos",
-              "Orçamentos e lembrete para chamar de volta",
-              "Seu site profissional no Google",
-              "Página de links e cartaz com QR",
-            ].map((f) => (
-              <li key={f} className="flex items-center gap-3 text-sm text-slate-200 sm:text-base">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
-                  <Check className="h-4 w-4 text-emerald-400" />
-                </span>
-                {f}
-              </li>
-            ))}
-          </ul>
-        </Reveal>
-
-        <div className="mx-auto mt-12 grid max-w-3xl items-stretch gap-5 md:grid-cols-2">
-          <Reveal>
-            <div className="glass flex h-full flex-col rounded-[2rem] p-8">
-              <p className="text-sm font-bold uppercase tracking-wider text-slate-400">Mensal</p>
-              <p className="mt-3 text-6xl font-extrabold tracking-tight">
-                {brlShort(PLAN_PRICES.monthly)}
-                <span className="text-xl font-semibold text-slate-400">/mês</span>
-              </p>
-              <p className="mt-3 flex items-center gap-2 text-slate-300">
-                <QrCode className="h-5 w-5 text-[#67e8f9]" /> Pix todo mês
-              </p>
-              <p className="mt-2 flex-1 text-sm text-slate-400">
-                Menos que uma pizza. Se paga no primeiro serviço que você não esquecer de cobrar.
-              </p>
-              <WaitlistButton className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-8 py-4 font-extrabold transition hover:bg-white/10">
-                Entrar na lista de espera
-              </WaitlistButton>
-            </div>
-          </Reveal>
-
-          <Reveal delay={120}>
-            <div className="relative h-full overflow-hidden rounded-[2rem] p-px">
-              <div className="animate-spin-slow absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_70%,#3b82f6_85%,#8b5cf6_100%)]" />
-              <div className="relative flex h-full flex-col rounded-[calc(2rem-1px)] bg-[#0f172a] p-8">
-                <span className="btn-shine absolute right-5 top-5 rounded-full px-3 py-1 text-[11px] font-extrabold">
-                  Economize {ANNUAL_SAVINGS_PERCENT}%
-                </span>
-                <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Anual</p>
-                <p className="mt-3 text-6xl font-extrabold tracking-tight">
-                  {brlShort(PLAN_PRICES.annual)}
-                  <span className="text-xl font-semibold text-slate-400">/ano</span>
-                </p>
-                <p className="mt-3 flex items-center gap-2 text-slate-200">
-                  <CreditCard className="h-5 w-5 text-[#67e8f9]" /> Em até {ANNUAL_MAX_INSTALLMENTS}x no cartão
-                </p>
-                <p className="mt-2 flex-1 text-sm text-slate-300">
-                  Equivale a <strong className="text-white">{brl(ANNUAL_PER_MONTH)}/mês</strong>: o melhor preço para quem já
-                  sabe que vai usar.
-                </p>
-                <WaitlistButton className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#3b82f6]/30 transition hover:scale-[1.02]">
-                  Entrar na lista de espera
-                  <Rocket className="h-5 w-5" />
-                </WaitlistButton>
-              </div>
-            </div>
-          </Reveal>
-        </div>
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Travou em algum passo? Chame a gente no WhatsApp.
-        </p>
-      </section>
+      {/* Preços escondidos até o lançamento (dia 25). A seção fica no histórico do git. */}
 
       {/* ===== INDIQUE E GANHE ===== */}
       <section className="mx-auto max-w-5xl px-5 pb-24">
