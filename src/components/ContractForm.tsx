@@ -297,12 +297,12 @@ export function ContractForm({
           <div className="space-y-2 rounded-2xl border border-white/10 bg-[#0a0e17] p-3">
             {plan.map((r, i) => (
               <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-2 sm:grid-cols-[1.2fr_1fr_1fr_auto]">
-                <input value={r.label} onChange={(e) => editRow(i, { label: e.target.value })} className={`${input} !py-2 text-sm`} maxLength={60} />
+                <input value={r.label} onChange={(e) => editRow(i, { label: e.target.value })} className={`${input} !py-2.5`} maxLength={60} />
                 <input
                   value={centsToInput(r.amount_cents)}
                   onChange={(e) => editRow(i, { amount_cents: inputToCents(e.target.value) })}
                   inputMode="decimal"
-                  className={`${input} !py-2 text-sm`}
+                  className={`${input} !py-2.5`}
                   aria-label="Valor da parcela"
                 />
                 <div className="space-y-1.5">
@@ -317,7 +317,7 @@ export function ContractForm({
                       else if (id === "date") editRow(i, { due_kind: "date", due_date: r.due_date || addDaysISO(30) });
                       else editRow(i, { due_kind: "date", due_date: addDaysISO(w.days!) });
                     }}
-                    className={`${input} !py-2 text-sm`}
+                    className={`${input} !py-2.5`}
                   >
                     {WHEN.map((w) => <option key={w.id} value={w.id}>{w.label}</option>)}
                   </select>
@@ -326,7 +326,7 @@ export function ContractForm({
                       type="date"
                       value={r.due_date || ""}
                       onChange={(e) => editRow(i, { due_date: e.target.value || null })}
-                      className={`${input} !py-2 text-sm`}
+                      className={`${input} !py-2.5`}
                     />
                   )}
                 </div>

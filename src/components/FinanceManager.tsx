@@ -22,7 +22,7 @@ const card = "rounded-2xl border border-white/10 bg-[#0f172a] p-4 sm:p-5";
 const input =
   "w-full rounded-xl border border-white/10 bg-[#0a0e17] px-3.5 py-3 text-base text-white placeholder:text-slate-500 focus:border-[#67e8f9] focus:outline-none";
 const ghost =
-  "inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/10 disabled:opacity-60";
+  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-60";
 
 type Tone = "gray" | "blue" | "amber" | "green" | "red";
 const TONE: Record<Tone, string> = {
@@ -576,7 +576,7 @@ function QuoteJob({
   };
   const lost = q.status === "declined";
   const accepted = q.status === "accepted";
-  const green = "inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-extrabold text-zinc-950 hover:bg-emerald-400 disabled:opacity-60";
+  const green = "inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-base font-extrabold text-zinc-950 hover:bg-emerald-400 disabled:opacity-60 sm:w-auto";
 
   let title = "Orçamento pronto, ainda não enviado";
   let text = "Mande pelo WhatsApp. O cliente abre o link, vê o valor e pode aceitar na hora.";
@@ -664,7 +664,7 @@ function NextStep({
   let title = "";
   let text = "";
   let action: React.ReactNode = null;
-  const btn = "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-extrabold disabled:opacity-60";
+  const btn = "inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-extrabold disabled:opacity-60 sm:w-auto";
   const green = `${btn} bg-emerald-500 text-zinc-950 hover:bg-emerald-400`;
 
   if (!open.length) {
@@ -802,13 +802,13 @@ function PaymentLine({
         <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2 sm:flex-row sm:items-end">
           <label className="block flex-1 text-[11px] font-bold text-slate-400">
             Forma
-            <select value={method} onChange={(e) => setMethod(e.target.value)} className={`${input} !py-2 text-sm`}>
+            <select value={method} onChange={(e) => setMethod(e.target.value)} className={`${input} !py-2.5`}>
               {METHODS.map((m) => <option key={m}>{m}</option>)}
             </select>
           </label>
           <label className="block flex-1 text-[11px] font-bold text-slate-400">
             Recebido em
-            <input type="date" value={paidOn} max={today} onChange={(e) => setPaidOn(e.target.value)} className={`${input} !py-2 text-sm`} />
+            <input type="date" value={paidOn} max={today} onChange={(e) => setPaidOn(e.target.value)} className={`${input} !py-2.5`} />
           </label>
           <button onClick={() => run({ type: "paid", method, paid_on: paidOn })} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-extrabold text-zinc-950 disabled:opacity-60">
             {busy && <Loader2 className="h-4 w-4 animate-spin" />} Confirmar recebimento
