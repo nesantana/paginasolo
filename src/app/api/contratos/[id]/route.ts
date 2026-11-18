@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteContract, setContractStatus } from "@/lib/financeStore";
+import { deleteContract, markAfterSale, setContractStatus } from "@/lib/financeStore";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import type { ContractStatus } from "@/types/finance";
 
@@ -13,11 +13,21 @@ export async function PATCH(request: Request, { params }: Ctx) {
   if ("res" in auth) return auth.res;
   const { id } = await params;
   if (!UUID_RE.test(id)) return NextResponse.json({ ok: false, error: "Contrato inválido." }, { status: 400 });
-  let body: { status?: unknown };
+  let body: { status?: unknown; aftersale_done?: unknown; revisit_done?: unknown };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Requisição inválida." }, { status: 400 });
+  }
+  if (body.aftersale_done === true || body.revisit_done === true) {
+    try {
+      const contract = await markAfterSale(auth.tenant.id, id, body.aftersale_done === true ? "post" : "revisit");
+      if (!contract) return NextResponse.json({ ok: false, error: "Contrato não encontrado." }, { status: 404 });
+      return NextResponse.json({ ok: true, contract }, { headers: NO_STORE });
+    } catch (e) {
+      console.error("contratos aftersale:", e);
+      return NextResponse.json({ ok: false, error: "Não foi possível salvar." }, { status: 500 });
+    }
   }
   if (!STATUSES.includes(body.status as ContractStatus)) {
     return NextResponse.json({ ok: false, error: "Situação inválida." }, { status: 400 });

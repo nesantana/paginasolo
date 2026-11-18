@@ -6,6 +6,8 @@ import { ArrowRight, BadgeCheck, CalendarClock, CheckCircle2, FilePlus2, FileSig
 import type { QuoteRow } from "@/types/database.types";
 import type { ContractWithPayments } from "@/types/finance";
 import { openAssistant } from "@/components/AssistantChat";
+import { afterSaleFor } from "@/lib/aftersale";
+import type { CatalogItem } from "@/types/catalog";
 import { diffDays, followupState, formatBRL, todayISO } from "@/lib/quoteUi";
 
 type Task = { key: string; rank: number; icon: typeof Send; tone: string; title: string; sub: string; cta: string; href: string };
@@ -13,7 +15,7 @@ type Task = { key: string; rank: number; icon: typeof Send; tone: string; title:
 const first = (n: string) => n.trim().split(/\s+/)[0] || n;
 
 /** "O que fazer agora": junta, de todos os clientes, o que está esperando uma ação sua. */
-export function TodoNow() {
+export function TodoNow({ business = "" }: { business?: string }) {
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [empty, setEmpty] = useState(false);
 
@@ -21,10 +23,12 @@ export function TodoNow() {
     let alive = true;
     (async () => {
       try {
-        const [fr, qr] = await Promise.all([
+        const [fr, qr, cr] = await Promise.all([
           fetch("/api/financeiro", { cache: "no-store" }),
           fetch("/api/orcamentos", { cache: "no-store" }),
+          fetch("/api/catalogo", { cache: "no-store" }),
         ]);
+        const cat: CatalogItem[] = (await cr.json().catch(() => ({}))).items || [];
         const f = await fr.json().catch(() => ({}));
         const q = await qr.json().catch(() => ({}));
         if (!alive || !fr.ok || !qr.ok) return;
@@ -50,6 +54,10 @@ export function TodoNow() {
             } else if (c.status === "signed" && c.payments.some((p) => p.status === "pending" && p.due_kind === "on_completion")) {
               out.push({ key: "e" + c.id, rank: 8, icon: CheckCircle2, tone: "text-violet-300", title: `Serviço de ${name} em andamento`, sub: "Terminou? Marque como concluído para cobrar o resto", cta: "Abrir", href });
             }
+          }
+          if (!c.payments.some((p) => p.status === "pending" || p.status === "informed")) {
+            const as = afterSaleFor(c, cat, business, today);
+            if (as) out.push({ key: "as" + c.id, rank: 7, icon: MessageCircle, tone: "text-violet-300", title: as.title, sub: as.kind === "post" ? "Serviço concluído há " + as.days + " dias" : "Revisão do serviço", cta: "Chamar", href });
           }
           if (c.status === "draft")
             out.push({ key: "d" + c.id, rank: 4, icon: FileSignature, tone: "text-emerald-300", title: c.quote_id ? `${name} aprovou: envie o contrato` : `Envie o contrato de ${name}`, sub: "Já está pronto, só conferir e mandar", cta: "Enviar contrato", href });

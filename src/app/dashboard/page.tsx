@@ -230,7 +230,7 @@ export default function ClientDashboardPage() {
             <AssistantCard paid />
 
             {/* 2. O que precisa de você agora */}
-            <TodoNow key={`todo-${tenant.id}`} />
+            <TodoNow key={`todo-${tenant.id}`} business={tenant.business_name} />
 
             {/* 3. Menu principal */}
             <OwnerShortcuts paid={paid} />

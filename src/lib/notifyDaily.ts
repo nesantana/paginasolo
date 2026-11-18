@@ -1,4 +1,7 @@
 import "server-only";
+import { listContracts } from "@/lib/financeStore";
+import { listCatalog } from "@/lib/catalogStore";
+import { afterSaleFor } from "@/lib/aftersale";
 import type { TenantRow } from "@/types/database.types";
 import { appointmentsBetween, openPaymentsDueUntil } from "@/lib/agendaStore";
 import { listQuotes } from "@/lib/quoteStore";
@@ -16,11 +19,26 @@ export async function notifyDailyFor(tenant: TenantRow, now = new Date()): Promi
   let sent = 0;
   const today = todayIn(tenantTimeZone(tenant.city), now);
 
-  const [appts, payments, quotes] = await Promise.all([
+  const [appts, payments, quotes, contractsAll, catalog] = await Promise.all([
     appointmentsBetween(tenant.id, today, today),
     openPaymentsDueUntil(tenant.id, today),
     listQuotes(tenant.id),
+    listContracts(tenant.id),
+    listCatalog(tenant.id).catch(() => []),
   ]);
+
+  const after = contractsAll.filter(
+    (c) => !c.payments.some((p) => p.status === "pending" || p.status === "informed") && afterSaleFor(c, catalog, tenant.business_name, today)
+  );
+  if (after.length) {
+    await notify(tenant.id, {
+      kind: "followup",
+      title: `Pós-venda: ${plural(after.length, "cliente", "clientes")} para chamar`,
+      body: after.length === 1 ? `${after[0].customer_name}: pergunte se ficou tudo certo.` : "Pergunte se ficou tudo certo. Gera confiança e indicação.",
+      url: "/dashboard/clientes",
+    });
+    sent++;
+  }
 
   if (appts.length) {
     const first = appts.find((a) => a.start_time);

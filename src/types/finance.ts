@@ -22,6 +22,8 @@ export type ContractRow = {
   signed_at: string | null;
   signed_name: string | null;
   completed_at: string | null;
+  aftersale_done_at?: string | null;
+  revisit_done_at?: string | null;
   created_at: string;
   updated_at: string;
 };

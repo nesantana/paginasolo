@@ -7,6 +7,7 @@ import type {
   AnalyticsEventRow,
   AnalyticsEventType,
   TenantLink,
+  TenantServiceItem,
 } from "@/types/database.types";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { hashToken, newEditToken } from "@/lib/editAuth";
@@ -519,6 +520,11 @@ export async function updateTenantContent(
     meta_pixel_id: input.meta_pixel_id,
     google_tag_id: input.google_tag_id,
   });
+}
+
+/** Só a lista de serviços do site (usada pela sincronização com o catálogo). */
+export async function updateTenantServices(id: string, services: TenantServiceItem[]): Promise<TenantRow | null> {
+  return patchTenant(id, { services });
 }
 
 /** Galeria, depoimentos, FAQ e oferta (edição pelo dono já autenticado). */

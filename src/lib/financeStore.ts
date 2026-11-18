@@ -130,6 +130,14 @@ export async function createContract(
   return { ...contract, payments };
 }
 
+/** Marca o pós-venda ou a revisão de um contrato como feito. */
+export async function markAfterSale(tenantId: string, id: string, kind: "post" | "revisit"): Promise<ContractWithPayments | null> {
+  const col = kind === "post" ? "aftersale_done_at" : "revisit_done_at";
+  const { error } = await db().from("contracts").update({ [col]: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId);
+  if (error) fail(error);
+  return getContractForTenant(tenantId, id);
+}
+
 export async function setContractStatus(
   tenantId: string,
   id: string,

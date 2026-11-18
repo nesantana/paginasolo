@@ -48,6 +48,14 @@ const TOPICS: { q: string; a: React.ReactNode }[] = [
     a: <>É a lista do que você vende, com preço. No orçamento você toca no item e ele entra pronto, e o assistente usa esses preços quando você não diz o valor.</>,
   },
   {
+    q: "O que é pós-venda e revisão?",
+    a: <>Dois dias depois de você marcar o serviço como concluído e receber tudo, o app avisa para perguntar se ficou tudo certo, com a mensagem pronta. Em Produtos e serviços você também pode definir quando voltar a falar com o cliente (ex.: limpeza de ar-condicionado a cada 6 meses).</>,
+  },
+  {
+    q: "Os serviços do site e o catálogo são a mesma coisa?",
+    a: <>São ligados. Em Produtos e serviços você traz os serviços que já estão no site e escolhe quais aparecem nele. Ao mudar o preço lá, o site é atualizado.</>,
+  },
+  {
     q: "O que muda se eu não assinar?",
     a: <>Tudo funciona de graça para até {FREE_CLIENT_LIMIT} clientes. Para atender mais, assine. Quem você já cadastrou continua normal.</>,
   },

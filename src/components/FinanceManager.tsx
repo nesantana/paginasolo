@@ -10,6 +10,8 @@ import type { ContractWithPayments, PaymentRow } from "@/types/finance";
 import { ContractForm } from "@/components/ContractForm";
 import { QuoteForm } from "@/components/QuoteForm";
 import { PublishButton } from "@/components/PublishButton";
+import type { CatalogItem } from "@/types/catalog";
+import { afterSaleFor, type AfterSale } from "@/lib/aftersale";
 import { FREE_CLIENT_LIMIT } from "@/lib/plans";
 import {
   METHODS, VIEW_CLASS, VIEW_LABEL, chargeMessage, contractMessage, contractProgress, contractUrl,
@@ -107,6 +109,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
   const [pix, setPix] = useState<Pix>({ pix_key: null, pix_key_type: null, owner_doc: null });
   const [contracts, setContracts] = useState<ContractWithPayments[]>([]);
   const [allQuotes, setAllQuotes] = useState<QuoteRow[]>([]);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [quoting, setQuoting] = useState(false);
@@ -123,10 +126,13 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
   };
 
   const load = useCallback(async () => {
-    const [res, qres] = await Promise.all([
+    const [res, qres, cres] = await Promise.all([
       fetch("/api/financeiro", { cache: "no-store" }),
       fetch("/api/orcamentos", { cache: "no-store" }),
+      fetch("/api/catalogo", { cache: "no-store" }),
     ]);
+    const cdata = await cres.json().catch(() => ({}));
+    if (cres.ok && cdata.ok) setCatalog(cdata.items as CatalogItem[]);
     const data = await res.json().catch(() => ({}));
     const qdata = await qres.json().catch(() => ({}));
     if (res.ok && data.ok) {
@@ -245,6 +251,21 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
     if (!res.ok || !data.ok) return flash(data.error || "Não foi possível trocar a forma de pagamento.");
     setContracts((cur) => cur.map((x) => (x.id === c.id ? data.contract : x)));
     flash("Forma de pagamento atualizada.");
+  }
+
+  async function markAfter(c: ContractWithPayments, a: AfterSale) {
+    const res = await fetch(`/api/contratos/${c.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(a.kind === "post" ? { aftersale_done: true } : { revisit_done: true }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) setContracts((cur) => cur.map((x) => (x.id === c.id ? data.contract : x)));
+  }
+
+  function sendAfter(c: ContractWithPayments, a: AfterSale) {
+    window.open(whatsappLink(c.customer_phone, a.message), "_blank", "noopener");
+    void markAfter(c, a);
   }
 
   async function contractStatus(c: ContractWithPayments, status: string) {
@@ -504,6 +525,9 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
               onCharge={charge}
               onConfirm={(p) => paymentAction(c, p, { type: "paid", method: "Pix", paid_on: today })}
               onFinish={() => contractStatus(c, "completed")}
+              after={afterSaleFor(c, catalog, tenant.business_name, today)}
+              onAfter={(a) => sendAfter(c, a)}
+              onAfterDone={(a) => markAfter(c, a)}
             />
 
             {!cancelled && c.status !== "completed" && !c.payments.some((p) => p.status === "paid" || p.status === "informed") && (
@@ -672,8 +696,11 @@ function QuoteJob({
 
 /** Diz em uma frase o que fazer agora neste contrato, com um botão só. */
 function NextStep({
-  c, today, hasPix, onSend, onCharge, onConfirm, onFinish,
+  c, today, hasPix, onSend, onCharge, onConfirm, onFinish, after, onAfter, onAfterDone,
 }: {
+  after: AfterSale | null;
+  onAfter: (a: AfterSale) => void;
+  onAfterDone: (a: AfterSale) => void;
   c: ContractWithPayments;
   today: string;
   hasPix: boolean;
@@ -695,7 +722,21 @@ function NextStep({
   const btn = "inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-extrabold disabled:opacity-60 sm:w-auto";
   const green = `${btn} bg-emerald-500 text-zinc-950 hover:bg-emerald-400`;
 
-  if (!open.length) {
+  if (!open.length && after) {
+    tone = "border-violet-400/40 bg-violet-400/10";
+    title = after.title;
+    text = after.text;
+    action = (
+      <div className="flex w-full flex-col gap-2 sm:w-auto">
+        <button onClick={() => onAfter(after)} className={green}>
+          <MessageCircle className="h-4 w-4" /> Enviar no WhatsApp
+        </button>
+        <button onClick={() => onAfterDone(after)} className="min-h-11 text-sm font-bold text-slate-300 underline underline-offset-4">
+          Já falei com ele
+        </button>
+      </div>
+    );
+  } else if (!open.length) {
     tone = "border-emerald-500/40 bg-emerald-500/10";
     title = "Tudo pago. Parabéns!";
     text = "Esse contrato está quitado.";
