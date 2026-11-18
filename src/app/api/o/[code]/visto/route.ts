@@ -19,7 +19,7 @@ export async function POST(request: Request, { params }: Ctx) {
         kind: "quote_viewed",
         title: `${q.customer_name} abriu seu orçamento`,
         body: q.total_cents > 0 ? `Orçamento de ${formatBRL(q.total_cents)}. É um bom momento para chamar.` : "É um bom momento para chamar.",
-        url: "/dashboard/orcamentos",
+        url: `/dashboard/clientes/${q.id}`,
       });
     }
   } catch (e) {

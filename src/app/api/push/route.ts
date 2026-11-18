@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { readEditToken } from "@/lib/editAuth";
 import { getTenantByToken } from "@/lib/tenantStore";
-import { removePushSubscription, savePushSubscription } from "@/lib/notify";
+import { notify, removePushSubscription, savePushSubscription } from "@/lib/notify";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -19,11 +19,20 @@ const isKey = (v: unknown): v is string =>
 export async function POST(request: Request) {
   const tenant = await owner();
   if (!tenant) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401, headers: NO_STORE });
-  let b: { endpoint?: unknown; keys?: { p256dh?: unknown; auth?: unknown } } = {};
+  let b: { endpoint?: unknown; test?: unknown; keys?: { p256dh?: unknown; auth?: unknown } } = {};
   try {
     b = await request.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Requisição inválida." }, { status: 400 });
+  }
+  if (b.test === true) {
+    await notify(tenant.id, {
+      kind: "plan",
+      title: "Está funcionando!",
+      body: "É assim que os avisos vão chegar neste aparelho.",
+      url: "/dashboard",
+    });
+    return NextResponse.json({ ok: true }, { headers: NO_STORE });
   }
   if (!isHttps(b.endpoint) || !isKey(b.keys?.p256dh) || !isKey(b.keys?.auth)) {
     return NextResponse.json({ ok: false, error: "Inscrição inválida." }, { status: 400 });

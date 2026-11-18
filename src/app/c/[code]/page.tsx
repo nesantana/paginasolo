@@ -7,7 +7,7 @@ import { getTenantById } from "@/lib/tenantStore";
 import { ContractClient, type PublicPayment } from "@/components/ContractClient";
 import { contractClauses } from "@/lib/contractUi";
 import { buildPixPayload } from "@/lib/pix";
-import { formatBRL, formatDateBR } from "@/lib/quoteUi";
+import { formatBRL, formatDateBR, prettyCity } from "@/lib/quoteUi";
 
 // Cada abertura precisa ver o estado atual (aceito, pago...).
 export const dynamic = "force-dynamic";
@@ -93,7 +93,7 @@ export default async function ContractPage({ params }: Props) {
           <p className="text-sm font-bold uppercase tracking-wider text-white/70">Contrato</p>
           <h1 className="mt-2 text-3xl font-extrabold leading-tight">{tenant.business_name}</h1>
           <p className="mt-1 text-white/80">
-            {tenant.category} · {tenant.city}
+            {tenant.category} · {prettyCity(tenant.city)}
           </p>
         </div>
       </header>

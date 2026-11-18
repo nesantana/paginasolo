@@ -18,7 +18,7 @@ export async function POST(request: Request, { params }: Ctx) {
         kind: "contract_viewed",
         title: `${c.customer_name} abriu o contrato`,
         body: "Ainda falta ele assinar.",
-        url: "/dashboard/financeiro",
+        url: `/dashboard/clientes/${c.id}`,
       });
     }
   } catch (e) {

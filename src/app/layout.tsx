@@ -33,6 +33,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  appleWebApp: { capable: true, title: "autonomIA", statusBarStyle: "black-translucent" },
   title: `${brand.name} — ${brand.tagline}`,
   description:
     "A autonomIA é a assistente do dia a dia do autônomo: anota a visita técnica, monta orçamento, gera contrato, marca a agenda e cobra por Pix, tudo por mensagem no celular. Inclui um site profissional para o seu negócio.",

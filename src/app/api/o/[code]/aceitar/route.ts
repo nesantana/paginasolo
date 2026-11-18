@@ -22,9 +22,14 @@ export async function POST(request: Request, { params }: Ctx) {
     }
     // Integração: orçamento aceito já vira um contrato (rascunho) para o dono revisar e enviar.
     let contractReady = false;
+    let contractId: string | null = null;
     try {
       const tenant = await getTenantById(saved.tenant_id);
-      if (tenant) contractReady = Boolean(await contractFromAcceptedQuote(saved, tenant));
+      if (tenant) {
+        const made = await contractFromAcceptedQuote(saved, tenant);
+        contractReady = Boolean(made);
+        contractId = made?.id ?? null;
+      }
     } catch (e) {
       console.error("contrato a partir do orçamento:", e);
     }
@@ -35,7 +40,7 @@ export async function POST(request: Request, { params }: Ctx) {
         body: contractReady
           ? "O contrato já está pronto. Revise e envie para ele assinar."
           : "Fale com ele para combinar os próximos passos.",
-        url: contractReady ? "/dashboard/financeiro" : "/dashboard/orcamentos",
+        url: `/dashboard/clientes/${contractId ?? saved.id}`,
       });
     }
     return NextResponse.json({ ok: true });

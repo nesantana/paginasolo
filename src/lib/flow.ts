@@ -13,7 +13,7 @@ import {
   openAppointmentsForContract,
 } from "@/lib/agendaStore";
 import { buildPlan } from "@/lib/contractUi";
-import { formatBRL } from "@/lib/quoteUi";
+import { formatBRL, itemsSummary } from "@/lib/quoteUi";
 import { tenantTimeZone, todayIn } from "@/lib/digest";
 
 /**
@@ -33,7 +33,7 @@ export async function contractFromAcceptedQuote(
   if (await contractExistsForQuote(tenant.id, quote.id)) return null;
 
   const today = todayIn(tenantTimeZone(tenant.city));
-  const title = quote.items.map((i) => i.title).join(", ").slice(0, 140) || "Serviço";
+  const title = itemsSummary(quote.items) || "Serviço";
   const scope = quote.items
     .map((i) => `• ${i.qty > 1 ? `${i.qty}× ` : ""}${i.title}${i.price_cents > 0 ? `: ${formatBRL(i.price_cents * i.qty)}` : ""}`)
     .join("\n")

@@ -46,7 +46,7 @@ export async function notifyDailyFor(tenant: TenantRow, now = new Date()): Promi
         ? `${plural(toCharge.length, "cobrança", "cobranças")} (${late} atrasada${late > 1 ? "s" : ""})`
         : `${plural(toCharge.length, "cobrança vence", "cobranças vencem")} hoje`,
       body: `Aguardando pagamento: ${formatBRL(total)}.`,
-      url: "/dashboard/financeiro",
+      url: "/dashboard/clientes",
     });
     sent++;
   }
@@ -60,7 +60,7 @@ export async function notifyDailyFor(tenant: TenantRow, now = new Date()): Promi
       kind: "followup",
       title: `${plural(due.length, "cliente", "clientes")} para chamar de volta`,
       body: due.length === 1 ? `${due[0].customer_name} está esperando retorno do orçamento.` : "Abra para ver a mensagem pronta de cada um.",
-      url: "/dashboard/orcamentos",
+      url: "/dashboard/clientes",
     });
     sent++;
   }

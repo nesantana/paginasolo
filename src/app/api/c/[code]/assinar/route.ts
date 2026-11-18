@@ -46,7 +46,7 @@ export async function POST(request: Request, { params }: Ctx) {
           scheduled ? "Entrou na sua agenda." : "",
           next ? `Aguardando pagamento: ${next.label} de ${formatBRL(next.amount_cents)}.` : "",
         ].filter(Boolean).join(" ") || "Tudo certo para começar.",
-        url: "/dashboard/financeiro",
+        url: `/dashboard/clientes/${c.id}`,
       });
     }
     return NextResponse.json({ ok: true });

@@ -116,3 +116,19 @@ export const itemsSummary = (items: { title: string }[] | null | undefined, max 
     .map((i) => i.title)
     .join(", ")
     .slice(0, max);
+
+/** "campo grande, ms" -> "Campo Grande, MS" */
+export function prettyCity(city: string | null | undefined): string {
+  const raw = (city || "").trim();
+  if (!raw) return "";
+  const small = new Set(["de", "da", "do", "dos", "das", "e"]);
+  return raw
+    .split(/(\s*[,\-/]\s*)/)
+    .map((part) => {
+      if (/^\s*[,\-/]\s*$/.test(part)) return part;
+      const words = part.trim().split(/\s+/);
+      if (words.length === 1 && words[0].length === 2) return words[0].toUpperCase();
+      return words.map((w, i) => (i > 0 && small.has(w.toLowerCase()) ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())).join(" ");
+    })
+    .join("");
+}

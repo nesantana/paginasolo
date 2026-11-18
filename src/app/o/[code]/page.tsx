@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getQuoteByCode, hasPaidPlan, quotesAvailable } from "@/lib/quoteStore";
 import { getTenantById } from "@/lib/tenantStore";
 import { QuoteActions } from "@/components/QuoteActions";
-import { formatBRL, formatDateBR, todayISO } from "@/lib/quoteUi";
+import { formatBRL, formatDateBR, prettyCity, todayISO } from "@/lib/quoteUi";
 
 // Cada abertura precisa ver o estado atual (aceito, validade...).
 export const dynamic = "force-dynamic";
@@ -57,7 +57,7 @@ export default async function QuotePage({ params }: Props) {
           <p className="text-sm font-bold uppercase tracking-wider text-white/70">Orçamento</p>
           <h1 className="mt-2 text-3xl font-extrabold leading-tight">{tenant.business_name}</h1>
           <p className="mt-1 text-white/80">
-            {tenant.category} · {tenant.city}
+            {tenant.category} · {prettyCity(tenant.city)}
           </p>
         </div>
       </header>

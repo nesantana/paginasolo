@@ -51,7 +51,7 @@ export function QuoteActions({
         return;
       }
       setAccepted(true);
-      window.open(whatsappLink(whatsapp, acceptText), "_blank", "noopener");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setError("Sem conexão. Tente de novo.");
     } finally {
@@ -61,17 +61,27 @@ export function QuoteActions({
 
   if (accepted) {
     return (
-      <div className="space-y-3 text-center">
-        <p className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-50 px-4 py-4 text-base font-extrabold text-emerald-700">
-          <CheckCircle2 className="h-5 w-5" /> Orçamento aceito! Já avisamos {business}.
-        </p>
+      <div className="space-y-4">
+        <div className="rounded-3xl bg-emerald-50 p-6 text-center">
+          <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
+          <p className="mt-2 text-xl font-extrabold text-emerald-800">Orçamento aceito!</p>
+          <p className="mt-1 text-emerald-900">
+            {business} já recebeu o aviso e vai entrar em contato com você. É só aguardar.
+          </p>
+        </div>
+        <ol className="space-y-2 rounded-3xl bg-white p-5 text-sm text-slate-700 shadow-sm">
+          <li className="flex gap-3"><span className="font-extrabold text-emerald-600">✓</span> Você aceitou o orçamento</li>
+          <li className="flex gap-3"><span className="font-extrabold text-slate-400">2</span> {business} prepara o contrato e te envia</li>
+          <li className="flex gap-3"><span className="font-extrabold text-slate-400">3</span> Você confere, assina e combina o pagamento</li>
+        </ol>
+        <p className="text-center text-xs text-slate-500">Está com pressa? Se preferir, fale agora:</p>
         <a
           href={whatsappLink(whatsapp, acceptText)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 underline underline-offset-4"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-bold text-slate-800"
         >
-          <MessageCircle className="h-4 w-4" /> Abrir conversa no WhatsApp
+          <MessageCircle className="h-4 w-4 text-emerald-600" /> Chamar {business} no WhatsApp
         </a>
       </div>
     );

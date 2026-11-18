@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: Ctx) {
         kind: "payment_informed",
         title: `${c.customer_name} avisou que pagou ${formatBRL(saved.amount_cents)}`,
         body: "Confira no seu banco e confirme o recebimento.",
-        url: "/dashboard/financeiro",
+        url: `/dashboard/clientes/${c.id}`,
       });
     }
     return NextResponse.json({ ok: Boolean(saved) }, { status: saved ? 200 : 409 });

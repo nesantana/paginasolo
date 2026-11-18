@@ -9,7 +9,7 @@ import { AssistantCard, AssistantChat } from "@/components/AssistantChat";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
 import type { TenantDashboardSummary } from "@/lib/tenantStore";
 import { BrandLogo } from "@/components/BrandLogo";
-import { NotificationBell } from "@/components/NotificationBell";
+import { NotificationBell, PushBanner } from "@/components/NotificationBell";
 import {
   ExternalLink,
   CheckCircle2,
@@ -219,6 +219,8 @@ export default function ClientDashboardPage() {
         {/* VISÃO GERAL */}
         {mode === "overview" && (
           <div className="space-y-6">
+            <PushBanner />
+
             {/* 1. Pedir ao assistente */}
             <AssistantCard paid={paid} />
 

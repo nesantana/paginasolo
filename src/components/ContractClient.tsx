@@ -41,6 +41,7 @@ export function ContractClient(p: Props) {
   const [pays, setPays] = useState(p.payments);
   const [copied, setCopied] = useState<string | null>(null);
   const [informing, setInforming] = useState<string | null>(null);
+  const [justSigned, setJustSigned] = useState(false);
 
   // "Visto" só quando uma pessoa abre (a prévia do WhatsApp não executa JS).
   useEffect(() => {
@@ -63,11 +64,8 @@ export function ContractClient(p: Props) {
       }
       setSignedName(name.trim());
       setSignedAt(new Date().toISOString());
-      window.open(
-        whatsappLink(p.whatsapp, `Olá! Sou ${name.trim()} e aceitei o contrato. Podemos combinar os próximos passos?`),
-        "_blank",
-        "noopener"
-      );
+      setJustSigned(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setError("Sem conexão. Tente de novo.");
     } finally {
@@ -106,15 +104,35 @@ export function ContractClient(p: Props) {
       {/* ACEITE */}
       <section className="rounded-3xl bg-white p-6 shadow-xl shadow-slate-900/10 print:shadow-none">
         {signedName ? (
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
-            <div>
-              <p className="font-extrabold text-slate-900">Contrato aceito</p>
-              <p className="text-sm text-slate-600">
-                Por <strong>{signedName}</strong>
-                {signedAt && ` em ${formatDateBR(signedAt.slice(0, 10))} às ${new Date(signedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}
-              </p>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
+              <div>
+                <p className="font-extrabold text-slate-900">Contrato aceito</p>
+                <p className="text-sm text-slate-600">
+                  Por <strong>{signedName}</strong>
+                  {signedAt && ` em ${formatDateBR(signedAt.slice(0, 10))} às ${new Date(signedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}
+                </p>
+              </div>
             </div>
+            {justSigned && (
+              <p className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-900">
+                {p.business} já recebeu o aviso.{" "}
+                {pays.some((x) => x.pixCode)
+                  ? "Você já pode pagar a primeira parcela logo abaixo."
+                  : `Agora é só aguardar: ${p.business} vai te passar como pagar.`}{" "}
+                Com pressa?{" "}
+                <a
+                  href={whatsappLink(p.whatsapp, `Olá! Sou ${signedName} e aceitei o contrato.`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold underline"
+                >
+                  Chame no WhatsApp
+                </a>
+                .
+              </p>
+            )}
           </div>
         ) : p.closed ? (
           <p className="font-bold text-slate-600">Este contrato foi encerrado.</p>

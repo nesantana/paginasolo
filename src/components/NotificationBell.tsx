@@ -68,6 +68,35 @@ async function subscribeThisDevice(): Promise<boolean> {
   return res.ok;
 }
 
+const isIosDevice = () => typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isInstalled = () =>
+  typeof window !== "undefined" &&
+  (window.matchMedia?.("(display-mode: standalone)").matches ||
+    (navigator as unknown as { standalone?: boolean }).standalone === true);
+
+/** Passo a passo para quem não consegue ativar (iPhone sem o app instalado, navegador sem suporte). */
+function UnsupportedHelp() {
+  if (isIosDevice() && !isInstalled()) {
+    return (
+      <div className="space-y-1.5 text-xs text-slate-200">
+        <p className="text-sm font-bold">Para receber avisos no iPhone, instale o app:</p>
+        <ol className="list-decimal space-y-1 pl-4">
+          <li>Abra este site no <b>Safari</b>.</li>
+          <li>Toque no botão <b>Compartilhar</b> (quadrado com seta para cima).</li>
+          <li>Escolha <b>Adicionar à Tela de Início</b>.</li>
+          <li>Abra o app pelo <b>ícone novo</b> na tela e toque em Ativar avisos.</li>
+        </ol>
+      </div>
+    );
+  }
+  return (
+    <p className="text-xs text-slate-200">
+      Este navegador não permite avisos. No Android, abra pelo <b>Chrome</b>. No iPhone, use o <b>Safari</b> com o app
+      instalado na tela de início.
+    </p>
+  );
+}
+
 /** Sino do painel: histórico de avisos + botão para receber notificações no navegador/celular. */
 export function NotificationBell() {
   const router = useRouter();
@@ -94,6 +123,7 @@ export function NotificationBell() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPerm(pushSupported() ? Notification.permission : "unsupported");
+    // se o aparelho não tem suporte, ainda assim o sino mostra o passo a passo
     void load();
     const t = setInterval(() => document.visibilityState === "visible" && void load(), 60000);
     const onVis = () => document.visibilityState === "visible" && void load();
@@ -157,8 +187,22 @@ export function NotificationBell() {
     router.push(n.url);
   }
 
-  const isIos = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const standalone = typeof window !== "undefined" && window.matchMedia?.("(display-mode: standalone)").matches;
+  async function sendTest() {
+    setBusy(true);
+    setHint("");
+    try {
+      await subscribeThisDevice().catch(() => false);
+      const r = await fetch("/api/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ test: true }),
+      });
+      setHint(r.ok ? "Enviei um aviso de teste. Ele deve aparecer em alguns segundos." : "Não consegui enviar o teste agora.");
+      void load();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div ref={box} className="relative">
@@ -191,31 +235,43 @@ export function NotificationBell() {
             )}
           </div>
 
-          {perm !== "unsupported" && perm !== "granted" && (
+          {perm === "unsupported" && (
+            <div className="m-3 rounded-xl border border-amber-400/40 bg-amber-400/10 p-3">
+              <UnsupportedHelp />
+            </div>
+          )}
+          {(perm === "default" || perm === "denied") && (
             <div className="m-3 rounded-xl border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-3">
               <p className="text-sm font-bold">Receba avisos no celular</p>
               <p className="mt-0.5 text-xs text-slate-300">
                 Orçamento aceito, contrato assinado, pagamento: você fica sabendo na hora, mesmo com o app fechado.
               </p>
-              {isIos && !standalone && (
-                <p className="mt-1 text-xs text-amber-300">
-                  No iPhone: toque em Compartilhar e “Adicionar à Tela de Início”, depois abra por lá e ative.
+              {perm === "denied" ? (
+                <p className="mt-2 text-xs text-amber-300">
+                  Os avisos estão bloqueados. Toque no cadeado ao lado do endereço do site, abra Permissões ou Notificações,
+                  escolha Permitir e atualize a página.
                 </p>
+              ) : (
+                <button
+                  onClick={enable}
+                  disabled={busy}
+                  className="btn-shine mt-2 inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-extrabold disabled:opacity-60"
+                >
+                  {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BellRing className="h-3.5 w-3.5" />}
+                  Ativar avisos neste aparelho
+                </button>
               )}
-              <button
-                onClick={enable}
-                disabled={busy || perm === "denied"}
-                className="btn-shine mt-2 inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-extrabold disabled:opacity-60"
-              >
-                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BellRing className="h-3.5 w-3.5" />}
-                {perm === "denied" ? "Bloqueado no navegador" : "Ativar notificações"}
-              </button>
             </div>
           )}
           {perm === "granted" && (
-            <p className="mx-4 mt-3 flex items-center gap-1.5 text-xs text-emerald-300">
-              <BellRing className="h-3.5 w-3.5" /> Avisos ativados neste aparelho
-            </p>
+            <div className="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-xs text-emerald-300">
+                <BellRing className="h-3.5 w-3.5" /> Avisos ativados neste aparelho
+              </p>
+              <button onClick={sendTest} disabled={busy} className="text-xs font-bold text-[#67e8f9] hover:underline disabled:opacity-60">
+                Enviar aviso de teste
+              </button>
+            </div>
           )}
           {hint && <p className="mx-4 mt-2 text-xs text-slate-300">{hint}</p>}
 
@@ -251,6 +307,86 @@ export function NotificationBell() {
             })}
           </ul>
         </div>
+      )}
+    </div>
+  );
+}
+
+/** Aviso no topo do painel para quem ainda não ativou as notificações neste aparelho. */
+export function PushBanner() {
+  const [state, setState] = useState<"hidden" | "ask" | "install" | "blocked">("hidden");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem("ps_push_banner") === "1";
+    } catch {
+      // sem storage: mostra sempre
+    }
+    if (dismissed) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!pushSupported()) setState(isIosDevice() && !isInstalled() ? "install" : "hidden");
+    else if (Notification.permission === "default") setState("ask");
+    else if (Notification.permission === "denied") setState("blocked");
+  }, []);
+
+  if (state === "hidden") return null;
+
+  const close = () => {
+    try {
+      localStorage.setItem("ps_push_banner", "1");
+    } catch {
+      // ignora
+    }
+    setState("hidden");
+  };
+
+  async function enable() {
+    setBusy(true);
+    try {
+      const p = await Notification.requestPermission();
+      if (p === "granted") {
+        await subscribeThisDevice().catch(() => false);
+        setState("hidden");
+      } else if (p === "denied") setState("blocked");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="flex items-center gap-2 font-extrabold">
+          <BellRing className="h-5 w-5 text-[#67e8f9]" /> Receba um aviso quando o cliente aceitar
+        </p>
+        <button onClick={close} className="shrink-0 text-xs font-bold text-slate-400 hover:text-white">
+          Agora não
+        </button>
+      </div>
+      {state === "ask" && (
+        <>
+          <p className="mt-1 text-sm text-slate-300">Orçamento aceito, contrato assinado e pagamento chegam no seu celular, mesmo com o app fechado.</p>
+          <button
+            onClick={enable}
+            disabled={busy}
+            className="btn-shine mt-3 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold disabled:opacity-60"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />} Ativar avisos neste aparelho
+          </button>
+        </>
+      )}
+      {state === "install" && (
+        <div className="mt-2">
+          <UnsupportedHelp />
+        </div>
+      )}
+      {state === "blocked" && (
+        <p className="mt-1 text-sm text-amber-300">
+          Os avisos estão bloqueados neste aparelho. Toque no cadeado ao lado do endereço do site, abra Permissões, escolha
+          Permitir em Notificações e atualize a página.
+        </p>
       )}
     </div>
   );
