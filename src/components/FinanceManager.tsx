@@ -1,5 +1,6 @@
 "use client";
 
+import { Sheet } from "@/components/Sheet";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle, BadgeCheck, Banknote, CalendarClock, Check, ExternalLink, FilePlus2, Link2,
@@ -398,7 +399,9 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
       </>)}
 
       {!pix.pix_key && (pixOpen ? (
-        <PixCard pix={pix} onSaved={(p) => { setPix(p); setPixOpen(false); flash("Pix salvo."); }} />
+        <Sheet onClose={() => setPixOpen(false)}>
+          <PixCard pix={pix} onSaved={(p) => { setPix(p); setPixOpen(false); flash("Pix salvo."); }} />
+        </Sheet>
       ) : (
         <button
           onClick={() => setPixOpen(true)}
@@ -410,6 +413,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
       ))}
 
       {creating ? (
+        <Sheet onClose={() => { setCreating(false); setInitialQuote(""); }}>
         <ContractForm
           quotes={acceptedQuotes}
           initialQuoteId={initialQuote}
@@ -421,7 +425,9 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
             flash("Contrato pronto. Agora é só enviar para o cliente.");
           }}
         />
+        </Sheet>
       ) : editingQuote ? (
+        <Sheet onClose={() => setEditingQuote(null)}>
         <QuoteForm
           key={editingQuote.id}
           editing={editingQuote}
@@ -432,7 +438,9 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
           onMarkSent={async () => {}}
           onClose={() => setEditingQuote(null)}
         />
+        </Sheet>
       ) : quoting ? (
+        <Sheet onClose={() => setQuoting(false)}>
         <QuoteForm
           business={tenant.business_name}
           origin={origin}
@@ -442,6 +450,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
           onApproved={(q) => startContractFor(q.id)}
           onClose={() => setQuoting(false)}
         />
+        </Sheet>
       ) : focusId || atLimit ? null : (
         <div className="space-y-2">
           <button onClick={() => setQuoting(true)} className="btn-shine text-white hover:brightness-110 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold">
@@ -876,7 +885,9 @@ function PaymentLine({
       )}
 
       {open && (
-        <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2 sm:flex-row sm:items-end">
+        <Sheet title="Já recebi" onClose={() => setOpen(false)}>
+        <p className="text-sm text-slate-300">{p.label} · <b className="text-white">{formatBRL(p.amount_cents)}</b></p>
+        <div className="flex flex-col gap-3">
           <label className="block flex-1 text-[11px] font-bold text-slate-400">
             Forma
             <select value={method} onChange={(e) => setMethod(e.target.value)} className={`${input} !py-2.5`}>
@@ -891,6 +902,7 @@ function PaymentLine({
             {busy && <Loader2 className="h-4 w-4 animate-spin" />} Confirmar recebimento
           </button>
         </div>
+        </Sheet>
       )}
     </li>
   );
@@ -925,7 +937,8 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
     }
   }
 
-  return (
+  const sheeted = editing && Boolean(pix.pix_key);
+  const body = (
     <section id="pix-card" className={`${card} space-y-3 ${!pix.pix_key ? "!border-amber-400/50" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-extrabold">{pix.pix_key ? "Sua chave Pix (onde o dinheiro cai)" : "Antes de cobrar: cadastre sua chave Pix"}</h2>
@@ -985,4 +998,5 @@ function PixCard({ pix, onSaved }: { pix: Pix; onSaved: (p: Pix) => void }) {
       )}
     </section>
   );
+  return sheeted ? <Sheet onClose={() => setEditing(false)}>{body}</Sheet> : body;
 }

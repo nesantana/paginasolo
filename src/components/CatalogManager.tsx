@@ -1,5 +1,6 @@
 "use client";
 
+import { Sheet } from "@/components/Sheet";
 import { useCallback, useEffect, useState } from "react";
 import { Globe, Loader2, Package, Pencil, Plus, Repeat, Trash2, Wrench, X } from "lucide-react";
 import type { CatalogItem } from "@/types/catalog";
@@ -125,6 +126,7 @@ export function CatalogManager({ siteServices = [] }: { siteServices?: TenantSer
       )}
 
       {draft ? (
+        <Sheet onClose={() => setDraft(null)}>
         <form onSubmit={save} className="space-y-3 rounded-3xl border border-[#3b82f6]/40 bg-[#0f172a] p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-extrabold">{draft.id ? "Editar item" : "Novo item"}</h2>
@@ -167,6 +169,7 @@ export function CatalogManager({ siteServices = [] }: { siteServices?: TenantSer
             {busy && <Loader2 className="h-4 w-4 animate-spin" />} Salvar
           </button>
         </form>
+        </Sheet>
       ) : (
         <button onClick={() => setDraft(blank)} className="btn-shine flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl px-6 text-base font-extrabold">
           <Plus className="h-5 w-5" /> Novo item

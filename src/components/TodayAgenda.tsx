@@ -1,5 +1,6 @@
 "use client";
 
+import { Sheet } from "@/components/Sheet";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -64,6 +65,8 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [sheet, setSheet] = useState(false);
+  // No celular a home mostra o dia; no computador, o mês.
+  const [view, setView] = useState<"dia" | "semana" | "mes">(() => (typeof window !== "undefined" && window.innerWidth < 1024 ? "dia" : "mes"));
   const [selected, setSelected] = useState(() => todayISO());
   const [cursor, setCursor] = useState(() => {
     const t = todayISO();
@@ -194,6 +197,32 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
       const d = new Date(c.y, c.m + delta, 1);
       return { y: d.getFullYear(), m: d.getMonth() };
     });
+
+  const syncCursor = (d: string) => setCursor({ y: Number(d.slice(0, 4)), m: Number(d.slice(5, 7)) - 1 });
+  const step = (dir: number) => {
+    if (view === "mes") return go(dir);
+    const d = addDays(selected, (view === "semana" ? 7 : 1) * dir);
+    setSelected(d);
+    syncCursor(d);
+  };
+  const wkStart = addDays(selected, -new Date(`${selected}T12:00:00`).getDay());
+  const label =
+    view === "mes"
+      ? monthTitle(cursor.y, cursor.m)
+      : view === "semana"
+        ? `${formatDateBR(wkStart).slice(0, 5)} a ${formatDateBR(addDays(wkStart, 6)).slice(0, 5)}`
+        : selected === today ? "Hoje" : selected === addDays(today, 1) ? "Amanhã" : `${weekday(selected)}, ${formatDateBR(selected).slice(0, 5)}`;
+  const notNow =
+    view === "mes"
+      ? cursor.y !== Number(today.slice(0, 4)) || cursor.m !== Number(today.slice(5, 7)) - 1
+      : view === "dia"
+        ? selected !== today
+        : !(today >= wkStart && today <= addDays(wkStart, 6));
+  const pickView = (v: "dia" | "semana" | "mes") => {
+    if (v === "mes") syncCursor(selected);
+    else if (view === "mes" && selected.slice(0, 7) !== `${cursor.y}-${pad(cursor.m + 1)}`) setSelected(iso(cursor.y, cursor.m, 1));
+    setView(v);
+  };
 
   const dayVisits = (visitsByDay.get(selected) || []).slice().sort((a, b) => (a.start_time || "99").localeCompare(b.start_time || "99"));
   const dayFollow = followByDay.get(selected) || [];
@@ -361,6 +390,45 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
     setSheet(false);
     setAdding(false);
   };
+  const dayBody = (
+      <div className="space-y-3">
+        <h3 className="text-lg font-extrabold capitalize">
+          {selected === today ? "Hoje" : selected === addDays(today, 1) ? "Amanhã" : `${weekday(selected)}, ${formatDateBR(selected).slice(0, 5)}`}
+          <span className="ml-2 text-sm font-semibold text-slate-400">
+            {openCount > 0 ? `${openCount} serviço${openCount > 1 ? "s" : ""}` : "nada marcado"}
+          </span>
+        </h3>
+        {dayFollow.length > 0 && <ul className="space-y-2">{dayFollow.map((f) => followRow(f))}</ul>}
+        {dayVisits.length > 0 && <ul className="space-y-2">{dayVisits.map((v) => visitRow(v))}</ul>}
+        {dayList.length > 0 ? (
+          <ul className="space-y-2">{dayList.map((a) => row(a))}</ul>
+        ) : (
+          dayVisits.length === 0 && dayFollow.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-white/15 p-4 text-sm text-slate-400">
+              Nada marcado nesse dia. Combinou algo com um cliente? Marque aqui e você recebe o aviso por e-mail no dia.
+            </p>
+          )
+        )}
+        {(
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#3b82f6]/50 px-4 py-3 text-sm font-extrabold text-[#a5f3fc] hover:bg-[#3b82f6]/10"
+          >
+            <Plus className="h-4 w-4" /> Marcar serviço neste dia
+          </button>
+        )}
+        {(
+          <Link
+            href={`/dashboard/visitas?novo=1&dia=${selected}`}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/50 px-4 py-3 text-sm font-extrabold text-violet-200 hover:bg-violet-500/10"
+          >
+            <ClipboardList className="h-4 w-4" /> Marcar visita técnica neste dia
+          </Link>
+        )}
+      </div>
+  );
+
   const dayPanel = sheet ? (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-4"
@@ -374,58 +442,7 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
             Fechar
           </button>
         </div>
-      <div className="space-y-3">
-        <h3 className="text-lg font-extrabold capitalize">
-          {selected === today ? "Hoje" : selected === addDays(today, 1) ? "Amanhã" : `${weekday(selected)}, ${formatDateBR(selected).slice(0, 5)}`}
-          <span className="ml-2 text-sm font-semibold text-slate-400">
-            {openCount > 0 ? `${openCount} serviço${openCount > 1 ? "s" : ""}` : "nada marcado"}
-          </span>
-        </h3>
-        {dayFollow.length > 0 && <ul className="space-y-2">{dayFollow.map((f) => followRow(f))}</ul>}
-        {dayVisits.length > 0 && <ul className="space-y-2">{dayVisits.map((v) => visitRow(v))}</ul>}
-        {dayList.length > 0 ? (
-          <ul className="space-y-2">{dayList.map((a) => row(a))}</ul>
-        ) : (
-          !adding && dayVisits.length === 0 && dayFollow.length === 0 && (
-            <p className="rounded-2xl border border-dashed border-white/15 p-4 text-sm text-slate-400">
-              Nada marcado nesse dia. Combinou algo com um cliente? Marque aqui e você recebe o aviso por e-mail no dia.
-            </p>
-          )
-        )}
-        {adding ? (
-          <DayQuickAdd
-            key={selected}
-            day={selected}
-            today={today}
-            items={items}
-            contracts={contracts}
-            quotes={quotes}
-            onClose={() => setAdding(false)}
-            onCreated={(a) => {
-              setItems((cur) => [...cur, a]);
-              setSelected(a.starts_on);
-              setCursor({ y: Number(a.starts_on.slice(0, 4)), m: Number(a.starts_on.slice(5, 7)) - 1 });
-              setAdding(false);
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#3b82f6]/50 px-4 py-3 text-sm font-extrabold text-[#a5f3fc] hover:bg-[#3b82f6]/10"
-          >
-            <Plus className="h-4 w-4" /> Marcar serviço neste dia
-          </button>
-        )}
-        {!adding && (
-          <Link
-            href={`/dashboard/visitas?novo=1&dia=${selected}`}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/50 px-4 py-3 text-sm font-extrabold text-violet-200 hover:bg-violet-500/10"
-          >
-            <ClipboardList className="h-4 w-4" /> Marcar visita técnica neste dia
-          </Link>
-        )}
-      </div>
+      {dayBody}
 
       </div>
     </div>
@@ -433,13 +450,20 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
 
   const calendar = (
     <section className={`${shell} space-y-5`} aria-hidden={!paid}>
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-[#0a0e17] p-1">
+        {(["dia", "semana", "mes"] as const).map((v) => (
+          <button key={v} type="button" onClick={() => pickView(v)} className={`min-h-11 rounded-lg text-sm font-bold ${view === v ? "btn-shine text-white" : "text-slate-300 hover:bg-white/10"}`}>
+            {v === "dia" ? "Dia" : v === "semana" ? "Semana" : "Mês"}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => go(-1)} aria-label="Mês anterior" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
+          <button type="button" onClick={() => step(-1)} aria-label="Anterior" className="grid h-11 w-11 place-items-center rounded-lg text-slate-300 hover:bg-white/10">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <h2 className="min-w-[10rem] text-center text-xl font-extrabold">{monthTitle(cursor.y, cursor.m)}</h2>
-          <button type="button" onClick={() => go(1)} aria-label="Próximo mês" className="rounded-lg p-2 text-slate-300 hover:bg-white/10">
+          <h2 className="min-w-[9rem] text-center text-lg font-extrabold capitalize sm:text-xl">{label}</h2>
+          <button type="button" onClick={() => step(1)} aria-label="Próximo" className="grid h-11 w-11 place-items-center rounded-lg text-slate-300 hover:bg-white/10">
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
@@ -447,15 +471,20 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
           type="button"
           onClick={() => {
             setAdding(true);
-            setSheet(true);
           }}
-          className="inline-flex items-center gap-2 rounded-xl btn-shine px-5 py-3 text-sm font-extrabold text-white hover:brightness-110"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl btn-shine px-5 py-3 text-sm font-extrabold text-white hover:brightness-110"
         >
           <Plus className="h-4 w-4" /> Marcar um serviço
         </button>
       </div>
 
-      <div>
+      {notNow && (
+        <button type="button" onClick={() => { setSelected(today); syncCursor(today); }} className="w-full rounded-xl border border-white/15 py-2.5 text-sm font-bold text-[#67e8f9] hover:bg-white/10">
+          Voltar para hoje
+        </button>
+      )}
+
+      {view === "mes" && (<div>
         <div className="grid grid-cols-7 gap-1 pb-1 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
           {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
             <span key={i}>{d}</span>
@@ -525,9 +554,53 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
           <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" /> feito</span>
           <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-400" /> conflito</span>
         </p>
-      </div>
+      </div>)}
 
-      <p className="text-center text-xs text-slate-400">Toque em um dia para ver o que tem nele ou marcar um serviço.</p>
+      {view === "mes" && <p className="text-center text-xs text-slate-400">Toque em um dia para ver o que tem nele ou marcar um serviço.</p>}
+      {view === "dia" && dayBody}
+      {view === "semana" && (
+        <div className="space-y-2">
+          {Array.from({ length: 7 }, (_, i) => addDays(wkStart, i)).map((d, i) => {
+            const list = (byDay.get(d) || []).filter((a) => a.status === "scheduled").slice().sort((a, b) => (a.start_time || "99").localeCompare(b.start_time || "99"));
+            const vl = (visitsByDay.get(d) || []).filter((v) => v.status === "scheduled");
+            const fl = followByDay.get(d) || [];
+            const n = list.length + vl.length + fl.length;
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => { setSelected(d); syncCursor(d); setView("dia"); }}
+                className={`flex w-full items-start gap-3 rounded-2xl border bg-[#0a0e17] p-3 text-left hover:bg-white/5 ${d === today ? "border-[#67e8f9]/60" : "border-white/10"}`}
+              >
+                <span className="w-12 shrink-0 text-center">
+                  <span className="block text-xs font-bold uppercase text-slate-400">{["dom", "seg", "ter", "qua", "qui", "sex", "sáb"][i]}</span>
+                  <span className={`block text-lg font-bold ${d === today ? "text-[#67e8f9]" : "text-white"}`}>{d.slice(8, 10)}</span>
+                </span>
+                <span className="min-w-0 flex-1 space-y-1">
+                  {n === 0 ? (
+                    <span className="block pt-2 text-sm text-slate-500">Livre</span>
+                  ) : (
+                    <>
+                      {list.map((a) => (
+                        <span key={a.id} className="block truncate text-sm text-slate-200">
+                          <b className="text-white">{a.start_time ? hhmm(a.start_time) : "—"}</b> {a.customer_name}<span className="text-slate-400"> · {a.title}</span>
+                        </span>
+                      ))}
+                      {vl.map((v) => (
+                        <span key={v.id} className="block truncate text-sm text-violet-200">Visita · {v.customer_name}</span>
+                      ))}
+                      {fl.map((f) => (
+                        <span key={f.key} className="block truncate text-sm text-amber-200">Chamar {f.customer_name}</span>
+                      ))}
+                    </>
+                  )}
+                </span>
+                {n > 0 && <span className="rounded-full btn-shine px-2 py-0.5 text-xs font-bold text-white">{n}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {lateFollow.length > 0 && selected === today && (
         <div className="space-y-2">
@@ -576,6 +649,25 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
     <div className="space-y-4">
       {calendar}
       {dayPanel}
+      {adding && (
+        <Sheet onClose={() => setAdding(false)}>
+          <DayQuickAdd
+            key={selected}
+            day={selected}
+            today={today}
+            items={items}
+            contracts={contracts}
+            quotes={quotes}
+            onClose={() => setAdding(false)}
+            onCreated={(a) => {
+              setItems((cur) => [...cur, a]);
+              setSelected(a.starts_on);
+              syncCursor(a.starts_on);
+              setAdding(false);
+            }}
+          />
+        </Sheet>
+      )}
 
       {money.open > 0 && (
         <Link href="/dashboard/financeiro" className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 hover:border-[#3b82f6]/50">

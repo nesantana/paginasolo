@@ -1,10 +1,9 @@
 "use client";
 
+import { Sheet } from "@/components/Sheet";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  ArrowRight, CalendarDays, Check, ChevronDown, ChevronUp, FileText, Loader2, MapPin, MessageCircle, Phone, Plus, Trash2, X,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, Check, FileText, Loader2, MapPin, MessageCircle, Phone, Plus, Trash2, X, ChevronRight } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import type { Followup, VisitItem, VisitRow } from "@/types/finance";
 import { formatBRL, formatDateBR, whatsappLink } from "@/lib/quoteUi";
@@ -133,11 +132,12 @@ function VisitCard({
             )}
           </span>
         </span>
-        {open ? <ChevronUp className="mt-1 h-5 w-5 shrink-0 text-slate-400" /> : <ChevronDown className="mt-1 h-5 w-5 shrink-0 text-slate-400" />}
+        <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
       </button>
 
       {open && (
-        <div className="space-y-5 border-t border-white/10 p-4">
+        <Sheet title={v.customer_name} onClose={onToggle}>
+        <div className="space-y-5">
           <div className="flex flex-wrap gap-2 text-sm">
             {v.address && (
               <a
@@ -313,6 +313,7 @@ function VisitCard({
             </button>
           </div>
         </div>
+        </Sheet>
       )}
     </li>
   );
@@ -401,7 +402,8 @@ export function VisitsManager({ tenant }: { tenant: TenantRow }) {
       </div>
 
       {adding && (
-        <section className="space-y-3 rounded-2xl border border-white/15 bg-[#0f172a] p-4">
+        <Sheet title="Nova visita técnica" onClose={() => setAdding(false)}>
+        <section className="space-y-3">
           <label className={lbl}>
             Nome do cliente
             <input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className={field} maxLength={80} autoFocus />
@@ -434,6 +436,7 @@ export function VisitsManager({ tenant }: { tenant: TenantRow }) {
             </button>
           </div>
         </section>
+        </Sheet>
       )}
 
       {sorted.length === 0 && !adding ? (

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CalendarPlus, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin, Mail, MessageCircle, Phone, RotateCcw, Trash2, X } from "lucide-react";
+import { Sheet } from "@/components/Sheet";
 import type { TenantRow } from "@/types/database.types";
 import type { AppointmentRow } from "@/types/finance";
 import { formatDateBR, whatsappLink } from "@/lib/quoteUi";
@@ -166,6 +167,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       </div>
 
       {adding ? (
+        <Sheet onClose={() => setAdding(false)}>
         <AppointmentForm
           today={today}
           contracts={contracts}
@@ -179,6 +181,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
             flash("Serviço marcado na agenda.");
           }}
         />
+        </Sheet>
       ) : (
         <button onClick={() => setAdding(true)} className="flex w-full items-center justify-center gap-2 rounded-xl btn-shine px-6 py-4 text-base font-bold text-white hover:brightness-110">
           <CalendarPlus className="h-5 w-5" /> Marcar um serviço
@@ -506,7 +509,9 @@ function Card({
       )}
 
       {moving && (
-        <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3 sm:flex-row sm:items-end">
+        <Sheet title="Remarcar" onClose={() => setMoving(false)}>
+        <p className="text-sm text-slate-300">{a.customer_name} · {a.title}</p>
+        <div className="flex flex-col gap-3">
           <label className={`${lbl} flex-1`}>
             Novo dia
             <input type="date" value={day} min={today} onChange={(e) => setDay(e.target.value)} className={field} />
@@ -525,6 +530,7 @@ function Card({
             Salvar
           </button>
         </div>
+        </Sheet>
       )}
     </article>
   );
