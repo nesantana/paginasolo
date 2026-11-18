@@ -5,6 +5,7 @@ import { appointmentsBetween, createAppointment, parseAppointment } from "@/lib/
 import { warningsFor } from "@/lib/agendaConflicts";
 import { addDays, tenantTimeZone, todayIn } from "@/lib/digest";
 import { createContract, listContracts } from "@/lib/financeStore";
+import { listCatalog } from "@/lib/catalogStore";
 import { createQuote, listQuotes, patchQuote } from "@/lib/quoteStore";
 import { buildPlan, chargeMessage, contractMessage, contractUrl, paymentView, summarize } from "@/lib/contractUi";
 import { buildPixPayload } from "@/lib/pix";
@@ -68,6 +69,7 @@ export const TOOLS: ToolDef[] = [
     { customer_name: { type: "string", description: "Nome (ou parte do nome) do cliente, opcional" } }
   ),
   fn("get_contracts", "Lista os contratos recentes (id, cliente, serviço, valor, situação)."),
+  fn("get_catalog", "Lista o catálogo de produtos e serviços do dono, com o preço de cada um. Use ANTES de montar um orçamento quando o dono citar um item sem dizer o preço: se houver um item com nome parecido, use o preço dele."),
   fn(
     "prepare_send",
     "Gera o BOTÃO com o link para o dono enviar pelo WhatsApp: orçamento, contrato ou cobrança (Pix) de um cliente que já existe. Use SEMPRE que o dono pedir para enviar, mandar, cobrar, passar o link ou o Pix. what: orcamento | contrato | cobranca. Em cobranca, payment: entrada | saldo | proxima (padrão proxima).",
@@ -301,6 +303,11 @@ async function runTool(name: string, a: Record<string, unknown>, ctx: Ctx): Prom
         criado_em: q.created_at?.slice(0, 10), ja_tem_contrato: withContract.has(q.id),
         servico: itemsSummary(q.items), dias_desde_envio: q.sent_at ? Math.floor((Date.parse(ctx.today) - Date.parse(q.sent_at.slice(0, 10))) / 86400000) : null,
       }));
+    }
+    case "get_catalog": {
+      const list = await listCatalog(tid);
+      if (!list.length) return { aviso: "O catálogo está vazio. Se faltar preço, pergunte ao dono." };
+      return list.slice(0, 80).map((c) => ({ nome: c.name, tipo: c.kind === "product" ? "produto" : "servico", preco_reais: c.price_cents / 100, unidade: c.unit }));
     }
     case "get_contracts": {
       const list = (await listContracts(tid)).filter((c) => c.status !== "cancelled").slice(0, 25);
@@ -592,6 +599,7 @@ function systemPrompt(tenant: TenantRow, today: string) {
     `- Só afirme números, nomes, datas e valores que vieram das ferramentas. Se não tem a informação, diga que não encontrou. Nunca invente.`,
     `- Para consultas, chame as ferramentas get_*. Converta "hoje", "amanhã", "esse mês", "mês passado" em datas AAAA-MM-DD usando a data de hoje.`,
     `- Para criar orçamento, contrato ou serviço na agenda, use as ferramentas propose_*. Elas só mostram um cartão de confirmação; o dono toca em Confirmar. Depois de propor, diga em uma frase para conferir o cartão. Nunca diga que já foi criado.`,
+    `- CATÁLOGO: se o dono citar um item sem preço, chame get_catalog e use o preço do item parecido (diga no cartão que veio do catálogo). Só pergunte o preço se o item não estiver no catálogo.`,
     `- ITENS DO ORÇAMENTO: cada serviço ou material que o dono citar é um item separado ("ponto de tomada, ligação X, ligação Y" = 3 itens). Nunca junte tudo numa linha. Se ele deu um valor só ("tudo por 450"), use total_reais e deixe os itens sem preço; se deu o preço de cada um, use price_reais por item. Se não ficou claro se o valor é de cada item ou de tudo, pergunte em uma frase.`,
     `- Dados obrigatórios: orçamento = nome, telefone e valor; contrato = nome, telefone, valor (ou orçamento); agenda = nome, serviço e dia (telefone e horário são OPCIONAIS, não peça). Se faltar algo obrigatório, pergunte só isso, de uma vez.`,
     `- Nunca diga que criou, agendou ou salvou: diga que PREPAROU e peça para conferir o cartão.`,

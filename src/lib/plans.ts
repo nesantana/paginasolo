@@ -41,3 +41,6 @@ export function addMonths(from: Date, months: number): Date {
   d.setMonth(d.getMonth() + months);
   return d;
 }
+
+/** Clientes (pessoas diferentes) que quem não assina pode atender de graça. */
+export const FREE_CLIENT_LIMIT = 10;

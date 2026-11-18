@@ -6,7 +6,7 @@ import { FinanceManager } from "@/components/FinanceManager";
 
 export default function ClientesPage() {
   const tenant = useOwnerTenant();
-  const paid = tenant?.is_active && tenant.subscription_status === "active";
+  const paid = Boolean(tenant);
 
   return (
     <OwnerShell

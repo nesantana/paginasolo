@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { CatalogItem } from "@/types/catalog";
 import { Check, Copy, Loader2, MessageCircle, Plus, Trash2, X } from "lucide-react";
 import type { QuoteItem, QuoteRow, TenantServiceItem } from "@/types/database.types";
 import {
@@ -54,6 +55,13 @@ const chip = (on: boolean) =>
 
 export function QuoteForm({ business, origin, services, onCreated, onMarkSent, onClose, onApproved, editing }: Props) {
   const [approved, setApproved] = useState(false);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  useEffect(() => {
+    fetch("/api/catalogo", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => d?.ok && setCatalog(d.items || []))
+      .catch(() => {});
+  }, []);
   const [name, setName] = useState(editing?.customer_name || "");
   const [phone, setPhone] = useState(editing ? editing.customer_phone.replace(/^55/, "") : "");
   const [lines, setLines] = useState<Line[]>(
@@ -245,7 +253,31 @@ export function QuoteForm({ business, origin, services, onCreated, onMarkSent, o
 
       <div className="space-y-2">
         <p className="text-sm font-bold text-slate-300">O que você vai fazer</p>
-        {services.length > 0 && (
+        {catalog.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-bold text-slate-400">Do seu catálogo (toque para adicionar)</p>
+            <div className="flex flex-wrap gap-2">
+              {catalog.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setLines((l) => [...l, { title: c.name, qty: 1, price: centsToInput(c.price_cents) }])}
+                  className="inline-flex min-h-11 items-center gap-1 rounded-full border border-[#67e8f9]/40 bg-[#0a0e17] px-3.5 py-1.5 text-left text-xs font-bold text-slate-100 hover:bg-white/10"
+                >
+                  <Plus className="h-3.5 w-3.5 shrink-0" />
+                  <span className="max-w-[16rem] truncate">{c.name}</span>
+                  {c.price_cents > 0 && <span className="text-[#67e8f9]">{formatBRL(c.price_cents)}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {catalog.length === 0 && (
+          <a href="/dashboard/catalogo" className="inline-block text-xs font-bold text-[#67e8f9] underline underline-offset-4">
+            Cadastre seus serviços e preços para montar orçamentos em segundos
+          </a>
+        )}
+        {services.length > 0 && catalog.length === 0 && (
           <div className="flex flex-wrap gap-2">
             {services.map((s, i) => (
               <button

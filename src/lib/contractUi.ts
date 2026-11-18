@@ -168,6 +168,11 @@ export function contractProgress(payments: PaymentRow[]) {
 }
 
 export const contractUrl = (origin: string, code: string) => `${origin}/c/${code}`;
+export const receiptUrl = (origin: string, code: string, paymentId: string) => `${origin}/r/${code}/${paymentId}`;
+
+export function receiptMessage(o: { customer: string; business: string; amountText: string; url: string }) {
+  return `Olá, ${firstName(o.customer)}! Recebi o seu pagamento de ${o.amountText}. Obrigado! 🙏\n\nSegue o recibo:\n${o.url}\n\n— ${o.business}`;
+}
 
 const firstName = (n: string) => n.trim().split(/\s+/)[0] || n;
 

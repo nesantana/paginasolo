@@ -10,6 +10,7 @@ import type {
   PaymentRow,
 } from "@/types/finance";
 import { todayISO } from "@/lib/quoteUi";
+import { assertCanAddClient } from "@/lib/freeLimit";
 
 // Tabelas novas ainda não estão no tipo Database gerado: usamos o cliente sem esquema.
 const db = () => getAdminClient() as unknown as SupabaseClient;
@@ -71,6 +72,7 @@ export async function createContract(
   tenantId: string,
   input: ContractInput
 ): Promise<ContractWithPayments> {
+  await assertCanAddClient(tenantId, input.customer_phone);
   // Se vier de um orçamento, ele precisa ser deste mesmo dono.
   let quoteId = input.quote_id;
   if (quoteId) {

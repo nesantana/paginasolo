@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FreeLimitError } from "@/lib/freeLimit";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import { applyProposal } from "@/lib/assistant";
 import { rateLimit } from "@/lib/rateLimit";
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
     const out = await applyProposal(auth.tenant, String(body.kind || ""), body.args, requestOrigin(request));
     return NextResponse.json(out, { status: out.ok ? 200 : 400, headers: NO_STORE });
   } catch (e) {
+    if (e instanceof FreeLimitError) return NextResponse.json({ ok: false, error: e.message, limit: true }, { status: 402, headers: NO_STORE });
     console.error("assistente confirmar:", e);
     return NextResponse.json({ ok: false, error: "Não foi possível salvar." }, { status: 500, headers: NO_STORE });
   }

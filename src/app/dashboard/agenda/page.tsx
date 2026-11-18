@@ -6,7 +6,7 @@ import { AgendaManager } from "@/components/AgendaManager";
 
 export default function AgendaPage() {
   const tenant = useOwnerTenant();
-  const paid = tenant?.is_active && tenant.subscription_status === "active";
+  const paid = Boolean(tenant);
 
   return (
     <OwnerShell title="Agenda" subtitle="Marque o dia combinado com o cliente e receba o aviso por e-mail no dia.">

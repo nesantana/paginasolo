@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, ClipboardList, FileText, Link2, Lock, MessageCircle, Wallet } from "lucide-react";
+import { ArrowRight, BarChart3, Package, CalendarClock, ClipboardList, FileText, Link2, Lock, MessageCircle, Wallet } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import { PublishButton } from "@/components/PublishButton";
 import { QuoteCard } from "@/components/QuoteCard";
@@ -138,19 +138,20 @@ export function OwnerShortcuts({ paid }: { paid: boolean }) {
     <section className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Tile href="/dashboard/clientes" icon={FileText} title="Meus clientes" text="Orçamento, contrato e Pix num lugar só" locked={!paid} />
+          <Tile href="/dashboard/clientes" icon={FileText} title="Meus clientes" text="Orçamento, contrato e Pix num lugar só" locked={false} />
         </div>
-        <Tile href="/dashboard/visitas" icon={ClipboardList} title="Visitas" text="Anote e vire orçamento" locked={!paid} />
-        <Tile href="/dashboard/links" icon={Link2} title="Link para o Instagram" text="Seus contatos num link só" locked={!paid} />
+        <Tile href="/dashboard/catalogo" icon={Package} title="Produtos e serviços" text="Seus preços prontos" locked={false} />
+        <Tile href="/dashboard/insights" icon={BarChart3} title="Insights" text="Como está o seu negócio" locked={false} />
+        <Tile href="/dashboard/visitas" icon={ClipboardList} title="Visitas" text="Anote e vire orçamento" locked={false} />
+        <Tile href="/dashboard/links" icon={Link2} title="Link para o Instagram" text="Seus contatos num link só" locked={false} />
       </div>
       {!paid && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-4">
           <p className="text-sm text-slate-200">
-            <Lock className="mr-1.5 inline h-4 w-4 text-[#67e8f9]" />
-            Seu site é grátis. As ferramentas acima liberam a partir de <b>R$ 37/mês</b>.
+            Tudo liberado de graça para até <b>10 clientes</b>. Para atender sem limite, assine por <b>R$ 37/mês</b>.
           </p>
           <PublishButton
-            label="Liberar ferramentas"
+            label="Assinar"
             className="inline-flex items-center justify-center gap-2 rounded-xl btn-shine px-5 py-2.5 text-sm font-extrabold text-white hover:brightness-110 disabled:opacity-60"
           />
         </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getQuoteByCode, hasPaidPlan, quotesAvailable } from "@/lib/quoteStore";
+import { getQuoteByCode, quotesAvailable } from "@/lib/quoteStore";
 import { getTenantById } from "@/lib/tenantStore";
 import { QuoteActions } from "@/components/QuoteActions";
 import { formatBRL, formatDateBR, prettyCity, todayISO } from "@/lib/quoteUi";
@@ -28,18 +28,6 @@ export default async function QuotePage({ params }: Props) {
   const tenant = await getTenantById(quote.tenant_id);
   if (!tenant) notFound();
 
-  if (!hasPaidPlan(tenant)) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-5 text-center">
-        <div className="max-w-sm space-y-2">
-          <p className="text-xl font-extrabold text-slate-900">Orçamento indisponível</p>
-          <p className="text-slate-600">
-            Fale direto com {tenant.business_name} pelo WhatsApp para receber um novo.
-          </p>
-        </div>
-      </main>
-    );
-  }
 
   const color = /^#[0-9a-f]{6}$/i.test(tenant.primary_color) ? tenant.primary_color : "#3b82f6";
   const expired = Boolean(quote.valid_until && quote.valid_until < todayISO());

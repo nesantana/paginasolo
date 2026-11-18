@@ -23,6 +23,7 @@ import {
   LogOut,
   Gift,
   ArrowRight,
+  HelpCircle,
 } from "lucide-react";
 import { DEFAULT_RATE } from "@/lib/affiliateRules";
 
@@ -184,6 +185,9 @@ export default function ClientDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
+            <Link href="/dashboard/ajuda" aria-label="Ajuda" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-slate-200 hover:bg-white/10">
+              <HelpCircle className="h-5 w-5" />
+            </Link>
             <NotificationBell />
             <Link
               href={`/${tenant.slug}`}
@@ -223,10 +227,10 @@ export default function ClientDashboardPage() {
             <PushBanner />
 
             {/* 1. Pedir ao assistente */}
-            <AssistantCard paid={paid} />
+            <AssistantCard paid />
 
             {/* 2. O que precisa de você agora */}
-            {paid && <TodoNow key={`todo-${tenant.id}`} />}
+            <TodoNow key={`todo-${tenant.id}`} />
 
             {/* 3. Menu principal */}
             <OwnerShortcuts paid={paid} />
@@ -553,7 +557,7 @@ export default function ClientDashboardPage() {
           </div>
         )}
       </main>
-      {mode === "overview" && <AssistantChat key={tenant.id} paid={paid} />}
+      {mode === "overview" && <AssistantChat key={tenant.id} paid />}
     </div>
   );
 }

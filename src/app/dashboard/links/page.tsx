@@ -154,7 +154,7 @@ function LinksEditor({ tenant }: { tenant: TenantRow }) {
 
 export default function LinksPage() {
   const tenant = useOwnerTenant();
-  const paid = tenant?.is_active && tenant.subscription_status === "active";
+  const paid = Boolean(tenant);
 
   return (
     <OwnerShell

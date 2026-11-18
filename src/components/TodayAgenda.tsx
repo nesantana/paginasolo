@@ -53,7 +53,7 @@ type Step = { key: string; icon: typeof FileText; text: string; cta: string; hre
 
 /** Calendário do mês + serviços do dia escolhido + próximos passos. A primeira coisa do painel. */
 export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
-  const paid = tenant.is_active && tenant.subscription_status === "active";
+  const paid = Boolean(tenant);
   const [today, setToday] = useState(() => todayISO());
   const [items, setItems] = useState<AppointmentRow[]>([]);
   const [contracts, setContracts] = useState<ContractWithPayments[]>([]);

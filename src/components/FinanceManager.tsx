@@ -9,9 +9,11 @@ import type { QuoteRow, TenantRow } from "@/types/database.types";
 import type { ContractWithPayments, PaymentRow } from "@/types/finance";
 import { ContractForm } from "@/components/ContractForm";
 import { QuoteForm } from "@/components/QuoteForm";
+import { PublishButton } from "@/components/PublishButton";
+import { FREE_CLIENT_LIMIT } from "@/lib/plans";
 import {
   METHODS, VIEW_CLASS, VIEW_LABEL, chargeMessage, contractMessage, contractProgress, contractUrl,
-  paymentView, summarize, dueText, buildPlan,
+  paymentView, summarize, dueText, buildPlan, receiptUrl, receiptMessage,
 } from "@/lib/contractUi";
 import { PIX_TYPES, buildPixPayload, detectPixKeyType, prettyPixKey, type PixKeyType } from "@/lib/pix";
 import { addDaysISO, itemsSummary, formatBRL, formatDateBR, isOpen, quoteMessage, quoteUrl, todayISO, whatsappLink } from "@/lib/quoteUi";
@@ -151,6 +153,9 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
 
   const today = todayISO();
   const sum = useMemo(() => summarize(contracts, today), [contracts, today]);
+  const isPaid = Boolean(tenant.complimentary) || (tenant.is_active && tenant.subscription_status === "active");
+  const usedClients = useMemo(() => new Set([...allQuotes.map((q) => q.customer_phone), ...contracts.map((c) => c.customer_phone)]).size, [allQuotes, contracts]);
+  const atLimit = !isPaid && usedClients >= FREE_CLIENT_LIMIT;
   const quoted = useMemo(() => new Set(contracts.map((c) => c.quote_id).filter(Boolean)), [contracts]);
   const acceptedQuotes = allQuotes.filter((q) => q.status === "accepted" && !quoted.has(q.id));
 
@@ -324,6 +329,21 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
           ← Voltar para Meus clientes
         </a>
       )}
+      {!focusId && !isPaid && (
+        <div className={`rounded-2xl border p-4 ${atLimit ? "border-amber-400/50 bg-amber-400/10" : "border-white/10 bg-[#0a0e17]"}`}>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <b>Clientes grátis: {Math.min(usedClients, FREE_CLIENT_LIMIT)} de {FREE_CLIENT_LIMIT}</b>
+            <PublishButton
+              label={atLimit ? "Assinar para continuar" : "Assinar"}
+              className="inline-flex items-center justify-center rounded-xl btn-shine px-4 py-2 text-xs font-extrabold text-white hover:brightness-110 disabled:opacity-60"
+            />
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full rounded-full bg-[#67e8f9]" style={{ width: `${Math.min(100, (usedClients / FREE_CLIENT_LIMIT) * 100)}%` }} />
+          </div>
+          {atLimit && <p className="mt-2 text-sm text-amber-200">Você usou os {FREE_CLIENT_LIMIT} clientes grátis. Seus clientes atuais continuam normais; para cadastrar novos, assine.</p>}
+        </div>
+      )}
       {!focusId && (<>
       <section className={`grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 ${contracts.length === 0 ? "hidden" : ""}`}>
         {tiles.map((t) => (
@@ -401,7 +421,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
           onApproved={(q) => startContractFor(q.id)}
           onClose={() => setQuoting(false)}
         />
-      ) : focusId ? null : (
+      ) : focusId || atLimit ? null : (
         <div className="space-y-2">
           <button onClick={() => setQuoting(true)} className="btn-shine text-white hover:brightness-110 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-extrabold">
             <FilePlus2 className="h-5 w-5" /> Novo cliente
@@ -510,6 +530,14 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
                   today={today}
                   locked={cancelled}
                   onCharge={() => charge(c, p)}
+                  onReceipt={() =>
+                    window.open(
+                      whatsappLink(c.customer_phone, receiptMessage({ customer: c.customer_name, business: tenant.business_name, amountText: formatBRL(p.amount_cents), url: receiptUrl(origin, c.code, p.id) })),
+                      "_blank",
+                      "noopener"
+                    )
+                  }
+                  receiptHref={`/r/${c.code}/${p.id}`}
                   onAction={(b) => paymentAction(c, p, b)}
                 />
               ))}
@@ -739,12 +767,14 @@ function NextStep({
 }
 
 function PaymentLine({
-  p, today, locked, onCharge, onAction,
+  p, today, locked, onCharge, onAction, onReceipt, receiptHref,
 }: {
   p: PaymentRow;
   today: string;
   locked: boolean;
   onCharge: () => void;
+  onReceipt: () => void;
+  receiptHref: string;
   onAction: (body: Record<string, unknown>) => Promise<void>;
 }) {
   const view = paymentView(p, today);
@@ -788,9 +818,15 @@ function PaymentLine({
               </button>
             </>
           ) : (
-            <button onClick={() => run({ type: "undo" })} disabled={busy} className={ghost}>
-              <Undo2 className="h-3.5 w-3.5" /> Desfazer
-            </button>
+            <>
+              <button onClick={onReceipt} className={`${ghost} !border-emerald-500/30 !text-emerald-300`}>
+                <MessageCircle className="h-3.5 w-3.5" /> Enviar recibo
+              </button>
+              <a href={receiptHref} target="_blank" rel="noopener noreferrer" className={ghost}>Ver recibo</a>
+              <button onClick={() => run({ type: "undo" })} disabled={busy} className={ghost}>
+                <Undo2 className="h-3.5 w-3.5" /> Desfazer
+              </button>
+            </>
           )}
           {p.last_reminder_at && p.status !== "paid" && (
             <span className="self-center text-[11px] text-slate-400">cobrado em {formatDateBR(p.last_reminder_at.slice(0, 10))}</span>

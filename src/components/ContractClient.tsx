@@ -194,6 +194,7 @@ export function ContractClient(p: Props) {
               {paid && (
                 <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-emerald-700">
                   <CheckCircle2 className="h-4 w-4" /> Pago{x.paid_at ? ` em ${formatDateBR(x.paid_at.slice(0, 10))}` : ""}
+                  <a href={`/r/${p.code}/${x.id}`} target="_blank" rel="noopener noreferrer" className="ml-auto font-bold underline">Ver recibo</a>
                 </p>
               )}
               {informed && (

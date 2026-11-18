@@ -6,7 +6,7 @@ import { VisitsManager } from "@/components/VisitsManager";
 
 export default function VisitasPage() {
   const tenant = useOwnerTenant();
-  const paid = tenant?.is_active && tenant.subscription_status === "active";
+  const paid = Boolean(tenant);
 
   return (
     <OwnerShell

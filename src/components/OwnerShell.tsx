@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, HelpCircle, Lock } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -49,6 +49,9 @@ export function OwnerShell({
             <ArrowLeft className="h-4 w-4" /> Meu painel
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/dashboard/ajuda" aria-label="Ajuda" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-slate-200 hover:bg-white/10">
+              <HelpCircle className="h-5 w-5" />
+            </Link>
             <NotificationBell />
             <BrandLogo size={28} className="text-lg" />
           </div>

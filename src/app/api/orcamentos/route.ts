@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FreeLimitError } from "@/lib/freeLimit";
 import { createQuote, listQuotes } from "@/lib/quoteStore";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import { parseQuoteInput } from "@/lib/validate";
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     const quote = await createQuote(auth.tenant.id, input);
     return NextResponse.json({ ok: true, quote }, { headers: NO_STORE });
   } catch (e) {
+    if (e instanceof FreeLimitError) return NextResponse.json({ ok: false, error: e.message, limit: true }, { status: 402, headers: NO_STORE });
     console.error("orcamentos POST:", e);
     return NextResponse.json({ ok: false, error: "Não foi possível salvar." }, { status: 500 });
   }

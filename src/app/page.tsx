@@ -219,7 +219,7 @@ export default async function Home() {
               className="animate-fade-up mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-400 lg:justify-start"
               style={{ animationDelay: "480ms" }}
             >
-              {["Comece em 10 minutos", "Site grátis", `A partir de ${brlShort(PLAN_PRICES.monthly)}/mês`].map((t) => (
+              {["Comece em 10 minutos", "Grátis até 10 clientes", `Depois, a partir de ${brlShort(PLAN_PRICES.monthly)}/mês`].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-emerald-400" />
                   {t}
@@ -497,7 +497,7 @@ export default async function Home() {
             Escolha como <span className="text-gradient">pagar</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-300">
-            As mesmas ferramentas nos dois planos. Seu site continua grátis, com ou sem plano.
+            Comece grátis: todas as ferramentas liberadas para até 10 clientes. Depois, escolha como pagar. Seu site é grátis sempre.
           </p>
         </Reveal>
 

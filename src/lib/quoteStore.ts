@@ -1,4 +1,5 @@
 import "server-only";
+import { assertCanAddClient } from "@/lib/freeLimit";
 import { randomBytes } from "crypto";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { sumItems, type QuoteInput } from "@/lib/validate";
@@ -45,6 +46,7 @@ export async function createQuote(
   tenantId: string,
   input: QuoteInput
 ): Promise<QuoteRow> {
+  await assertCanAddClient(tenantId, input.customer_phone);
   const { data, error } = await db()
     .from("quotes")
     .insert({

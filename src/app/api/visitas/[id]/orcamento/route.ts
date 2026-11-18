@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FreeLimitError } from "@/lib/freeLimit";
 import { getVisit, isVisitId, visitToQuote } from "@/lib/visitStore";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 
@@ -24,6 +25,7 @@ export async function POST(request: Request, { params }: Ctx) {
     if ("error" in r) return NextResponse.json({ ok: false, error: r.error }, { status: 400 });
     return NextResponse.json({ ok: true, quote: r.quote }, { headers: NO_STORE });
   } catch (e) {
+    if (e instanceof FreeLimitError) return NextResponse.json({ ok: false, error: e.message, limit: true }, { status: 402, headers: NO_STORE });
     console.error("visitas orcamento:", e);
     return NextResponse.json({ ok: false, error: "Não foi possível gerar." }, { status: 500 });
   }

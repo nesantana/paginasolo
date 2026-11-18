@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FreeLimitError } from "@/lib/freeLimit";
 import { createContract } from "@/lib/financeStore";
 import { requirePaidOwner, NO_STORE } from "@/lib/ownerAuth";
 import { parseContractInput } from "@/lib/contractValidate";
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
     const contract = await createContract(auth.tenant.id, input);
     return NextResponse.json({ ok: true, contract }, { headers: NO_STORE });
   } catch (e) {
+    if (e instanceof FreeLimitError) return NextResponse.json({ ok: false, error: e.message, limit: true }, { status: 402, headers: NO_STORE });
     console.error("contratos POST:", e);
     return NextResponse.json({ ok: false, error: "Não foi possível salvar." }, { status: 500 });
   }
