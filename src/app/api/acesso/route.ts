@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     ? await getTenantByToken(token)
     : null;
 
-  const res = NextResponse.redirect(new URL(tenant ? "/dashboard" : "/criar", url.origin));
+  const res = NextResponse.redirect(new URL(tenant ? "/dashboard" : "/entrar", url.origin));
   res.headers.set("Referrer-Policy", "no-referrer");
   if (tenant) {
     (await cookies()).set(EDIT_COOKIE, token, editCookieOptions);

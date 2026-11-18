@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listPublishedTenants } from "@/lib/tenantStore";
 import { Reveal } from "@/components/Reveal";
 import { AuthNav } from "@/components/AuthNav";
+import { WaitlistButton } from "@/components/WaitlistButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
   ArrowRight,
@@ -155,18 +156,18 @@ export default async function Home() {
           />
         </div>
 
+        <div className="relative z-10 bg-[#3b82f6]/20 px-4 py-2 text-center text-sm font-bold text-[#a5f3fc]">
+          Lançamento dia 25 de novembro. Entre na lista de espera e avisamos você.
+        </div>
         <header className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
           <Link href="/" aria-label="autonomIA">
             <BrandLogo size={40} className="text-2xl" />
           </Link>
           <div className="flex items-center gap-2">
             <AuthNav className="rounded-full px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:text-white" />
-            <Link
-              href="/criar"
-              className="glass rounded-full px-5 py-2.5 text-sm font-bold transition hover:bg-white/15"
-            >
-              Começar agora
-            </Link>
+            <WaitlistButton className="glass rounded-full px-5 py-2.5 text-sm font-bold transition hover:bg-white/15">
+              Lista de espera
+            </WaitlistButton>
           </div>
         </header>
 
@@ -200,13 +201,10 @@ export default async function Home() {
               className="animate-fade-up mt-9 flex flex-col items-center gap-4 sm:flex-row lg:justify-start justify-center"
               style={{ animationDelay: "360ms" }}
             >
-              <Link
-                href="/criar"
-                className="btn-shine group inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.03] sm:w-auto"
-              >
-                Começar agora
+              <WaitlistButton className="btn-shine group inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.03] sm:w-auto">
+                Entrar na lista de espera
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-              </Link>
+              </WaitlistButton>
               <Link
                 href="/climatizacao-pantanal"
                 className="text-sm font-semibold text-slate-300 underline underline-offset-4 hover:text-white"
@@ -537,12 +535,9 @@ export default async function Home() {
               <p className="mt-2 flex-1 text-sm text-slate-400">
                 Menos que uma pizza. Se paga no primeiro serviço que você não esquecer de cobrar.
               </p>
-              <Link
-                href="/criar"
-                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-8 py-4 font-extrabold transition hover:bg-white/10"
-              >
-                Começar agora
-              </Link>
+              <WaitlistButton className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-8 py-4 font-extrabold transition hover:bg-white/10">
+                Entrar na lista de espera
+              </WaitlistButton>
             </div>
           </Reveal>
 
@@ -565,13 +560,10 @@ export default async function Home() {
                   Equivale a <strong className="text-white">{brl(ANNUAL_PER_MONTH)}/mês</strong>: o melhor preço para quem já
                   sabe que vai usar.
                 </p>
-                <Link
-                  href="/criar"
-                  className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#3b82f6]/30 transition hover:scale-[1.02]"
-                >
-                  Começar agora
+                <WaitlistButton className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#3b82f6]/30 transition hover:scale-[1.02]">
+                  Entrar na lista de espera
                   <Rocket className="h-5 w-5" />
-                </Link>
+                </WaitlistButton>
               </div>
             </div>
           </Reveal>
@@ -656,13 +648,10 @@ export default async function Home() {
             Chega de papelada, caderno e cobrança no zap.{" "}
             <span className="text-gradient">Deixe a autonomIA cuidar disso.</span>
           </h2>
-          <Link
-            href="/criar"
-            className="btn-shine mt-9 inline-flex items-center gap-2 rounded-2xl px-9 py-4 text-lg font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.04]"
-          >
-            Começar agora
+          <WaitlistButton className="btn-shine mt-9 inline-flex items-center gap-2 rounded-2xl px-9 py-4 text-lg font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.04]">
+            Entrar na lista de espera
             <ArrowRight className="h-5 w-5" />
-          </Link>
+          </WaitlistButton>
         </Reveal>
       </section>
 
