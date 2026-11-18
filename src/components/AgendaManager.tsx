@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CalendarPlus, Check, Clock, Loader2, MapPin, Mail, MessageCircle, Phone, RotateCcw, Trash2, X } from "lucide-react";
+import { AlertTriangle, CalendarPlus, Check, ChevronLeft, ChevronRight, Clock, Loader2, MapPin, Mail, MessageCircle, Phone, RotateCcw, Trash2, X } from "lucide-react";
 import type { TenantRow } from "@/types/database.types";
 import type { AppointmentRow } from "@/types/finance";
 import { formatDateBR, whatsappLink } from "@/lib/quoteUi";
@@ -25,6 +25,20 @@ const weekday = (iso: string) =>
 const hhmm = (t: string | null) => (t ? t.slice(0, 5) : "");
 const first = (n: string) => n.trim().split(/\s+/)[0] || n;
 
+type View = "dia" | "semana" | "mes";
+const WEEK_SHORT = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+// 0 = segunda ... 6 = domingo
+const dow = (iso: string) => (new Date(`${iso}T12:00:00`).getDay() + 6) % 7;
+const weekStart = (iso: string) => addDays(iso, -dow(iso));
+const monthStart = (iso: string) => iso.slice(0, 8) + "01";
+const addMonths = (iso: string, n: number) => {
+  const d = new Date(`${monthStart(iso)}T12:00:00`);
+  d.setMonth(d.getMonth() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+};
+const shortDay = (iso: string) => formatDateBR(iso).slice(0, 5);
+
 function dayTitle(iso: string, today: string) {
   if (iso === today) return "Hoje";
   if (iso === addDays(today, 1)) return "Amanhã";
@@ -42,6 +56,8 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
   const [prefill, setPrefill] = useState<string>("");
   const [initialDay, setInitialDay] = useState<string>("");
   const [msg, setMsg] = useState("");
+  const [view, setView] = useState<View>("dia");
+  const [cursor, setCursor] = useState("");
 
   const flash = (t: string) => {
     setMsg(t);
@@ -53,6 +69,7 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
     const d = await res.json().catch(() => ({}));
     if (res.ok && d.ok) {
       setToday(d.today);
+      setCursor((c) => c || d.today);
       setItems(d.appointments);
       setContracts(d.contracts);
       setEmail(d.email);
@@ -66,7 +83,12 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
     const q = new URLSearchParams(window.location.search);
     if (q.get("novo")) setAdding(true);
     if (q.get("contrato")) setPrefill(q.get("contrato")!);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(q.get("dia") || "")) setInitialDay(q.get("dia")!);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(q.get("dia") || "")) {
+      setInitialDay(q.get("dia")!);
+      setCursor(q.get("dia")!);
+    }
+    // Em tela grande, começa pela semana; no celular, pelo dia.
+    else if (window.innerWidth >= 1024) setView("semana");
   }, [load]);
 
   const groups = useMemo(() => {
@@ -117,7 +139,6 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
       </p>
     );
 
-  const todayCount = items.filter((a) => a.status === "scheduled" && a.starts_on === today).length;
 
   return (
     <div className="space-y-5">
@@ -172,19 +193,52 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
         </Section>
       )}
 
-      {groups.byDay.length === 0 && groups.late.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-white/15 bg-[#0f172a] p-8 text-center text-sm text-slate-400">
-          Nenhum serviço marcado. Quando combinar um dia com o cliente, marque aqui e você recebe o aviso no dia.
-        </p>
+      <ViewBar
+        view={view}
+        cursor={cursor || today}
+        today={today}
+        onView={setView}
+        onCursor={setCursor}
+      />
+
+      {view === "dia" && (
+        <DayView
+          day={cursor || today}
+          today={today}
+          list={items.filter((a) => a.status === "scheduled" && a.starts_on === (cursor || today))}
+          empty={groups.byDay.length === 0 && groups.late.length === 0}
+          render={(a) => <Card key={a.id} a={a} tenant={tenant} today={today} conflict={conflicts.has(a.id)} onUpdate={update} onRemove={remove} />}
+          onNext={() => {
+            const n = groups.byDay.find(([d]) => d > (cursor || today));
+            if (n) setCursor(n[0]);
+          }}
+          hasNext={groups.byDay.some(([d]) => d > (cursor || today))}
+        />
       )}
 
-      {groups.byDay.map(([day, list]) => (
-        <Section key={day} title={dayTitle(day, today)} badge={day === today ? todayCount : undefined}>
-          {list.map((a) => (
-            <Card key={a.id} a={a} tenant={tenant} today={today} conflict={conflicts.has(a.id)} onUpdate={update} onRemove={remove} />
-          ))}
-        </Section>
-      ))}
+      {view === "semana" && (
+        <WeekView
+          start={weekStart(cursor || today)}
+          today={today}
+          items={items.filter((a) => a.status === "scheduled")}
+          onPick={(d) => {
+            setCursor(d);
+            setView("dia");
+          }}
+        />
+      )}
+
+      {view === "mes" && (
+        <MonthView
+          month={monthStart(cursor || today)}
+          today={today}
+          items={items.filter((a) => a.status === "scheduled")}
+          onPick={(d) => {
+            setCursor(d);
+            setView("dia");
+          }}
+        />
+      )}
 
       {groups.done.length > 0 && (
         <details className="rounded-2xl border border-white/10 bg-[#0f172a] p-4">
@@ -203,6 +257,160 @@ export function AgendaManager({ tenant }: { tenant: TenantRow }) {
           </div>
         </details>
       )}
+    </div>
+  );
+}
+
+function ViewBar({
+  view, cursor, today, onView, onCursor,
+}: {
+  view: View;
+  cursor: string;
+  today: string;
+  onView: (v: View) => void;
+  onCursor: (d: string) => void;
+}) {
+  const step = (dir: 1 | -1) => {
+    if (view === "dia") onCursor(addDays(cursor, dir));
+    else if (view === "semana") onCursor(addDays(cursor, 7 * dir));
+    else onCursor(addMonths(cursor, dir));
+  };
+  let label: string;
+  if (view === "dia") label = dayTitle(cursor, today);
+  else if (view === "semana") {
+    const a = weekStart(cursor);
+    label = `${shortDay(a)} a ${shortDay(addDays(a, 6))}`;
+  } else label = `${MONTHS[Number(cursor.slice(5, 7)) - 1]} de ${cursor.slice(0, 4)}`;
+  const isNow = view === "dia" ? cursor === today : view === "semana" ? weekStart(cursor) === weekStart(today) : monthStart(cursor) === monthStart(today);
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-[#0f172a] p-1">
+        {(["dia", "semana", "mes"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => onView(v)}
+            className={`min-h-11 rounded-lg text-sm font-bold capitalize ${view === v ? "btn-shine text-white" : "text-slate-300 hover:bg-white/10"}`}
+          >
+            {v === "mes" ? "Mês" : v === "dia" ? "Dia" : "Semana"}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button onClick={() => step(-1)} aria-label="Anterior" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/15 bg-[#0f172a] text-slate-200 hover:bg-white/10">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <p className="min-w-0 flex-1 truncate text-center text-base font-bold capitalize text-white">{label}</p>
+        <button onClick={() => step(1)} aria-label="Próximo" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/15 bg-[#0f172a] text-slate-200 hover:bg-white/10">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+      {!isNow && (
+        <button onClick={() => onCursor(today)} className="w-full rounded-xl border border-white/15 bg-[#0f172a] py-2.5 text-sm font-bold text-[#67e8f9] hover:bg-white/10">
+          Voltar para hoje
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DayView({
+  day, today, list, empty, render, onNext, hasNext,
+}: {
+  day: string;
+  today: string;
+  list: AppointmentRow[];
+  empty: boolean;
+  render: (a: AppointmentRow) => React.ReactNode;
+  onNext: () => void;
+  hasNext: boolean;
+}) {
+  if (list.length === 0)
+    return (
+      <div className="space-y-3 rounded-2xl border border-dashed border-white/15 bg-[#0f172a] p-6 text-center">
+        <p className="text-sm text-slate-300">
+          {empty
+            ? "Nenhum serviço marcado. Quando combinar um dia com o cliente, marque aqui e você recebe o aviso no dia."
+            : day === today
+              ? "Nada marcado para hoje. Dia livre!"
+              : "Nada marcado para este dia."}
+        </p>
+        {hasNext && (
+          <button onClick={onNext} className="rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold text-[#67e8f9] hover:bg-white/10">
+            Ir para o próximo dia com serviço
+          </button>
+        )}
+      </div>
+    );
+  return <div className="space-y-2">{list.map(render)}</div>;
+}
+
+function WeekView({ start, today, items, onPick }: { start: string; today: string; items: AppointmentRow[]; onPick: (d: string) => void }) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  return (
+    <div className="space-y-2">
+      {days.map((d, i) => {
+        const list = items.filter((a) => a.starts_on === d);
+        return (
+          <button
+            key={d}
+            onClick={() => onPick(d)}
+            className={`flex w-full items-start gap-3 rounded-2xl border bg-[#0f172a] p-3 text-left hover:bg-white/5 ${d === today ? "border-[#67e8f9]/60" : "border-white/10"}`}
+          >
+            <div className="w-12 shrink-0 text-center">
+              <p className="text-xs font-bold uppercase text-slate-400">{WEEK_SHORT[i]}</p>
+              <p className={`text-lg font-bold ${d === today ? "text-[#67e8f9]" : "text-white"}`}>{d.slice(8, 10)}</p>
+            </div>
+            <div className="min-w-0 flex-1 space-y-1">
+              {list.length === 0 ? (
+                <p className="pt-2 text-sm text-slate-500">Livre</p>
+              ) : (
+                list.map((a) => (
+                  <p key={a.id} className="truncate text-sm text-slate-200">
+                    <span className="font-bold text-white">{a.start_time ? hhmm(a.start_time) : "—"}</span> {a.customer_name}
+                    <span className="text-slate-400"> · {a.title}</span>
+                  </p>
+                ))
+              )}
+            </div>
+            {list.length > 0 && <span className="rounded-full btn-shine px-2 py-0.5 text-xs font-bold text-white">{list.length}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MonthView({ month, today, items, onPick }: { month: string; today: string; items: AppointmentRow[]; onPick: (d: string) => void }) {
+  const lead = dow(month);
+  const total = new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate();
+  const cells: (string | null)[] = [...Array(lead).fill(null), ...Array.from({ length: total }, (_, i) => month.slice(0, 8) + String(i + 1).padStart(2, "0"))];
+  const count = new Map<string, number>();
+  for (const a of items) count.set(a.starts_on, (count.get(a.starts_on) || 0) + 1);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0f172a] p-2">
+      <div className="grid grid-cols-7 pb-1 text-center text-[11px] font-bold uppercase text-slate-400">
+        {WEEK_SHORT.map((w) => (
+          <span key={w}>{w}</span>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((d, i) =>
+          d ? (
+            <button
+              key={d}
+              onClick={() => onPick(d)}
+              className={`flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-bold hover:bg-white/10 ${d === today ? "border border-[#67e8f9] text-[#67e8f9]" : "text-white"}`}
+            >
+              {Number(d.slice(8, 10))}
+              {count.get(d) ? <span className="mt-0.5 rounded-full btn-shine px-1.5 text-[10px] leading-4 text-white">{count.get(d)}</span> : <span className="h-4" />}
+            </button>
+          ) : (
+            <span key={`e${i}`} />
+          )
+        )}
+      </div>
     </div>
   );
 }
