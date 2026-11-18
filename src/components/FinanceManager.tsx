@@ -108,6 +108,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [quoting, setQuoting] = useState(false);
+  const [pixOpen, setPixOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState<QuoteRow | null>(null);
   const [initialQuote, setInitialQuote] = useState("");
   const [filter, setFilter] = useState<"open" | "all">("open");
@@ -132,6 +133,12 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
     }
     if (qres.ok && qdata.ok) setAllQuotes(qdata.quotes as QuoteRow[]);
     setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const open = () => setPixOpen(true);
+    window.addEventListener("open-pix", open);
+    return () => window.removeEventListener("open-pix", open);
   }, []);
 
   useEffect(() => {
@@ -318,7 +325,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
         </a>
       )}
       {!focusId && (<>
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <section className={`grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 ${contracts.length === 0 ? "hidden" : ""}`}>
         {tiles.map((t) => (
           <div key={t.label} className="rounded-2xl border border-white/10 bg-[#0a0e17] p-3.5">
             <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -335,7 +342,7 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
         </p>
       )}
 
-      <ol className="grid gap-2 text-sm sm:grid-cols-3">
+      <ol className={`grid gap-2 text-sm sm:grid-cols-3 ${contracts.length + allQuotes.length > 0 ? "hidden" : ""}`}>
         {[
           ["1", "Faça o orçamento", "e mande pelo WhatsApp"],
           ["2", "Cliente aprovou?", "faça o contrato com um toque"],
@@ -349,7 +356,17 @@ export function FinanceManager({ tenant, focusId }: { tenant: TenantRow; focusId
       </ol>
       </>)}
 
-      {!pix.pix_key && <PixCard pix={pix} onSaved={(p) => { setPix(p); flash("Pix salvo."); }} />}
+      {!pix.pix_key && (pixOpen ? (
+        <PixCard pix={pix} onSaved={(p) => { setPix(p); setPixOpen(false); flash("Pix salvo."); }} />
+      ) : (
+        <button
+          onClick={() => setPixOpen(true)}
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-left text-sm"
+        >
+          <span><b className="block">Cadastre sua chave Pix para cobrar</b><span className="text-slate-300">Leva 1 minuto. Sem isso o cliente não tem para onde pagar.</span></span>
+          <span className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-extrabold text-zinc-950">Cadastrar</span>
+        </button>
+      ))}
 
       {creating ? (
         <ContractForm
@@ -685,7 +702,7 @@ function NextStep({
     text = "Sem ela o cliente não tem para onde pagar. Leva 1 minuto.";
     action = (
       <button
-        onClick={() => document.getElementById("pix-card")?.scrollIntoView({ behavior: "smooth", block: "center" })}
+        onClick={() => { window.dispatchEvent(new Event("open-pix")); setTimeout(() => document.getElementById("pix-card")?.scrollIntoView({ behavior: "smooth", block: "center" }), 80); }}
         className={`${btn} bg-amber-400 text-zinc-950 hover:bg-amber-300`}
       >
         Cadastrar chave Pix

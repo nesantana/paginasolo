@@ -577,25 +577,6 @@ export function TodayAgenda({ tenant }: { tenant: TenantRow }) {
       {calendar}
       {dayPanel}
 
-      {steps.length > 0 && (
-        <section className="space-y-2 rounded-3xl border border-[#3b82f6]/40 bg-[#3b82f6]/10 p-5">
-          <h2 className="text-sm font-extrabold uppercase tracking-wider text-[#a5f3fc]">Próximos passos</h2>
-          <ul className="space-y-2">
-            {steps.map((s) => (
-              <li key={s.key} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#0a0e17] px-4 py-3">
-                <span className="flex items-center gap-3 text-sm">
-                  <s.icon className="h-5 w-5 shrink-0 text-[#67e8f9]" />
-                  <span className="text-slate-200">{s.text}</span>
-                </span>
-                <Link href={s.href} className="inline-flex items-center gap-1.5 rounded-lg btn-shine px-3.5 py-2 text-xs font-extrabold text-white hover:brightness-110">
-                  {s.cta} <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       {money.open > 0 && (
         <Link href="/dashboard/financeiro" className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0f172a] px-5 py-4 hover:border-[#3b82f6]/50">
           <span className="flex items-center gap-3 text-sm">

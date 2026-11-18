@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { SiteExtras } from "@/components/SiteExtras";
-import { OwnerShortcuts, OwnerFollowup } from "@/components/OwnerTools";
+import { OwnerShortcuts } from "@/components/OwnerTools";
+import { TodoNow } from "@/components/TodoNow";
 import { TodayAgenda } from "@/components/TodayAgenda";
 import { AssistantCard, AssistantChat } from "@/components/AssistantChat";
 import type { TenantRow, TenantServiceItem } from "@/types/database.types";
@@ -224,12 +225,14 @@ export default function ClientDashboardPage() {
             {/* 1. Pedir ao assistente */}
             <AssistantCard paid={paid} />
 
-            {/* 2. Menu principal */}
+            {/* 2. O que precisa de você agora */}
+            {paid && <TodoNow key={`todo-${tenant.id}`} />}
+
+            {/* 3. Menu principal */}
             <OwnerShortcuts paid={paid} />
 
-            {/* 3. Agenda e quem chamar de volta */}
+            {/* 4. Agenda */}
             <TodayAgenda key={`agenda-${tenant.id}`} tenant={tenant} />
-            <OwnerFollowup key={tenant.id} tenant={tenant} paid={paid} />
 
             {/* 3. Meu site, em um cartão curto */}
             <div className="rounded-3xl bg-[#0f172a] border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
