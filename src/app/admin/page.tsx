@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Crown, ExternalLink, Loader2, LogOut, Search, TrendingUp } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AdminAffiliates } from "@/components/AdminAffiliates";
+import { AdminWaitlist } from "@/components/AdminWaitlist";
 
 type Row = {
   id: string;
@@ -61,7 +62,7 @@ export default function AdminPage() {
   const [note, setNote] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
-  const [tab, setTab] = useState<"sites" | "afiliados">("sites");
+  const [tab, setTab] = useState<"sites" | "afiliados" | "espera">("sites");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/tenants", { cache: "no-store" });
@@ -151,7 +152,7 @@ export default function AdminPage() {
         {toast && <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-3 text-sm font-bold text-emerald-200">{toast}</div>}
 
         <nav className="flex gap-1.5" aria-label="Seções">
-          {([["sites", "Sites"], ["afiliados", "Afiliados"]] as const).map(([k, l]) => (
+          {([["sites", "Sites"], ["afiliados", "Afiliados"], ["espera", "Lista de espera"]] as const).map(([k, l]) => (
             <button
               key={k}
               onClick={() => setTab(k)}
@@ -162,6 +163,7 @@ export default function AdminPage() {
           ))}
         </nav>
 
+        {tab === "espera" && <AdminWaitlist onToast={(m) => { setToast(m); setTimeout(() => setToast(""), 3500); }} />}
         {tab === "afiliados" && <AdminAffiliates onToast={(m) => { setToast(m); setTimeout(() => setToast(""), 3500); }} />}
 
         <section className={`grid grid-cols-2 gap-3 lg:grid-cols-5 ${tab === "sites" ? "" : "hidden"}`}>
