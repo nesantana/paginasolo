@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, Loader2, Lock, MessageCircle, Send, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Check, Loader2, Lock, MessageCircle, Mic, Send, Sparkles, X } from "lucide-react";
 import { PublishButton } from "@/components/PublishButton";
 
 type Proposal = {
@@ -108,6 +108,13 @@ export function AssistantCard({ paid }: { paid: boolean }) {
 export function AssistantChat({ paid }: { paid: boolean }) {
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [rec, setRec] = useState<"idle" | "recording" | "sending">("idle");
+  const [secs, setSecs] = useState(0);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<Blob[]>([]);
+  const stream = useRef<MediaStream | null>(null);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopRef = useRef<() => void>(() => {});
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
@@ -137,6 +144,86 @@ export function AssistantChat({ paid }: { paid: boolean }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, paid]);
+
+  function say(content: string) {
+    setMsgs((cur) => [...cur, { role: "assistant", content }]);
+  }
+
+  function releaseMic() {
+    if (timer.current) clearInterval(timer.current);
+    timer.current = null;
+    stream.current?.getTracks().forEach((t) => t.stop());
+    stream.current = null;
+  }
+
+  async function startRec() {
+    if (busy || rec !== "idle") return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      return say("Este aparelho não deixa gravar áudio aqui. Escreva a mensagem.");
+    }
+    try {
+      const st = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg"].find((t) => MediaRecorder.isTypeSupported(t));
+      const mr = new MediaRecorder(st, mime ? { mimeType: mime } : undefined);
+      chunks.current = [];
+      mr.ondataavailable = (e) => e.data.size > 0 && chunks.current.push(e.data);
+      mr.start();
+      stream.current = st;
+      recorder.current = mr;
+      setSecs(0);
+      setRec("recording");
+      timer.current = setInterval(() => {
+        setSecs((n) => {
+          if (n >= 119) stopRef.current();
+          return n + 1;
+        });
+      }, 1000);
+    } catch {
+      say("Não consegui usar o microfone. Permita o microfone para este site nas configurações do navegador e tente de novo.");
+    }
+  }
+
+  function cancelRec() {
+    const mr = recorder.current;
+    if (mr) {
+      mr.onstop = null;
+      if (mr.state !== "inactive") mr.stop();
+    }
+    recorder.current = null;
+    releaseMic();
+    setRec("idle");
+  }
+
+  async function stopRec() {
+    const mr = recorder.current;
+    if (!mr || mr.state === "inactive") return;
+    recorder.current = null;
+    setRec("sending");
+    const blob = await new Promise<Blob>((resolve) => {
+      mr.onstop = () => resolve(new Blob(chunks.current, { type: mr.mimeType || "audio/webm" }));
+      mr.stop();
+    });
+    releaseMic();
+    if (blob.size < 2000) {
+      setRec("idle");
+      return say("Não ouvi nada. Segure o celular perto da boca e grave de novo.");
+    }
+    try {
+      const fd = new FormData();
+      fd.append("audio", blob, "audio");
+      const res = await fetch("/api/assistente/audio", { method: "POST", body: fd });
+      const d = await res.json().catch(() => ({}));
+      setRec("idle");
+      if (res.ok && d.ok && d.text) await send(d.text);
+      else say(d.error || "Não consegui entender o áudio. Tente de novo ou escreva.");
+    } catch {
+      setRec("idle");
+      say("Sem conexão. Tente de novo.");
+    }
+  }
+  stopRef.current = () => void stopRec();
+
+  useEffect(() => () => cancelRec(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function send(raw: string) {
     const content = raw.trim();
@@ -387,21 +474,42 @@ export function AssistantChat({ paid }: { paid: boolean }) {
                 className="flex items-center gap-2 border-t border-white/10 bg-[#0f172a] p-3 sm:rounded-b-3xl"
                 style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
               >
-                <input
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Escreva aqui..."
-                  maxLength={1000}
-                  className="min-w-0 flex-1 rounded-xl border border-white/15 bg-[#0a0e17] px-4 py-3 text-base text-white placeholder:text-slate-500"
-                />
-                <button
-                  type="submit"
-                  disabled={busy || !text.trim()}
-                  aria-label="Enviar"
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl btn-shine text-white disabled:opacity-50"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
+                {rec === "idle" ? (
+                  <input
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Escreva ou grave um áudio..."
+                    maxLength={1000}
+                    className="min-w-0 flex-1 rounded-xl border border-white/15 bg-[#0a0e17] px-4 py-3 text-base text-white placeholder:text-slate-500"
+                  />
+                ) : rec === "recording" ? (
+                  <>
+                    <button type="button" onClick={cancelRec} aria-label="Cancelar gravação" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/15 text-slate-300 hover:bg-white/10">
+                      <X className="h-5 w-5" />
+                    </button>
+                    <p className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-base font-bold text-red-200">
+                      <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-red-400" />
+                      Gravando {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")}
+                    </p>
+                  </>
+                ) : (
+                  <p className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/15 bg-[#0a0e17] px-4 py-3 text-base text-slate-300">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Entendendo seu áudio...
+                  </p>
+                )}
+                {rec === "recording" ? (
+                  <button type="button" onClick={() => void stopRec()} aria-label="Enviar áudio" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-zinc-950">
+                    <Send className="h-5 w-5" />
+                  </button>
+                ) : rec === "idle" && !text.trim() ? (
+                  <button type="button" onClick={() => void startRec()} disabled={busy} aria-label="Gravar áudio" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl btn-shine text-white disabled:opacity-50">
+                    <Mic className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <button type="submit" disabled={busy || rec !== "idle" || !text.trim()} aria-label="Enviar" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl btn-shine text-white disabled:opacity-50">
+                    <Send className="h-5 w-5" />
+                  </button>
+                )}
               </form>
             </>
           )}
