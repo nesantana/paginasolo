@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Loader2, Mail } from "lucide-react";
-import { WaitlistButton } from "@/components/WaitlistButton";
 import { BrandLogo } from "@/components/BrandLogo";
 
 export default function EntrarPage() {
@@ -92,10 +91,10 @@ export default function EntrarPage() {
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-400">
-          Ainda não tem acesso? Abrimos dia 25 de novembro.{" "}
-          <WaitlistButton className="font-bold text-[#67e8f9] underline underline-offset-4">
-            Entrar na lista de espera
-          </WaitlistButton>
+          Ainda não tem site?{" "}
+          <Link href="/criar" className="font-bold text-[#67e8f9] underline underline-offset-4">
+            Criar agora
+          </Link>
         </p>
       </div>
     </div>

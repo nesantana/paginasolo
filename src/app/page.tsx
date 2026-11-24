@@ -2,7 +2,6 @@ import Link from "next/link";
 import { listPublishedTenants } from "@/lib/tenantStore";
 import { Reveal } from "@/components/Reveal";
 import { AuthNav } from "@/components/AuthNav";
-import { WaitlistButton } from "@/components/WaitlistButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
   ArrowRight,
@@ -20,6 +19,7 @@ import {
   Mail,
   MessageCircle,
   MessageSquare,
+  Mic,
   Paintbrush,
   ClipboardList,
   QrCode,
@@ -32,6 +32,14 @@ import {
 } from "lucide-react";
 
 import { DEFAULT_RATE } from "@/lib/affiliateRules";
+import {
+  ANNUAL_MAX_INSTALLMENTS,
+  ANNUAL_PER_MONTH,
+  ANNUAL_SAVINGS_PERCENT,
+  PLAN_PRICES,
+  brl,
+  brlShort,
+} from "@/lib/plans";
 
 export const revalidate = 300;
 
@@ -148,18 +156,23 @@ export default async function Home() {
           />
         </div>
 
-        <div className="relative z-10 bg-[#3b82f6]/20 px-4 py-2 text-center text-sm font-bold text-[#a5f3fc]">
-          Lançamento dia 25 de novembro. Entre na lista de espera e avisamos você.
-        </div>
-        <header className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
-          <Link href="/" aria-label="autonomIA">
-            <BrandLogo size={40} className="text-2xl" />
+        <header className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-3 px-4 sm:px-5">
+          <Link href="/" aria-label="autonomIA" className="shrink-0">
+            <BrandLogo size={36} className="text-xl sm:text-2xl" />
           </Link>
           <div className="flex items-center gap-2">
-            <AuthNav className="rounded-full px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:text-white" />
-            <WaitlistButton className="glass rounded-full px-5 py-2.5 text-sm font-bold transition hover:bg-white/15">
-              Lista de espera
-            </WaitlistButton>
+            <AuthNav
+              manageLabel="Meu painel"
+              showLogout={false}
+              className="inline-flex min-h-11 items-center rounded-full border border-white/30 bg-white/10 px-4 text-sm font-extrabold text-white transition hover:bg-white/20"
+            />
+            <Link
+              href="/criar"
+              className="btn-shine inline-flex min-h-11 items-center rounded-full px-4 text-sm font-extrabold shadow-lg shadow-[#3b82f6]/30 sm:px-5"
+            >
+              <span className="sm:hidden">Começar</span>
+              <span className="hidden sm:inline">Começar agora</span>
+            </Link>
           </div>
         </header>
 
@@ -184,7 +197,7 @@ export default async function Home() {
               className="animate-fade-up mx-auto mt-6 max-w-xl text-lg text-slate-300 lg:mx-0"
               style={{ animationDelay: "240ms" }}
             >
-              Eletricista, diarista, pintor, mestre de obras: fale com a autonomIA como falaria com um colega. Ela
+              Eletricista, diarista, pintor, mestre de obras: fale com a autonomIA como falaria com um colega: escreva ou mande um áudio. Ela
               anota a visita, monta o orçamento, gera o contrato, marca o dia na agenda e cobra por Pix. Você só
               confirma e vai trabalhar.
             </p>
@@ -193,10 +206,13 @@ export default async function Home() {
               className="animate-fade-up mt-9 flex flex-col items-center gap-4 sm:flex-row lg:justify-start justify-center"
               style={{ animationDelay: "360ms" }}
             >
-              <WaitlistButton className="btn-shine group inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.03] sm:w-auto">
-                Entrar na lista de espera
+              <Link
+                href="/criar"
+                className="btn-shine group inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.03] sm:w-auto"
+              >
+                Começar agora
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-              </WaitlistButton>
+              </Link>
               <Link
                 href="/climatizacao-pantanal"
                 className="text-sm font-semibold text-slate-300 underline underline-offset-4 hover:text-white"
@@ -209,7 +225,7 @@ export default async function Home() {
               className="animate-fade-up mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-400 lg:justify-start"
               style={{ animationDelay: "480ms" }}
             >
-              {["Comece em 10 minutos", "Abre dia 25 de novembro"].map((t) => (
+              {["Comece em 10 minutos", "Grátis até 10 clientes", `Depois, a partir de ${brlShort(PLAN_PRICES.monthly)}/mês`].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-emerald-400" />
                   {t}
@@ -402,6 +418,18 @@ export default async function Home() {
         </Reveal>
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
+          <Reveal className="md:col-span-3">
+            <div className="relative h-full overflow-hidden rounded-3xl border border-[#8b5cf6]/40 bg-gradient-to-br from-[#1e1b4b] via-[#0f172a] to-[#0c4a6e] p-8">
+              <div className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-[#8b5cf6]/30 blur-3xl" />
+              <Mic className="relative h-8 w-8 text-[#67e8f9]" />
+              <h3 className="relative mt-5 text-2xl font-extrabold">Mande um áudio, a IA faz o resto</h3>
+              <p className="relative mt-2 max-w-2xl text-slate-300">
+                Sem tempo de digitar? Aperte o microfone e fale: &ldquo;orçamento para a Ana, instalação de ar, 450
+                reais&rdquo;. A autonomIA entende, monta o orçamento e você só confirma.
+              </p>
+            </div>
+          </Reveal>
+
           <Reveal className="md:col-span-2">
             <div className="glass relative h-full overflow-hidden rounded-3xl p-8">
               <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#3b82f6]/25 blur-3xl" />
@@ -479,7 +507,97 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Preços escondidos até o lançamento (dia 25). A seção fica no histórico do git. */}
+      {/* ===== PREÇO ===== */}
+      <section id="planos" className="mx-auto max-w-5xl px-5 pb-24">
+        <Reveal className="text-center">
+          <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Planos</p>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Escolha como <span className="text-gradient">pagar</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-slate-300">
+            Comece grátis: todas as ferramentas liberadas para até 10 clientes. Depois, escolha como pagar. Seu site é grátis sempre.
+          </p>
+        </Reveal>
+
+        <Reveal>
+          <ul className="mx-auto mt-10 grid max-w-3xl gap-x-8 gap-y-3 sm:grid-cols-2">
+            {[
+              "autonomIA, a assistente: orçamento, contrato e agenda por mensagem",
+              "Visita técnica: anote no cliente e vire orçamento",
+              "Agenda com aviso por e-mail",
+              "Contratos aceitos pelo celular",
+              "Pix com QR Code e controle de pagamentos",
+              "Orçamentos e lembrete para chamar de volta",
+              "Seu site profissional no Google",
+              "Página de links e cartaz com QR",
+            ].map((f) => (
+              <li key={f} className="flex items-center gap-3 text-sm text-slate-200 sm:text-base">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                </span>
+                {f}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
+        <div className="mx-auto mt-12 grid max-w-3xl items-stretch gap-5 md:grid-cols-2">
+          <Reveal>
+            <div className="glass flex h-full flex-col rounded-[2rem] p-8">
+              <p className="text-sm font-bold uppercase tracking-wider text-slate-400">Mensal</p>
+              <p className="mt-3 text-6xl font-extrabold tracking-tight">
+                {brlShort(PLAN_PRICES.monthly)}
+                <span className="text-xl font-semibold text-slate-400">/mês</span>
+              </p>
+              <p className="mt-3 flex items-center gap-2 text-slate-300">
+                <QrCode className="h-5 w-5 text-[#67e8f9]" /> Pix todo mês
+              </p>
+              <p className="mt-2 flex-1 text-sm text-slate-400">
+                Menos que uma pizza. Se paga no primeiro serviço que você não esquecer de cobrar.
+              </p>
+              <Link
+                href="/criar"
+                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-8 py-4 font-extrabold transition hover:bg-white/10"
+              >
+                Começar agora
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <div className="relative h-full overflow-hidden rounded-[2rem] p-px">
+              <div className="animate-spin-slow absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_70%,#3b82f6_85%,#8b5cf6_100%)]" />
+              <div className="relative flex h-full flex-col rounded-[calc(2rem-1px)] bg-[#0f172a] p-8">
+                <span className="btn-shine absolute right-5 top-5 rounded-full px-3 py-1 text-[11px] font-extrabold">
+                  Economize {ANNUAL_SAVINGS_PERCENT}%
+                </span>
+                <p className="text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Anual</p>
+                <p className="mt-3 text-6xl font-extrabold tracking-tight">
+                  {brlShort(PLAN_PRICES.annual)}
+                  <span className="text-xl font-semibold text-slate-400">/ano</span>
+                </p>
+                <p className="mt-3 flex items-center gap-2 text-slate-200">
+                  <CreditCard className="h-5 w-5 text-[#67e8f9]" /> Em até {ANNUAL_MAX_INSTALLMENTS}x no cartão
+                </p>
+                <p className="mt-2 flex-1 text-sm text-slate-300">
+                  Equivale a <strong className="text-white">{brl(ANNUAL_PER_MONTH)}/mês</strong>: o melhor preço para quem já
+                  sabe que vai usar.
+                </p>
+                <Link
+                  href="/criar"
+                  className="btn-shine mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 font-extrabold shadow-xl shadow-[#3b82f6]/30 transition hover:scale-[1.02]"
+                >
+                  Começar agora
+                  <Rocket className="h-5 w-5" />
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+        <p className="mt-6 text-center text-xs text-slate-400">
+          Travou em algum passo? Chame a gente no WhatsApp.
+        </p>
+      </section>
 
       {/* ===== INDIQUE E GANHE ===== */}
       <section className="mx-auto max-w-5xl px-5 pb-24">
@@ -556,10 +674,13 @@ export default async function Home() {
             Chega de papelada, caderno e cobrança no zap.{" "}
             <span className="text-gradient">Deixe a autonomIA cuidar disso.</span>
           </h2>
-          <WaitlistButton className="btn-shine mt-9 inline-flex items-center gap-2 rounded-2xl px-9 py-4 text-lg font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.04]">
-            Entrar na lista de espera
+          <Link
+            href="/criar"
+            className="btn-shine mt-9 inline-flex items-center gap-2 rounded-2xl px-9 py-4 text-lg font-extrabold shadow-2xl shadow-[#3b82f6]/30 transition hover:scale-[1.04]"
+          >
+            Começar agora
             <ArrowRight className="h-5 w-5" />
-          </WaitlistButton>
+          </Link>
         </Reveal>
       </section>
 
